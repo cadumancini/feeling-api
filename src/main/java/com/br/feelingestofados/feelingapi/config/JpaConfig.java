@@ -41,7 +41,6 @@ public class JpaConfig {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(getDataSource());
         sessionFactory.setHibernateProperties(hibernateProperties());
-        sessionFactory.setPackagesToScan("com.br.feelingestofados.feelingapi.entities");
         return sessionFactory;
     }
 
