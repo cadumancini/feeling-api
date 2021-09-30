@@ -1,7 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
 import org.hibernate.Criteria;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,22 +26,30 @@ public class DBQueriesService {
     }
 
     public String findEquivalentes(String modelo, String componente) throws JSONException {
-        String sql = "SELECT USU_CMPEQI, USU_DEREQI " +
-                       "FROM USU_T075EQI " +
-                      "WHERE USU_CODEMP = 1 " +
-                        "AND USU_CODMOD = '" + modelo + "' " +
-                        "AND USU_CODCMP = '" + componente + "'";
+        String sql = "SELECT A.USU_CMPEQI, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
+                       "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                      "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_CODEMP = 1 " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CODCMP = '" + componente + "' " +
+                        "AND C.CODDER <> 'G' " +
+                      "ORDER BY A.USU_CMPEQI, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
         JSONArray jsonArray = new JSONArray();
         for(Object item : results) {
             Map row = (Map)item;
             String cmpEqi = row.get("USU_CMPEQI").toString();
-            String derEqi = row.get("USU_DEREQI").toString();
+            String derEqi = row.get("CODDER").toString();
+            String dscEqi = row.get("DSCEQI").toString();
 
             JSONObject eqi = new JSONObject();
             eqi.put("cmpEqi", cmpEqi);
             eqi.put("derEqi", derEqi);
+            eqi.put("dscEqi", dscEqi);
             jsonArray.put(eqi);
         }
         JSONObject jsonObject = new JSONObject();
