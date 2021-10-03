@@ -1,13 +1,17 @@
 package com.br.feelingestofados.feelingapi.service;
 
-import org.hibernate.Session;
+import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class DBQueriesService {
@@ -21,11 +25,41 @@ public class DBQueriesService {
         this.sessionFactory = factory.unwrap(SessionFactory.class);
     }
 
-    public List findAll() {
-        String hql = "SELECT CODEMP, CODFIL, NOMFIL FROM E070FIL WHERE CODEMP > 0";
-        Session currentSession = sessionFactory.getCurrentSession();
-        Query query = currentSession.createSQLQuery(hql);
-        List results = query.list();
+    public String findEquivalentes(String modelo, String componente) throws JSONException {
+        String sql = "SELECT A.USU_CMPEQI, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
+                       "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                      "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_CODEMP = 1 " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CODCMP = '" + componente + "' " +
+                        "AND C.CODDER <> 'G' " +
+                      "ORDER BY A.USU_CMPEQI, C.CODDER";
+
+        List<Object> results = listResultsFromSql(sql);
+        JSONArray jsonArray = new JSONArray();
+        for(Object item : results) {
+            Map row = (Map)item;
+            String cmpEqi = row.get("USU_CMPEQI").toString();
+            String derEqi = row.get("CODDER").toString();
+            String dscEqi = row.get("DSCEQI").toString();
+
+            JSONObject eqi = new JSONObject();
+            eqi.put("cmpEqi", cmpEqi);
+            eqi.put("derEqi", derEqi);
+            eqi.put("dscEqi", dscEqi);
+            jsonArray.put(eqi);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("equivalentes", jsonArray);
+        return jsonObject.toString();
+    }
+
+    private List listResultsFromSql(String sql) {
+        Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
+        List results = query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
         return results;
     }
 }
