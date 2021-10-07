@@ -1,7 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
 import org.hibernate.Criteria;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
@@ -14,15 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class DBQueriesService {
-    private SessionFactory sessionFactory;
+public class DBQueriesService extends FeelingService{
 
-    @Autowired
     public DBQueriesService(EntityManagerFactory factory) {
-        if(factory.unwrap(SessionFactory.class) == null){
-            throw new NullPointerException("factory is not a hibernate factory");
-        }
-        this.sessionFactory = factory.unwrap(SessionFactory.class);
+        super(factory);
     }
 
     public String findEquivalentes(String modelo, String componente) throws JSONException {
@@ -59,7 +53,6 @@ public class DBQueriesService {
 
     private List listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
-        List results = query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
-        return results;
+        return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
     }
 }
