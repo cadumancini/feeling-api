@@ -15,7 +15,6 @@ import java.util.Map;
 @Component
 public class DBQueriesService extends FeelingService{
 
-    @Autowired
     public DBQueriesService(EntityManagerFactory factory) {
         super(factory);
     }
