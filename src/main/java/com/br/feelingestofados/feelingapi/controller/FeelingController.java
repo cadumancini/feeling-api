@@ -29,4 +29,10 @@ public class FeelingController {
                                @RequestParam String der, @RequestParam String ped, @RequestParam String ipd) throws IOException {
         return wsRequestsService.fetchEstrutura(emp, fil, pro, der, ped, ipd);
     }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public String performLogin(@RequestParam String user, @RequestParam String pswd) throws IOException {
+        return wsRequestsService.performLogin(user, pswd);
+    }
 }

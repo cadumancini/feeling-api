@@ -6,17 +6,18 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 public class SOAPClient {
-    private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Synccustomizado?wsdl";
+    private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+    private static final String wsUrlEnd = "?wsdl";
 
-    public static String requestFromSeniorWS(String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
+    public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
         String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
-        String response = postRequest(wsUrl, xmlBody);
+        String url = wsUrl + wsPath + wsUrlEnd;
+        String response = postRequest(url, xmlBody);
 
         return response;
     }
@@ -28,11 +29,15 @@ public class SOAPClient {
         xmlBuilder.append("<user>" + usr + "</user>");
         xmlBuilder.append("<password>" + pswd + "</password>");
         xmlBuilder.append("<encryption>" + encryption + "</encryption>");
-        xmlBuilder.append("<parameters>");
-        params.forEach((key, value) -> {
-            xmlBuilder.append("<" + key + ">" + value + "</" + key + ">");
-        });
-        xmlBuilder.append("</parameters>");
+        if(params.isEmpty()) {
+            xmlBuilder.append("<parameters/>");
+        } else {
+            xmlBuilder.append("<parameters>");
+            params.forEach((key, value) -> {
+                xmlBuilder.append("<" + key + ">" + value + "</" + key + ">");
+            });
+            xmlBuilder.append("</parameters>");
+        }
         xmlBuilder.append("</ser:" + service + ">");
         xmlBuilder.append("</soapenv:Body>");
         xmlBuilder.append("</soapenv:Envelope>");
