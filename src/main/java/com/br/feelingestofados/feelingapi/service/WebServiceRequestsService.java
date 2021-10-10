@@ -1,11 +1,14 @@
 package com.br.feelingestofados.feelingapi.service;
 
 import com.br.feelingestofados.feelingapi.soap.SOAPClient;
+import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 @Component
@@ -38,7 +41,12 @@ public class WebServiceRequestsService extends FeelingService{
 
         if(response.contains("Credenciais inválidas"))
             return "Credenciais inválidas";
-        else
-            return DigestUtils.sha256Hex(user + pswd);
+        else {
+            Date currentDateTime = Calendar.getInstance().getTime();
+            String hash = DigestUtils.sha256Hex(user + pswd + currentDateTime);
+            TokensManager.getInstance().addToken(hash);
+
+            return hash;
+        }
     }
 }
