@@ -35,4 +35,8 @@ public class TokensManager {
                 it.remove();
         }
     }
+
+    public boolean isTokenValid(String token) {
+        return validTokens.stream().filter(o -> o.getValue().equals(token)).findFirst().isPresent();
+    }
 }
