@@ -2,13 +2,13 @@ package com.br.feelingestofados.feelingapi.service;
 
 import org.hibernate.Criteria;
 import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,26 +33,67 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY A.USU_CMPEQI, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        JSONArray jsonArray = new JSONArray();
-        for(Object item : results) {
-            Map row = (Map)item;
-            String cmpEqi = row.get("USU_CMPEQI").toString();
-            String derEqi = row.get("CODDER").toString();
-            String dscEqi = row.get("DSCEQI").toString();
-
-            JSONObject eqi = new JSONObject();
-            eqi.put("cmpEqi", cmpEqi);
-            eqi.put("derEqi", derEqi);
-            eqi.put("dscEqi", dscEqi);
-            jsonArray.put(eqi);
-        }
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("equivalentes", jsonArray);
-        return jsonObject.toString();
+        List<String> fields = Arrays.asList("USU_CMPEQI", "CODDER", "DSCEQI");
+        return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    private List listResultsFromSql(String sql) {
+    public String findEstilos(String codEmp) throws JSONException {
+        String sql = "SELECT CODCPR, DESCPR " +
+                "FROM E084CPR " +
+                "WHERE CODEMP = " + codEmp + " " +
+                "AND CODMPR = 'ESTILOS' " +
+                "AND SITCPR = 'A'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODCPR", "DESCPR");
+        return createJsonFromSqlResult(results, fields, "estilos");
+    }
+
+    public String findProdutosPorEstilo(String codEmp, String estilo) throws JSONException {
+        String sql = "SELECT CODPRO, DESPRO " +
+                       "FROM E075PRO " +
+                      "WHERE CODEMP = " + codEmp + " " +
+                        "AND CODPRO LIKE '__" + estilo + "___' " +
+                        "AND CODORI = 'ACA'" +
+                        "AND SITPRO = 'A' " +
+                      "ORDER BY DESPRO";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODPRO", "DESPRO");
+        return createJsonFromSqlResult(results, fields, "produtos");
+    }
+
+    public String findDerivacoesPorProduto(String codEmp, String codPro) throws JSONException {
+        String sql = "SELECT CODDER, DESDER " +
+                       "FROM E075DER " +
+                       "WHERE CODEMP = " + codEmp + " " +
+                         "AND CODPRO = '" + codPro + "' " +
+                         "AND SITDER = 'A' " +
+                       "ORDER BY CODDER";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODDER", "DESDER");
+        return createJsonFromSqlResult(results, fields, "derivacoes");
+    }
+
+    private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
+    }
+
+    private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for(Object item : result) {
+            Map row = (Map)item;
+            JSONObject jsonObj = new JSONObject();
+            for(String field : fields) {
+                String value = row.get(field).toString();
+                jsonObj.put(field, value);
+            }
+            jsonArray.put(jsonObj);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(resultsName, jsonArray);
+        return jsonObject.toString();
     }
 }
