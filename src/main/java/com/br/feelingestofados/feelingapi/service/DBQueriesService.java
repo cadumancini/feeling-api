@@ -42,7 +42,8 @@ public class DBQueriesService extends FeelingService{
                 "FROM E084CPR " +
                 "WHERE CODEMP = " + codEmp + " " +
                 "AND CODMPR = 'ESTILOS' " +
-                "AND SITCPR = 'A'";
+                "AND SITCPR = 'A'" +
+              "ORDER BY DESCPR";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODCPR", "DESCPR");
