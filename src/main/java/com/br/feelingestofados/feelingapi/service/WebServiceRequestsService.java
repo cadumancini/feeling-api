@@ -49,4 +49,21 @@ public class WebServiceRequestsService extends FeelingService{
             return hash;
         }
     }
+
+    public String createPedido(String emp, String fil, String cli) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForCreatePedido(emp, fil, cli);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
+    }
+
+    private HashMap<String, HashMap> prepareParamsForCreatePedido(String codEmp, String codFil, String codCli) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("codEmp", codEmp);
+        params.put("codFil", codFil);
+        params.put("codCli", codCli);
+        params.put("opeExe", "I");
+
+        HashMap<String, HashMap> paramsPedido = new HashMap<>();
+        paramsPedido.put("pedido", params);
+        return paramsPedido;
+    }
 }

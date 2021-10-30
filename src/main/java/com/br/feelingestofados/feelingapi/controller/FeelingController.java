@@ -63,6 +63,15 @@ public class FeelingController {
             return "Token inválido.";
     }
 
+    @PutMapping("/pedido")
+    @ResponseBody
+    public String createPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String cli, @RequestParam String token) throws IOException {
+        if(checkToken(token))
+            return wsRequestsService.createPedido(emp, fil, cli);
+        else
+            return "Token inválido.";
+    }
+
     @PostMapping("/login")
     @ResponseBody
     public String performLogin(@RequestParam String user, @RequestParam String pswd) throws IOException {
