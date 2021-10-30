@@ -34,7 +34,16 @@ public class SOAPClient {
         } else {
             xmlBuilder.append("<parameters>");
             params.forEach((key, value) -> {
-                xmlBuilder.append("<" + key + ">" + value + "</" + key + ">");
+                if(value instanceof HashMap) {
+                    xmlBuilder.append("<" + key + ">");
+                    ((HashMap<?, ?>) value).forEach((key1, value1) -> {
+                        xmlBuilder.append("<" + key1 + ">" + value1 + "</" + key1+ ">");
+                    });
+                    xmlBuilder.append("</" + key + ">");
+                }
+                else {
+                    xmlBuilder.append("<" + key + ">" + value + "</" + key + ">");
+                }
             });
             xmlBuilder.append("</parameters>");
         }
