@@ -1,6 +1,5 @@
 package com.br.feelingestofados.feelingapi.controller;
 
-import com.br.feelingestofados.feelingapi.entities.ItemPedidoWrapper;
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
@@ -71,7 +70,7 @@ public class FeelingController {
     @ResponseBody
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.createPedido(pedidoWrapper);
+            return wsRequestsService.handlePedido(pedidoWrapper, "I", "I");
         else
             return TOKEN_INVALIDO;
     }
@@ -80,7 +79,16 @@ public class FeelingController {
     @ResponseBody
     public String editPedido(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.editPedido(wrapper);
+            return wsRequestsService.handlePedido(wrapper, "A", "");
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/pedido/item", consumes = "application/json", produces = "application/xml")
+    @ResponseBody
+    public String editItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
+        if(checkToken(token))
+            return wsRequestsService.handlePedido(wrapper, "A", "A");
         else
             return TOKEN_INVALIDO;
     }

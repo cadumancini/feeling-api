@@ -1,7 +1,5 @@
 package com.br.feelingestofados.feelingapi.service;
 
-import com.br.feelingestofados.feelingapi.entities.ItemPedido;
-import com.br.feelingestofados.feelingapi.entities.ItemPedidoWrapper;
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.soap.SOAPClient;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
@@ -51,13 +49,8 @@ public class WebServiceRequestsService extends FeelingService{
         }
     }
 
-    public String createPedido(PedidoWrapper pedidoWrapper) throws IOException {
-        HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, "I", "I");
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
-    }
-
-    public String editPedido(PedidoWrapper pedidoWrapper) throws IOException {
-        HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, "A", "");
+    public String handlePedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, opePed, opeIpd);
         return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
     }
 
