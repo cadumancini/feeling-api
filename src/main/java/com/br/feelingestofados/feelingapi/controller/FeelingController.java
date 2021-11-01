@@ -69,9 +69,9 @@ public class FeelingController {
 
     @PutMapping(value = "/pedido", consumes = "application/json", produces = "application/xml")
     @ResponseBody
-    public String createPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String cli, @RequestBody ItemPedidoWrapper wrapper, @RequestParam String token) throws IOException {
+    public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.createPedido(emp, fil, cli, wrapper);
+            return wsRequestsService.createPedido(pedidoWrapper);
         else
             return TOKEN_INVALIDO;
     }

@@ -3,13 +3,22 @@ package com.br.feelingestofados.feelingapi.entities;
 import java.util.List;
 
 public class PedidoWrapper {
-    private List<Pedido> pedidos;
+    private Pedido pedido;
+    private List<ItemPedido> itens;
 
     public Pedido getPedido() {
-        return pedidos.get(0);
+        return pedido;
     }
 
-    public void setPedidos(List<Pedido> pedidos) {
-        this.pedidos = pedidos;
+    public void setPedido(Pedido pedido) {
+        this.pedido = pedido;
+    }
+
+    public List<ItemPedido> getItens() {
+        return itens;
+    }
+
+    public void setItens(List<ItemPedido> itens) {
+        this.itens = itens;
     }
 }

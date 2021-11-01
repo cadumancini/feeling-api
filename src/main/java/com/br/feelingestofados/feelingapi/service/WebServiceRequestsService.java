@@ -51,36 +51,32 @@ public class WebServiceRequestsService extends FeelingService{
         }
     }
 
-    public String createPedido(String emp, String fil, String cli, ItemPedidoWrapper itensWrapper) throws IOException {
-        HashMap<String, HashMap> params = prepareParamsForPedido(emp, fil, "0", cli, itensWrapper, "I", "I");
+    public String createPedido(PedidoWrapper pedidoWrapper) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, "I", "I");
         return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
     }
 
     public String editPedido(PedidoWrapper pedidoWrapper) throws IOException {
-        HashMap<String, HashMap> params = prepareParamsForPedido(String.valueOf(pedidoWrapper.getPedido().getCodEmp()),
-                String.valueOf(pedidoWrapper.getPedido().getCodFil()),
-                String.valueOf(pedidoWrapper.getPedido().getNumPed()),
-                String.valueOf(pedidoWrapper.getPedido().getCodCli()),
-                null, "A", "");
+        HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, "A", "");
         return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
     }
 
-    private HashMap<String, HashMap> prepareParamsForPedido(String codEmp, String codFil, String numPed, String codCli, ItemPedidoWrapper itensWrapper, String opePed, String opeIpd) {
+    private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
         HashMap<String, Object> params = new HashMap<>();
-        params.put("codEmp", codEmp);
-        params.put("codFil", codFil);
-        params.put("numPed", numPed);
-        params.put("codCli", codCli);
+        params.put("codEmp", pedidoWrapper.getPedido().getCodEmp());
+        params.put("codFil", pedidoWrapper.getPedido().getCodFil());
+        params.put("numPed", pedidoWrapper.getPedido().getNumPed());
+        params.put("codCli", pedidoWrapper.getPedido().getCodCli());
         params.put("opeExe", opePed);
 
-        if(itensWrapper != null && !itensWrapper.getItens().isEmpty()) {
-            List<HashMap<String, String>> listaItens = new ArrayList<>();
-            itensWrapper.getItens().forEach(itemPedido -> {
-                HashMap<String, String> paramsItem = new HashMap<>();
+        if(!pedidoWrapper.getItens().isEmpty()) {
+            List<HashMap<String, Object>> listaItens = new ArrayList<>();
+            pedidoWrapper.getItens().forEach(itemPedido -> {
+                HashMap<String, Object> paramsItem = new HashMap<>();
                 paramsItem.put("codPro", itemPedido.getCodPro());
                 paramsItem.put("codDer", itemPedido.getCodDer());
-                paramsItem.put("seqIpd", String.valueOf(itemPedido.getSeqIpd()));
-                paramsItem.put("qtdPed", String.valueOf(itemPedido.getQtdPed()));
+                paramsItem.put("seqIpd", itemPedido.getSeqIpd());
+                paramsItem.put("qtdPed", itemPedido.getQtdPed());
                 paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
                 paramsItem.put("opeExe", opeIpd);
                 listaItens.add(paramsItem);
