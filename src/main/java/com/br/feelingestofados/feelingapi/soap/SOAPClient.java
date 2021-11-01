@@ -8,6 +8,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SOAPClient {
@@ -37,7 +38,17 @@ public class SOAPClient {
                 if(value instanceof HashMap) {
                     xmlBuilder.append("<" + key + ">");
                     ((HashMap<?, ?>) value).forEach((key1, value1) -> {
-                        xmlBuilder.append("<" + key1 + ">" + value1 + "</" + key1+ ">");
+                        if(value1 instanceof ArrayList) {
+                            ((ArrayList) value1).forEach(produto -> {
+                                xmlBuilder.append("<" + key1 + ">");
+                                ((HashMap<?, ?>) produto).forEach((key2, value2) -> {
+                                    xmlBuilder.append("<" + key2 + ">" + value2 + "</" + key2+ ">");
+                                });
+                                xmlBuilder.append("</" + key1 + ">");
+                            });
+                        } else {
+                            xmlBuilder.append("<" + key1 + ">" + value1 + "</" + key1+ ">");
+                        }
                     });
                     xmlBuilder.append("</" + key + ">");
                 }

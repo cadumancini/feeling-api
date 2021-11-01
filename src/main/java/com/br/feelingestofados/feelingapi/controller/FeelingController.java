@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.controller;
 
+import com.br.feelingestofados.feelingapi.entities.ItemPedidoWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
@@ -63,11 +64,11 @@ public class FeelingController {
             return "Token inválido.";
     }
 
-    @PutMapping("/pedido")
+    @PutMapping(value = "/pedido", consumes = "application/json")
     @ResponseBody
-    public String createPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String cli, @RequestParam String token) throws IOException {
+    public String createPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String cli, @RequestBody ItemPedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.createPedido(emp, fil, cli);
+            return wsRequestsService.createPedido(emp, fil, cli, wrapper);
         else
             return "Token inválido.";
     }
