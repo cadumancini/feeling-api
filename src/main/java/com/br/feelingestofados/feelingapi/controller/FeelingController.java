@@ -25,6 +25,15 @@ public class FeelingController {
         return wsRequestsService.performLogin(user, pswd);
     }
 
+    @GetMapping(value = "/itensPedido", produces = "application/json")
+    @ResponseBody
+    public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findItensPedido(emp, fil, ped);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @PutMapping(value = "/pedido", consumes = "application/json", produces = "application/xml")
     @ResponseBody
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
@@ -121,6 +130,15 @@ public class FeelingController {
                                @RequestParam String der, @RequestParam String ped, @RequestParam String ipd, @RequestParam String token) throws IOException {
         if(checkToken(token))
             return wsRequestsService.fetchEstrutura(emp, fil, pro, der, ped, ipd);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/clientes", produces = "application/json")
+    @ResponseBody
+    public String getClientes(@RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findClientes();
         else
             return TOKEN_INVALIDO;
     }

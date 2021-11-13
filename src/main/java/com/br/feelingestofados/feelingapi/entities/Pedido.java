@@ -8,4 +8,5 @@ public class Pedido {
     private Integer codFil;
     private Integer numPed;
     private Integer codCli;
+    private Integer pedCli;
 }

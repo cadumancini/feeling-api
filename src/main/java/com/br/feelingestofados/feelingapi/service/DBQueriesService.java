@@ -77,6 +77,27 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
+    public String findClientes() throws JSONException {
+        String sql = "SELECT CODCLI, NOMCLI " +
+                       "FROM E085CLI " +
+                      "WHERE SITCLI = 'A' " +
+                      "ORDER BY CODCLI";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODCLI", "NOMCLI");
+        return createJsonFromSqlResult(results, fields, "clientes");
+    }
+
+    public String findItensPedido(String emp, String fil, String ped) throws JSONException {
+        String sql = "SELECT SEQIPD, CODPRO, CODDER, QTDPED " +
+                       "FROM E120IPD " +
+                      "WHERE CODEMP = " + emp + " " +
+                        "AND CODFIL = " + fil + " " +
+                        "AND NUMPED = " + ped;
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED");
+        return createJsonFromSqlResult(results, fields, "itens");
+    }
+
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
