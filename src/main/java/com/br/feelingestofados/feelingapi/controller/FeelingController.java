@@ -124,6 +124,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/derivacoesPossiveis", produces = "application/json")
+    @ResponseBody
+    public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findDerivacoesPossiveis(emp, pro);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/estrutura", produces = "application/xml")
     @ResponseBody
     public String getEstrutura(@RequestParam String emp, @RequestParam String fil, @RequestParam String pro,
@@ -139,6 +148,15 @@ public class FeelingController {
     public String getClientes(@RequestParam String token) throws JSONException {
         if(checkToken(token))
             return queriesService.findClientes();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/dadosProduto", produces = "application/json")
+    @ResponseBody
+    public String getDadosProduto(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findDadosProduto(emp, pro);
         else
             return TOKEN_INVALIDO;
     }

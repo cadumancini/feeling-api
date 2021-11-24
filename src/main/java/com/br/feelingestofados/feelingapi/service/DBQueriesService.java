@@ -39,11 +39,11 @@ public class DBQueriesService extends FeelingService{
 
     public String findEstilos(String codEmp) throws JSONException {
         String sql = "SELECT CODCPR, DESCPR " +
-                "FROM E084CPR " +
-                "WHERE CODEMP = " + codEmp + " " +
-                "AND CODMPR = 'ESTILOS' " +
-                "AND SITCPR = 'A'" +
-              "ORDER BY DESCPR";
+                       "FROM E084CPR " +
+                       "WHERE CODEMP = " + codEmp + " " +
+                         "AND CODMPR = 'ESTILOS' " +
+                         "AND SITCPR = 'A'" +
+                       "ORDER BY DESCPR";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODCPR", "DESCPR");
@@ -96,6 +96,34 @@ public class DBQueriesService extends FeelingService{
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED");
         return createJsonFromSqlResult(results, fields, "itens");
+    }
+
+    public String findDadosProduto(String emp, String pro) throws JSONException {
+        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM " +
+                       "FROM E075PRO PRO, E012FAM FAM " +
+                      "WHERE PRO.CODEMP = FAM.CODEMP " +
+                        "AND PRO.CODFAM = FAM.CODFAM " +
+                        "AND PRO.CODEMP = " + emp + " " +
+                        "AND PRO.CODPRO = '" + pro + "'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String findDerivacoesPossiveis(String emp, String pro) throws JSONException {
+        String sql = "SELECT DER.CODDER, (PRO.CPLPRO || ' ' || DER.DESDER) AS DESDER " +
+                       "FROM E075DER DER, E075PRO PRO" +
+                      "WHERE DER.CODEMP = PRO.CODEMP " +
+                        "AND DER.CODPRO = PRO.CODPRO " +
+                        "AND DER.CODEMP = " + emp + " " +
+                        "AND DER.CODPRO = '" + pro + "' " +
+                        "AND DER.CODDER <> 'G' " +
+                        "AND DER.SITDER = 'A' " +
+                      "ORDER BY CODDER";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODDER", "DESDER");
+        return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
     private List<Object> listResultsFromSql(String sql) {
