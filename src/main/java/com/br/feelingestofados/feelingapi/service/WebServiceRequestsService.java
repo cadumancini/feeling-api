@@ -4,23 +4,85 @@ import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.soap.SOAPClient;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.persistence.EntityManagerFactory;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
 public class WebServiceRequestsService extends FeelingService{
+    @Autowired
+    private DBQueriesService queriesService;
 
     public WebServiceRequestsService(EntityManagerFactory factory) {
         super(factory);
     }
 
     public String fetchEstrutura(String codEmp, String codFil, String codPro,
-                                 String codDer, String numPed, String seqIpd) throws IOException {
+                                 String codDer, String numPed, String seqIpd) throws Exception {
         HashMap<String, String> params = prepareParamsForEstrutura(codEmp, codFil, codPro, codDer, numPed, seqIpd);
-        return SOAPClient.requestFromSeniorWS("customizado", "Estrutura", "heintje", "Mercedes3#", "0", params);
+        String estruturaXml = SOAPClient.requestFromSeniorWS("customizado", "Estrutura", "heintje", "Mercedes3#", "0", params);
+        estruturaXml = addAditionalFields(codEmp, estruturaXml);
+        return estruturaXml;
+    }
+
+    private String addAditionalFields(String codEmp, String estruturaXml) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        DocumentBuilder builder = factory.newDocumentBuilder();
+
+        ByteArrayInputStream input = new ByteArrayInputStream(estruturaXml.getBytes(StandardCharsets.UTF_8));
+        Document doc = builder.parse(input);
+        doc.getDocumentElement().normalize();
+        NodeList nList = doc.getElementsByTagName("componentes");
+        for (int i = 0; i < nList.getLength(); i++) {
+            Node nNode = nList.item(i);
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                String codPro = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
+
+                String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
+                String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
+                String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
+
+                Element eExiCmp = doc.createElement("exiCmp");
+                eExiCmp.appendChild(doc.createTextNode(exiCmp));
+                Element eProGen = doc.createElement("proGen");
+                eProGen.appendChild(doc.createTextNode(proGen));
+                Element eCodFam = doc.createElement("codFam");
+                eCodFam.appendChild(doc.createTextNode(codFam));
+
+                eElement.appendChild(eExiCmp);
+                eElement.appendChild(eProGen);
+                eElement.appendChild(eCodFam);
+            }
+        }
+        TransformerFactory tf = TransformerFactory.newInstance();
+        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        Transformer transformer = tf.newTransformer();
+        StringWriter writer = new StringWriter();
+        transformer.transform(new DOMSource(doc), new StreamResult(writer));
+        return writer.getBuffer().toString();
     }
 
     private HashMap<String, String> prepareParamsForEstrutura(String codEmp, String codFil, String codPro, String codDer, String numPed, String seqIpd) {
