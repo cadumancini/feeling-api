@@ -111,18 +111,18 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDerivacoesPossiveis(String emp, String pro) throws JSONException {
-        String sql = "SELECT DER.CODDER, (PRO.CPLPRO || ' ' || DER.DESDER) AS DESDER " +
-                       "FROM E075DER DER, E075PRO PRO" +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.CPLPRO || ' ' || DER.DESDER) AS DESDER " +
+                       "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
                         "AND DER.CODPRO = PRO.CODPRO " +
                         "AND DER.CODEMP = " + emp + " " +
                         "AND DER.CODPRO = '" + pro + "' " +
                         "AND DER.CODDER <> 'G' " +
                         "AND DER.SITDER = 'A' " +
-                      "ORDER BY CODDER";
+                      "ORDER BY DER.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODDER", "DESDER");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DESDER");
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
