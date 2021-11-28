@@ -124,6 +124,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/equivalentesAdicionais", produces = "application/json")
+    @ResponseBody
+    public String getEquivalentesAdicionais(@RequestParam String modelo, @RequestParam String componente, @RequestParam String der, @RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findEquivalentesAdicionais(modelo, componente, der);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/derivacoesPossiveis", produces = "application/json")
     @ResponseBody
     public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws JSONException {
