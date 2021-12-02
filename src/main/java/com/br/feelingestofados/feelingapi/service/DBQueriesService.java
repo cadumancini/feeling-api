@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
+import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
@@ -51,7 +52,7 @@ public class DBQueriesService extends FeelingService{
                     "AND A.USU_CODCMP IN (SELECT DISTINCT EQI.USU_CODCMP " +
                                            "FROM USU_T075EQI EQI " +
                                           "WHERE EQI.USU_CODMOD = '" + modelo + "' " +
-                                            "AND EQI.USU_CMPEQI = '" + componente + "') " +
+                                        "AND EQI.USU_CMPEQI = '" + componente + "') " +
                     "AND C.CODDER <> 'G' " +
                     "ORDER BY A.USU_CMPEQI, C.CODDER";
 
@@ -148,41 +149,74 @@ public class DBQueriesService extends FeelingService{
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
+    
+    private String findDadosEquivalente(String codEmp, String codMod, String derMod, String codCmp, String derCmp) throws JSONException {
+        String sql = "SELECT CTM.CODETG, CTM.SEQMOD, CTM.QTDUTI, CTM.QTDFRQ, " +
+                            "CTM.PERPRD, CTM.PRDQTD, CTM.UNIME2, CMM.TIPQTD, " +
+                            "CMM.CODCCU, PRO.CODPRO " +
+                       "FROM E700CMM CMM, E700CTM CTM, E075PRO PRO " +
+                      "WHERE CMM.CODEMP = CTM.CODEMP " +
+                        "AND CMM.CODMOD = CTM.CODMOD " +
+                        "AND CMM.CODETG = CTM.CODETG " +
+                        "AND CMM.SEQMOD = CTM.SEQMOD " +
+                        "AND CMM.CODCMP = CTM.CODCMP " +
+                        "AND CTM.CODEMP = PRO.CODEMP " +
+                        "AND CTM.CODMOD = PRO.CODMOD " +
+                        "AND CTM.CODEMP = " + codEmp + " " +
+                        "AND CTM.CODMOD = '" + codMod + "' " +
+                        "AND CTM.CODDER = '" + derMod + "' " +
+                        "AND CTM.CODCMP = '" + codCmp + "' " +
+                        "AND CTM.DERCMP = '" + derCmp + "'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODETG", "SEQMOD", "QTDUTI", "QTDFRQ", "PERPRD", "PRDQTD",
+                "UNIME2", "TIPQTD", "CODCCU", "CODPRO");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+    
+    private String findUsuario(String nomUsu) throws JSONException {
+        String sql = "SELECT CODUSU FROM R999USU WHERE UPPER(NOMUSU) = UPPER('" + nomUsu + "')";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODUSU");
+        return createJsonFromSqlResult(results, fields, "usuario");
+    }
 
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
     }
 
-    public String insertEquivalente(int emp, int fil, int ped, int ipd, String mod, String derMod, String cmpAnt,
-                                    String derCmpAnt, String cmpAtu, String derCmpAtu, String dscCmp, String token) {
-//        JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
-//
-//        String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
-//        String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
-//        String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
+    public String insertEquivalente(String emp, String fil, String ped, String ipd, String mod, String derMod, String cmpAnt,
+                                    String derCmpAnt, String cmpAtu, String derCmpAtu, String dscCmp, String token) throws JSONException {
+        JSONObject jObj = new JSONObject(findDadosEquivalente(emp, mod, derMod, cmpAnt, derCmpAnt));
 
-        //CODETG - E700CTM
-        //SEQMOD - E700CTM
-        //SEQPCE - ?
-        //QTDUTI - E700CTM
-        //QTDFRQ - E700CTM
-        //PERPRD - E700CTM
-        //PRDQTD - E700CTM
-        //UNIME2 - E700CTM
-        //TIPQTD - ?
-        //DATALT - DATA ATUAL
-        //CODCCU - ?
-        //CODUSU - PEGAR DO TOKEN
+        int codEtg = jObj.getJSONArray("dados").getJSONObject(0).getInt("CODETG");
+        int seqMod = jObj.getJSONArray("dados").getJSONObject(0).getInt("SEQMOD");
+        double qtdUti = jObj.getJSONArray("dados").getJSONObject(0).getDouble("QTDUTI");
+        double qtdFrq = jObj.getJSONArray("dados").getJSONObject(0).getDouble("QTDFRQ");
+        double perPrd = jObj.getJSONArray("dados").getJSONObject(0).getDouble("PERPRD");
+        double prdQtd = jObj.getJSONArray("dados").getJSONObject(0).getDouble("PRDQTD");
+        String uniMe2 = jObj.getJSONArray("dados").getJSONObject(0).getString("UNIME2");
+        String tipQtd = jObj.getJSONArray("dados").getJSONObject(0).getString("TIPQTD");
+        String codCcu = jObj.getJSONArray("dados").getJSONObject(0).getString("CODCCU");
+        String codPro = jObj.getJSONArray("dados").getJSONObject(0).getString("CODPRO");
+        
+        String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
+        jObj = new JSONObject(findUsuario(nomUsu));
+        
+        int codUsu = jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
 
+        //SEQPCE - INCREMENTAL
+        //DATALT - DATA ATUAL - TESTAR NULL
 
         String sql = "INSERT INTO E700PCE (CODEMP,CODFIL,NUMPED,SEQIPD,CODETG,SEQMOD,SEQPCE,CODMOD,CODCMP," +
                                           "DERCMP,QTDUTI,QTDFRQ,PERPRD,PRDQTD,UNIME2,TIPQTD,DESCMP,INDPEP," +
                                           "INDIAE,DATALT,CODCCU,CODUSU,OBSPEC,BXAORP,CMPPEN,CODPRO,CODDER," +
                                           "SBSPRO,CODDEP,CODLOT,SELPRO,SELCUS) " +
-                                  "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + ",:nCodEtg,:nSeqMod,:nSeqPce,'" + mod + "','" + cmpAtu + "'," +
-                                           "'" + derCmpAtu + "',:nUtiPce, :nQtdFrq,0,0,:aUniMe2,:aTipQtd,'" + dscCmp + "','I'," +
-                                           "'A',:dDatAtu,:aCodCcu,:nCodUsu,' ','S','N','" + mod + "','" + derMod + "'," +
+                                  "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + "," + codEtg + "," + seqMod + ",:nSeqPce,'" + mod + "','" + cmpAtu + "'," +
+                                           "'" + derCmpAtu + "'," + qtdUti + ", " + qtdFrq + ", " + perPrd + ", " + prdQtd + ",'" + uniMe2 + "','" + tipQtd + "','" + dscCmp + "','I'," +
+                                           "'A',null,'" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
                                            "' ',' ',' ','S','S')";
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
