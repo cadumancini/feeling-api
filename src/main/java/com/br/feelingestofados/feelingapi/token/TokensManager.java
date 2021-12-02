@@ -23,8 +23,8 @@ public class TokensManager {
         return validTokens;
     }
 
-    public void addToken(String tokenValue) {
-        validTokens.add(new Token(tokenValue));
+    public void addToken(String tokenValue, String nomUsu) {
+        validTokens.add(new Token(tokenValue, nomUsu));
     }
 
     public void removeInvalidTokens() {
@@ -38,5 +38,13 @@ public class TokensManager {
 
     public boolean isTokenValid(String token) {
         return validTokens.stream().filter(o -> o.getValue().equals(token)).findFirst().isPresent();
+    }
+
+    public String getUserNameFromToken(String tokenValue) {
+        for (Token token : validTokens) {
+            if(token.getValue().equals(tokenValue) && token.isValid())
+                return token.getUserName();
+        }
+        return "";
     }
 }

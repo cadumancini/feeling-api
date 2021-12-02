@@ -1,6 +1,7 @@
 package com.br.feelingestofados.feelingapi.service;
 
 import org.hibernate.Criteria;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
@@ -151,6 +152,63 @@ public class DBQueriesService extends FeelingService{
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
+    }
+
+    public String insertEquivalente(int emp, int fil, int ped, int ipd, String mod, String derMod, String cmpAnt,
+                                    String derCmpAnt, String cmpAtu, String derCmpAtu, String dscCmp, String token) {
+//        JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
+//
+//        String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
+//        String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
+//        String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
+
+        //CODETG - E700CTM
+        //SEQMOD - E700CTM
+        //SEQPCE - ?
+        //QTDUTI - E700CTM
+        //QTDFRQ - E700CTM
+        //PERPRD - E700CTM
+        //PRDQTD - E700CTM
+        //UNIME2 - E700CTM
+        //TIPQTD - ?
+        //DATALT - DATA ATUAL
+        //CODCCU - ?
+        //CODUSU - PEGAR DO TOKEN
+
+
+        String sql = "INSERT INTO E700PCE (CODEMP,CODFIL,NUMPED,SEQIPD,CODETG,SEQMOD,SEQPCE,CODMOD,CODCMP," +
+                                          "DERCMP,QTDUTI,QTDFRQ,PERPRD,PRDQTD,UNIME2,TIPQTD,DESCMP,INDPEP," +
+                                          "INDIAE,DATALT,CODCCU,CODUSU,OBSPEC,BXAORP,CMPPEN,CODPRO,CODDER," +
+                                          "SBSPRO,CODDEP,CODLOT,SELPRO,SELCUS) " +
+                                  "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + ",:nCodEtg,:nSeqMod,:nSeqPce,'" + mod + "','" + cmpAtu + "'," +
+                                           "'" + derCmpAtu + "',:nUtiPce, :nQtdFrq,0,0,:aUniMe2,:aTipQtd,'" + dscCmp + "','I'," +
+                                           "'A',:dDatAtu,:aCodCcu,:nCodUsu,' ','S','N','" + mod + "','" + derMod + "'," +
+                                           "' ',' ',' ','S','S')";
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            return "Nenhuma linha inserida";
+        } else {
+            return "OK";
+        }
+    }
+
+    private int executeSqlStatement(String sql) {
+        Transaction transaction = null;
+        int rowsAffected = 0;
+        try {
+            // start a transaction
+            transaction = this.sessionFactory.getCurrentSession().beginTransaction();
+            Query statement = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
+            rowsAffected = statement.executeUpdate();
+            transaction.commit();
+            return rowsAffected;
+        } catch (Exception e) {
+            if(transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+        return rowsAffected;
     }
 
     private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) throws JSONException {

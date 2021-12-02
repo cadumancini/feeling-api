@@ -105,7 +105,7 @@ public class WebServiceRequestsService extends FeelingService{
         else {
             Date currentDateTime = Calendar.getInstance().getTime();
             String hash = DigestUtils.sha256Hex(user + pswd + currentDateTime);
-            TokensManager.getInstance().addToken(hash);
+            TokensManager.getInstance().addToken(hash, user);
 
             return hash;
         }

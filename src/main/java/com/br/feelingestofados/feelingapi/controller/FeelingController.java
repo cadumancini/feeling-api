@@ -161,6 +161,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/equivalente", produces = "application/json")
+    @ResponseBody
+    public String putEquivalente(@RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.insertEquivalente();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
