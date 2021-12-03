@@ -10,7 +10,9 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -182,6 +184,22 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "usuario");
     }
 
+    private String findUltimoSeqPce(String codEmp, String codFil, String numPed,
+                                    String seqIpd, int codEtg, int seqMod) throws JSONException {
+        String sql = "SELECT NVL(MAX(SEQPCE), 0) AS SEQPCE " +
+                       "FROM E700PCE " +
+                      "WHERE CODEMP = " + codEmp + " " +
+                        "AND CODFIL = " + codFil + " " +
+                        "AND NUMPED = " + numPed + " " +
+                        "AND SEQIPD = " + seqIpd + " " +
+                        "AND CODETG = " + codEtg + " " +
+                        "AND SEQMOD = " + seqMod + "";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("SEQPCE");
+        return createJsonFromSqlResult(results, fields, "pce");
+    }
+
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
@@ -204,19 +222,23 @@ public class DBQueriesService extends FeelingService{
         
         String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
         jObj = new JSONObject(findUsuario(nomUsu));
-        
         int codUsu = jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
 
-        //SEQPCE - INCREMENTAL
-        //DATALT - DATA ATUAL - TESTAR NULL
+        jObj = new JSONObject(findUltimoSeqPce(emp, fil, ped, ipd, codEtg, seqMod));
+        int seqPce = jObj.getJSONArray("pce").getJSONObject(0).getInt("SEQPCE");
+        seqPce += 1;
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date(System.currentTimeMillis());
+        String datAlt = formatter.format(date);
 
         String sql = "INSERT INTO E700PCE (CODEMP,CODFIL,NUMPED,SEQIPD,CODETG,SEQMOD,SEQPCE,CODMOD,CODCMP," +
                                           "DERCMP,QTDUTI,QTDFRQ,PERPRD,PRDQTD,UNIME2,TIPQTD,DESCMP,INDPEP," +
                                           "INDIAE,DATALT,CODCCU,CODUSU,OBSPEC,BXAORP,CMPPEN,CODPRO,CODDER," +
                                           "SBSPRO,CODDEP,CODLOT,SELPRO,SELCUS) " +
-                                  "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + "," + codEtg + "," + seqMod + ",:nSeqPce,'" + mod + "','" + cmpAtu + "'," +
+                                  "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + "," + codEtg + "," + seqMod + "," + seqPce + ",'" + mod + "','" + cmpAtu + "'," +
                                            "'" + derCmpAtu + "'," + qtdUti + ", " + qtdFrq + ", " + perPrd + ", " + prdQtd + ",'" + uniMe2 + "','" + tipQtd + "','" + dscCmp + "','I'," +
-                                           "'A',null,'" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
+                                           "'A','" + datAlt + "','" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
                                            "' ',' ',' ','S','S')";
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
