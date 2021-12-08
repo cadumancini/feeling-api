@@ -242,9 +242,15 @@ public class DBQueriesService extends FeelingService{
                                            "' ',' ',' ','S','S')";
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            return "Nenhuma linha inserida";
+            return "Nenhuma linha inserida (E700PCE) ao substituir componente.";
         } else {
-            return "OK";
+            sql = "UPDATE E120IPD SET INDPCE = 'I' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+            rowsAffected = executeSqlStatement(sql);
+            if (rowsAffected == 0) {
+                return "Nenhuma linha atualizada (E120IPD) ao setar campo INDPCE com valor 'I'.";
+            } else {
+                return "OK.";
+            }
         }
     }
 
