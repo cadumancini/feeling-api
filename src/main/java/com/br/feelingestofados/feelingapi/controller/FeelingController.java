@@ -164,12 +164,9 @@ public class FeelingController {
     @PostMapping(value = "/equivalente", produces = "application/json")
     @ResponseBody
     public String putEquivalente(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped,
-                                 @RequestParam String ipd, @RequestParam String mod, @RequestParam String derMod,
-                                 @RequestParam String cmpAnt, @RequestParam String derCmpAnt, @RequestParam String cmpAtu,
-                                 @RequestParam String derCmpAtu, @RequestParam String dscCmp, @RequestParam String token) throws JSONException {
+                                 @RequestParam String ipd, @RequestBody String trocas, @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.insertEquivalente(emp, fil, ped, ipd, mod, derMod, cmpAnt, derCmpAnt,
-                    cmpAtu, derCmpAtu, dscCmp, token);
+            return queriesService.insertEquivalente(emp, fil, ped, ipd, trocas, token);
         else
             return TOKEN_INVALIDO;
     }
