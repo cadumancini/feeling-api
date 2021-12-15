@@ -36,9 +36,11 @@ public class WebServiceRequestsService extends FeelingService{
     }
 
     public String fetchEstrutura(String codEmp, String codFil, String codPro,
-                                 String codDer, String numPed, String seqIpd) throws Exception {
+                                 String codDer, String numPed, String seqIpd, String token) throws Exception {
         HashMap<String, String> params = prepareParamsForEstrutura(codEmp, codFil, codPro, codDer, numPed, seqIpd);
-        String estruturaXml = SOAPClient.requestFromSeniorWS("customizado", "Estrutura", "heintje", "Mercedes3#", "0", params);
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        String estruturaXml = SOAPClient.requestFromSeniorWS("customizado", "Estrutura", user, pswd, "0", params);
         estruturaXml = addAditionalFields(codEmp, estruturaXml);
         return estruturaXml;
     }
@@ -105,15 +107,17 @@ public class WebServiceRequestsService extends FeelingService{
         else {
             Date currentDateTime = Calendar.getInstance().getTime();
             String hash = DigestUtils.sha256Hex(user + pswd + currentDateTime);
-            TokensManager.getInstance().addToken(hash, user);
+            TokensManager.getInstance().addToken(hash, user, pswd);
 
             return hash;
         }
     }
 
-    public String handlePedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) throws IOException {
+    public String handlePedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd, String token) throws IOException {
         HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, opePed, opeIpd);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", "heintje", "Mercedes3#", "0", params);
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", user, pswd, "0", params);
     }
 
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {

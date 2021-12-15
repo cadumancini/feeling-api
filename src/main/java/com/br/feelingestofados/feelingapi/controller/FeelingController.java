@@ -38,7 +38,7 @@ public class FeelingController {
     @ResponseBody
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(pedidoWrapper, "I", "I");
+            return wsRequestsService.handlePedido(pedidoWrapper, "I", "I", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -47,7 +47,7 @@ public class FeelingController {
     @ResponseBody
     public String editPedido(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "");
+            return wsRequestsService.handlePedido(wrapper, "A", "", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -56,7 +56,7 @@ public class FeelingController {
     @ResponseBody
     public String deletePedido(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "E", "");
+            return wsRequestsService.handlePedido(wrapper, "E", "", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -65,7 +65,7 @@ public class FeelingController {
     @ResponseBody
     public String createItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "I");
+            return wsRequestsService.handlePedido(wrapper, "A", "I", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -74,7 +74,7 @@ public class FeelingController {
     @ResponseBody
     public String editItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "A");
+            return wsRequestsService.handlePedido(wrapper, "A", "A", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -83,7 +83,7 @@ public class FeelingController {
     @ResponseBody
     public String deleteItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "E");
+            return wsRequestsService.handlePedido(wrapper, "A", "E", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -147,7 +147,7 @@ public class FeelingController {
     public String getEstrutura(@RequestParam String emp, @RequestParam String fil, @RequestParam String pro,
                                @RequestParam String der, @RequestParam String ped, @RequestParam String ipd, @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return wsRequestsService.fetchEstrutura(emp, fil, pro, der, ped, ipd);
+            return wsRequestsService.fetchEstrutura(emp, fil, pro, der, ped, ipd, token);
         else
             return TOKEN_INVALIDO;
     }
