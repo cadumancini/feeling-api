@@ -23,14 +23,14 @@ public class DBQueriesService extends FeelingService{
         super(factory);
     }
 
-    public String findEquivalentes(String modelo, String componente) throws JSONException {
+    public String findEquivalentes(String emp, String modelo, String componente) throws JSONException {
         String sql = "SELECT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
                 "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                 "WHERE A.USU_CODEMP = B.CODEMP " +
                 "AND A.USU_CMPEQI = B.CODPRO " +
                 "AND B.CODEMP = C.CODEMP " +
                 "AND B.CODPRO = C.CODPRO " +
-                "AND A.USU_CODEMP = 1 " +
+                "AND A.USU_CODEMP = " + emp + " " +
                 "AND A.USU_CODMOD = '" + modelo + "' " +
                 "AND A.USU_CODCMP = '" + componente + "' " +
                 "AND C.CODDER <> 'G' " +
@@ -41,14 +41,14 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    public String findEquivalentesAdicionais(String modelo, String componente, String der) throws JSONException {
+    public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws JSONException {
             String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
                     "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                     "WHERE A.USU_CODEMP = B.CODEMP " +
                     "AND A.USU_CMPEQI = B.CODPRO " +
                     "AND B.CODEMP = C.CODEMP " +
                     "AND B.CODPRO = C.CODPRO " +
-                    "AND A.USU_CODEMP = 1 " +
+                    "AND A.USU_CODEMP = " + emp + " " +
                     "AND A.USU_CODMOD = '" + modelo + "' " +
                     "AND (A.USU_CMPEQI || C.CODDER) <> '" + componente + der + "' " +
                     "AND A.USU_CODCMP IN (SELECT DISTINCT EQI.USU_CODCMP " +
