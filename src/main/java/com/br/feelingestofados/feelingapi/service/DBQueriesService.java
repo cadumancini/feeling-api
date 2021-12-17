@@ -114,13 +114,18 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findItensPedido(String emp, String fil, String ped) throws JSONException {
-        String sql = "SELECT SEQIPD, CODPRO, CODDER, QTDPED " +
-                       "FROM E120IPD " +
-                      "WHERE CODEMP = " + emp + " " +
-                        "AND CODFIL = " + fil + " " +
-                        "AND NUMPED = " + ped;
+        String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO " +
+                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER " +
+                      "WHERE IPD.CODEMP = PRO.CODEMP " +
+                        "AND IPD.CODPRO = PRO.CODPRO " +
+                        "AND IPD.CODEMP = DER.CODEMP " +
+                        "AND IPD.CODPRO = DER.CODPRO " +
+                        "AND IPD.CODDER = DER.CODDER " +
+                        "AND IPD.CODEMP = " + emp + " " +
+                        "AND IPD.CODFIL = " + fil + " " +
+                        "AND IPD.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED");
+        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
