@@ -24,7 +24,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentes(String emp, String modelo, String componente) throws JSONException {
-        String sql = "SELECT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
+        String sql = "SELECT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
                 "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                 "WHERE A.USU_CODEMP = B.CODEMP " +
                 "AND A.USU_CMPEQI = B.CODPRO " +
@@ -42,7 +42,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws JSONException {
-            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.CPLPRO || ' ' || C.DESDER) AS DSCEQI " +
+            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
                     "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                     "WHERE A.USU_CODEMP = B.CODEMP " +
                     "AND A.USU_CMPEQI = B.CODPRO " +
@@ -142,7 +142,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDerivacoesPossiveis(String emp, String pro) throws JSONException {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.CPLPRO || ' ' || DER.DESDER) AS DSCEQI " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
                         "AND DER.CODPRO = PRO.CODPRO " +
