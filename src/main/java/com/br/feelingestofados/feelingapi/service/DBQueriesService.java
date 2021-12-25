@@ -130,14 +130,14 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosProduto(String emp, String pro) throws JSONException {
-        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM " +
+        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI " +
                        "FROM E075PRO PRO, E012FAM FAM " +
                       "WHERE PRO.CODEMP = FAM.CODEMP " +
                         "AND PRO.CODFAM = FAM.CODFAM " +
                         "AND PRO.CODEMP = " + emp + " " +
                         "AND PRO.CODPRO = '" + pro + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM");
+        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
