@@ -171,6 +171,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/itensMontagem", produces = "application/json")
+    @ResponseBody
+    public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) throws JSONException {
+        if(checkToken(token))
+            return queriesService.findItensMontagem(emp, pro, der);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }

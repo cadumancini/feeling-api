@@ -24,7 +24,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentes(String emp, String modelo, String componente) throws JSONException {
-        String sql = "SELECT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
+        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
                 "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                 "WHERE A.USU_CODEMP = B.CODEMP " +
                 "AND A.USU_CMPEQI = B.CODPRO " +
@@ -244,6 +244,24 @@ public class DBQueriesService extends FeelingService{
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQMOD");
         return createJsonFromSqlResult(results, fields, "seqMod");
+    }
+
+    public String findItensMontagem(String emp, String pro, String der) throws JSONException {
+        String sql = "SELECT CTM.SEQMOD, CTM.CODCMP, CTM.DERCMP, (PRO.CPLPRO || DER.DESCPL) AS DSCCMP " +
+                       "FROM E700CTM CTM, E075PRO PRO, E075DER DER " +
+                      "WHERE CTM.CODEMP = PRO.CODEMP " +
+                        "AND CTM.CODCMP = PRO.CODPRO " +
+                        "AND CTM.CODEMP = DER.CODEMP " +
+                        "AND CTM.CODCMP = DER.CODPRO " +
+                        "AND CTM.DERCMP = DER.CODDER " +
+                        "AND CTM.CODEMP = " + emp + " " +
+                        "AND CTM.CODMOD = 'M" + pro + "' " +
+                        "AND CTM.CODDER = '" + der + "' " +
+                      "ORDER BY CTM.SEQMOD";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("SEQMOD", "CODCMP", "DERCMP", "DSCCMP");
+        return createJsonFromSqlResult(results, fields, "itensMontagem");
     }
 
     private List<Object> listResultsFromSql(String sql) {
