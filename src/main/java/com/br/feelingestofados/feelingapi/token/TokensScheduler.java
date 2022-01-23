@@ -12,15 +12,15 @@ import java.util.List;
 @EnableScheduling
 @NoArgsConstructor
 public class TokensScheduler {
-    private final static int executionRate = 1800000; // 30 minutes
-    private final static int expirationTime = 28800000; // 8 hours
+    private static final int EXECUTION_RATE = 300000; // 5 minutes
+    private static final int EXPIRATION_TIME = 14400000; // 4 hours
 
-    @Scheduled(fixedRate = executionRate)
+    @Scheduled(fixedRate = EXECUTION_RATE)
     public static void checkIfAnyTokenShouldBeDeleted() {
         List<Token> validTokens = TokensManager.getInstance().getValidTokens();
         long currentDate = Calendar.getInstance().getTimeInMillis();
         validTokens.forEach(token -> {
-            if((currentDate - token.getCreatedAt()) >= expirationTime) {
+            if((currentDate - token.getCreatedAt()) >= EXPIRATION_TIME) {
                 token.invalidateToken();
             }
         });
