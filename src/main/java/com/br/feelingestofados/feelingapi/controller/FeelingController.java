@@ -5,7 +5,6 @@ import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ public class FeelingController {
 
     @GetMapping(value = "/itensPedido", produces = "application/json")
     @ResponseBody
-    public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws JSONException {
+    public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findItensPedido(emp, fil, ped);
         else
@@ -90,7 +89,7 @@ public class FeelingController {
 
     @GetMapping(value = "/estilos", produces = "application/json")
     @ResponseBody
-    public String getEstilos(@RequestParam String emp, @RequestParam String token) throws JSONException {
+    public String getEstilos(@RequestParam String emp, @RequestParam String token) throws Exception {
         if(TokensManager.getInstance().isTokenValid(token))
             return queriesService.findEstilos(emp);
         else
@@ -99,7 +98,7 @@ public class FeelingController {
 
     @GetMapping(value = "/produtosPorEstilo", produces = "application/json")
     @ResponseBody
-    public String getProdutosPorEstilo(@RequestParam String emp, @RequestParam String estilo, @RequestParam String token) throws JSONException {
+    public String getProdutosPorEstilo(@RequestParam String emp, @RequestParam String estilo, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findProdutosPorEstilo(emp, estilo);
         else
@@ -108,7 +107,7 @@ public class FeelingController {
 
     @GetMapping(value = "/derivacoesPorProduto", produces = "application/json")
     @ResponseBody
-    public String getDerivacoesPorProduto(@RequestParam String emp, @RequestParam String produto, @RequestParam String token) throws JSONException {
+    public String getDerivacoesPorProduto(@RequestParam String emp, @RequestParam String produto, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findDerivacoesPorProduto(emp, produto);
         else
@@ -117,7 +116,7 @@ public class FeelingController {
 
     @GetMapping(value = "/equivalentes", produces = "application/json")
     @ResponseBody
-    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String token) throws JSONException {
+    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findEquivalentes(emp, modelo, componente);
         else
@@ -126,7 +125,7 @@ public class FeelingController {
 
     @GetMapping(value = "/equivalentesAdicionais", produces = "application/json")
     @ResponseBody
-    public String getEquivalentesAdicionais(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String der, @RequestParam String token) throws JSONException {
+    public String getEquivalentesAdicionais(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String der, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findEquivalentesAdicionais(emp, modelo, componente, der);
         else
@@ -135,7 +134,7 @@ public class FeelingController {
 
     @GetMapping(value = "/derivacoesPossiveis", produces = "application/json")
     @ResponseBody
-    public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws JSONException {
+    public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findDerivacoesPossiveis(emp, pro);
         else
@@ -154,7 +153,7 @@ public class FeelingController {
 
     @GetMapping(value = "/clientes", produces = "application/json")
     @ResponseBody
-    public String getClientes(@RequestParam String token) throws JSONException {
+    public String getClientes(@RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findClientes();
         else
@@ -173,7 +172,7 @@ public class FeelingController {
 
     @GetMapping(value = "/itensMontagem", produces = "application/json")
     @ResponseBody
-    public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) throws JSONException {
+    public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findItensMontagem(emp, pro, der);
         else
