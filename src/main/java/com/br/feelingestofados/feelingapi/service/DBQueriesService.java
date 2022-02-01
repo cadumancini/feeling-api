@@ -103,12 +103,14 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findClientes() throws Exception {
-        String sql = "SELECT CODCLI, NOMCLI " +
+        String sql = "SELECT CODCLI, NOMCLI, INTNET, FONCLI, CGCCPF, " +
+                            "(ENDCLI || ' ' || CPLEND) AS ENDCPL, (CIDCLI || '/' || SIGUFS) AS CIDEST, " +
+                            "INSEST " +
                        "FROM E085CLI " +
                       "WHERE SITCLI = 'A' " +
                       "ORDER BY CODCLI";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODCLI", "NOMCLI");
+        List<String> fields = Arrays.asList("CODCLI", "NOMCLI", "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
         return createJsonFromSqlResult(results, fields, "clientes");
     }
 
