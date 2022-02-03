@@ -160,6 +160,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/dadosCliente", produces = "application/json")
+    @ResponseBody
+    public String getDadosCliente(@RequestParam String token, @RequestParam String codCli) throws Exception {
+        if(checkToken(token))
+            return queriesService.findDadosCliente(codCli);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @PostMapping(value = "/equivalente", produces = "application/json")
     @ResponseBody
     public String putEquivalente(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped,

@@ -114,6 +114,20 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "clientes");
     }
 
+    public String findDadosCliente(String codCli) throws Exception {
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA " +
+                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
+                      "WHERE HCL.CODEMP = EMP.CODEMP " +
+                        "AND HCL.CODREP = REP.CODREP " +
+                        "AND HCL.CODTRA = TRA.CODTRA " +
+                        "AND HCL.CODFIL = 1 " +
+                        "AND HCL.CODCLI = " + codCli + " " +
+                      "ORDER BY HCL.CODEMP";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA");
+        return createJsonFromSqlResult(results, fields, "dadosCliente");
+    }
+
     public String findItensPedido(String emp, String fil, String ped) throws Exception {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER " +
