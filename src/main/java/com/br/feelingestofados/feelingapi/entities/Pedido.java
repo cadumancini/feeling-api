@@ -9,4 +9,7 @@ public class Pedido {
     private Integer numPed;
     private Integer codCli;
     private Integer pedCli;
+    private Integer codRep;
+    private Integer codTra;
+    private String cifFob;
 }
