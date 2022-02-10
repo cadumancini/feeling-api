@@ -5,6 +5,8 @@ import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -74,6 +76,27 @@ public class FeelingController {
     public String editItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
             return wsRequestsService.handlePedido(wrapper, "A", "A", token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/pedido/itens", consumes = "application/json", produces = "application/xml")
+    @ResponseBody
+    public String includeItems(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws Exception {
+        if(checkToken(token)) {
+            String itensDoPedido = queriesService.findItensPedido(wrapper.getPedido().getCodEmp().toString(),
+                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString());
+            JSONArray itens = new JSONObject(itensDoPedido).getJSONArray("itens");
+            for(int i = 0; i < itens.length(); i++) {
+                JSONObject item = itens.getJSONObject(i);
+                String seqIpd = item.getString("SEQIPD");
+                String s = wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
+                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                        seqIpd, "A", "E", token);
+                System.out.println(s);
+            }
+            return wsRequestsService.handlePedido(wrapper, "A", "I", token);
+        }
         else
             return TOKEN_INVALIDO;
     }

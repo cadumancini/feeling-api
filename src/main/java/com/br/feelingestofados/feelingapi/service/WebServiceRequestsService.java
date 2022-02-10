@@ -124,16 +124,28 @@ public class WebServiceRequestsService extends FeelingService{
         return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", user, pswd, "0", params);
     }
 
+    public String handlePedido(String codEmp, String codFil, String numPed, String seqIpd, String opePed, String opeIpd, String token) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForPedido(codEmp, codFil, numPed, seqIpd, opePed, opeIpd);
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", user, pswd, "0", params);
+    }
+
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
         HashMap<String, Object> params = new HashMap<>();
         params.put("codEmp", pedidoWrapper.getPedido().getCodEmp());
         params.put("codFil", pedidoWrapper.getPedido().getCodFil());
         params.put("numPed", pedidoWrapper.getPedido().getNumPed());
-        params.put("codCli", pedidoWrapper.getPedido().getCodCli());
-        params.put("pedCli", pedidoWrapper.getPedido().getPedCli());
-        params.put("codRep", pedidoWrapper.getPedido().getCodRep());
-        params.put("codTra", pedidoWrapper.getPedido().getCodTra());
-        params.put("cifFob", pedidoWrapper.getPedido().getCifFob());
+        if(pedidoWrapper.getPedido().getCodCli() != null)
+            params.put("codCli", pedidoWrapper.getPedido().getCodCli());
+        if(pedidoWrapper.getPedido().getPedCli() != null)
+            params.put("pedCli", pedidoWrapper.getPedido().getPedCli());
+        if(pedidoWrapper.getPedido().getCodRep() != null)
+            params.put("codRep", pedidoWrapper.getPedido().getCodRep());
+        if(pedidoWrapper.getPedido().getCodTra() != null)
+            params.put("codTra", pedidoWrapper.getPedido().getCodTra());
+        if(pedidoWrapper.getPedido().getCifFob() != null)
+            params.put("cifFob", pedidoWrapper.getPedido().getCifFob());
         params.put("opeExe", opePed);
 
         if(!pedidoWrapper.getItens().isEmpty()) {
@@ -150,6 +162,25 @@ public class WebServiceRequestsService extends FeelingService{
             });
             params.put("produto", listaItens);
         }
+
+        HashMap<String, HashMap> paramsPedido = new HashMap<>();
+        paramsPedido.put("pedido", params);
+        return paramsPedido;
+    }
+
+    private HashMap<String, HashMap> prepareParamsForPedido(String codEmp, String codFil, String numPed, String seqIpd, String opePed, String opeIpd) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("codEmp", codEmp);
+        params.put("codFil", codFil);
+        params.put("numPed", numPed);
+        params.put("opeExe", opePed);
+
+        List<HashMap<String, Object>> listaItens = new ArrayList<>();
+        HashMap<String, Object> paramsItem = new HashMap<>();
+        paramsItem.put("seqIpd", seqIpd);
+        paramsItem.put("opeExe", opeIpd);
+        listaItens.add(paramsItem);
+        params.put("produto", listaItens);
 
         HashMap<String, HashMap> paramsPedido = new HashMap<>();
         paramsPedido.put("pedido", params);
