@@ -9,4 +9,5 @@ public class ItemPedido {
     private Integer seqIpd;
     private Integer qtdPed;
     private Double preUni;
+    private Integer numCnj;
 }

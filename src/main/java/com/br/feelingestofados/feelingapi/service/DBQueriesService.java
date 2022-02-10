@@ -129,18 +129,24 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findItensPedido(String emp, String fil, String ped) throws Exception {
-        String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO " +
-                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER " +
+        String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, " +
+                            "IPD.SEQPCL, IPD.DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, CPR.CODCPR, CPR.DESCPR " +
+                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
                         "AND IPD.CODEMP = DER.CODEMP " +
                         "AND IPD.CODPRO = DER.CODPRO " +
                         "AND IPD.CODDER = DER.CODDER " +
+                        "AND IPD.CODEMP = CPR.CODEMP " +
+                        "AND CPR.CODCPR = SUBSTR(IPD.CODPRO, 3, 4) " +
                         "AND IPD.CODEMP = " + emp + " " +
                         "AND IPD.CODFIL = " + fil + " " +
-                        "AND IPD.NUMPED = " + ped;
+                        "AND IPD.NUMPED = " + ped + " " +
+                      "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO");
+        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
+                "PERDSC", "PERCOM", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -344,6 +350,16 @@ public class DBQueriesService extends FeelingService{
                 }
             }
         }
+        return "OK";
+    }
+
+    public String limparEquivalentes(String emp, String fil, String ped, String ipd) {
+        String sql = "DELETE FROM E700PCE " +
+                      "WHERE CODEMP = " + emp + " " +
+                        "AND CODFIL = " + fil + " " +
+                        "AND NUMPED = " + ped + " " +
+                        "AND SEQIPD = " + ipd;
+        executeSqlStatement(sql);
         return "OK";
     }
 

@@ -128,7 +128,7 @@ public class WebServiceRequestsService extends FeelingService{
         HashMap<String, HashMap> params = prepareParamsForPedido(codEmp, codFil, numPed, seqIpd, opePed, opeIpd);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", user, pswd, "0", params);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
@@ -157,6 +157,7 @@ public class WebServiceRequestsService extends FeelingService{
                 paramsItem.put("seqIpd", itemPedido.getSeqIpd());
                 paramsItem.put("qtdPed", itemPedido.getQtdPed());
                 paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
+                paramsItem.put("seqPcl", itemPedido.getNumCnj());
                 paramsItem.put("opeExe", opeIpd);
                 listaItens.add(paramsItem);
             });

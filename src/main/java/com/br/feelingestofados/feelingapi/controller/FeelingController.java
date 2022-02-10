@@ -48,7 +48,7 @@ public class FeelingController {
     @ResponseBody
     public String editPedido(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "", token);
+            return wsRequestsService.handlePedido(wrapper, "C", "", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -66,7 +66,7 @@ public class FeelingController {
     @ResponseBody
     public String createItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "I", token);
+            return wsRequestsService.handlePedido(wrapper, "C", "I", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -75,7 +75,7 @@ public class FeelingController {
     @ResponseBody
     public String editItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "A", token);
+            return wsRequestsService.handlePedido(wrapper, "C", "C", token);
         else
             return TOKEN_INVALIDO;
     }
@@ -90,12 +90,16 @@ public class FeelingController {
             for(int i = 0; i < itens.length(); i++) {
                 JSONObject item = itens.getJSONObject(i);
                 String seqIpd = item.getString("SEQIPD");
-                String s = wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
+                // limpando E700PCE
+                queriesService.limparEquivalentes(wrapper.getPedido().getCodEmp().toString(),
                         wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                        seqIpd, "A", "E", token);
-                System.out.println(s);
+                        seqIpd);
+                // excluindo item do pedido
+                wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
+                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                        seqIpd, "C", "E", token);
             }
-            return wsRequestsService.handlePedido(wrapper, "A", "I", token);
+            return wsRequestsService.handlePedido(wrapper, "C", "I", token);
         }
         else
             return TOKEN_INVALIDO;
@@ -105,7 +109,7 @@ public class FeelingController {
     @ResponseBody
     public String deleteItem(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws IOException {
         if(checkToken(token))
-            return wsRequestsService.handlePedido(wrapper, "A", "E", token);
+            return wsRequestsService.handlePedido(wrapper, "C", "E", token);
         else
             return TOKEN_INVALIDO;
     }
