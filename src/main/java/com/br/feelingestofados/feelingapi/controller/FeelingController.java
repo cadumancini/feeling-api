@@ -231,6 +231,16 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @PostMapping(value = "/enviarPedido", produces = "application/json")
+    @ResponseBody
+    public String enviarPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped,
+                               @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.enviarPedidoEmpresa(emp, fil, ped);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/itensMontagem", produces = "application/json")
     @ResponseBody
     public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) throws Exception {

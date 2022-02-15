@@ -133,7 +133,8 @@ public class DBQueriesService extends FeelingService{
                                                    "FROM E120IPD IPD " +
                                                    "WHERE IPD.CODEMP = PED.CODEMP " +
                                                    "AND IPD.CODFIL = PED.CODFIL " +
-                                                   "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT " +
+                                                   "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
+                             "PED.SITPED, PED.PEDCLI, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, PED.CIFFOB " +
                        "FROM E120PED PED, E028CPG CPG " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
@@ -141,13 +142,23 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.CODFIL = " + fil + " " +
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("DESCPG", "DATENT");
+        List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "CODCLI", "CODEMP",
+                "CODREP", "CODTRA", "CIFFOB");
         return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
+    public String enviarPedidoEmpresa(String emp, String fil, String ped) throws Exception {
+        String sql = "UPDATE E120PED SET SITPED = 3 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
+        }
+        return "OK";
     }
 
     public String findItensPedido(String emp, String fil, String ped) throws Exception {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, IPD.USU_CNDESP AS CNDESP, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
@@ -409,13 +420,13 @@ public class DBQueriesService extends FeelingService{
         return rowsAffected;
     }
 
-    private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) throws Exception {
+    private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) {
         JSONArray jsonArray = new JSONArray();
         for(Object item : result) {
             Map row = (Map)item;
             JSONObject jsonObj = new JSONObject();
             for(String field : fields) {
-                String value = row.get(field).toString();
+                String value = field == null ? "" : row.get(field).toString();
                 jsonObj.put(field, value);
             }
             jsonArray.put(jsonObj);
