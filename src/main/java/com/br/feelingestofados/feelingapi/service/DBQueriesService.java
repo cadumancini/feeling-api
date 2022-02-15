@@ -128,10 +128,28 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
+    public String findPedido(String emp, String fil, String ped) throws Exception {
+        String sql = "SELECT CPG.DESCPG, TO_CHAR((SELECT MAX(IPD.DATENT) " +
+                                                   "FROM E120IPD IPD " +
+                                                   "WHERE IPD.CODEMP = PED.CODEMP " +
+                                                   "AND IPD.CODFIL = PED.CODFIL " +
+                                                   "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT " +
+                       "FROM E120PED PED, E028CPG CPG " +
+                      "WHERE PED.CODEMP = CPG.CODEMP " +
+                        "AND PED.CODCPG = CPG.CODCPG " +
+                        "AND PED.CODEMP = " + emp + " " +
+                        "AND PED.CODFIL = " + fil + " " +
+                        "AND PED.NUMPED = " + ped;
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("DESCPG", "DATENT");
+        return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
     public String findItensPedido(String emp, String fil, String ped) throws Exception {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, " +
-                            "IPD.SEQPCL, IPD.DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, CPR.CODCPR, CPR.DESCPR " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, IPD.USU_CNDESP AS CNDESP, " +
+                            "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
+                            "CPR.CODCPR, CPR.DESCPR " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -146,7 +164,7 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
-                "PERDSC", "PERCOM", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR");
+                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -349,6 +367,15 @@ public class DBQueriesService extends FeelingService{
                     throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo INDPCE com valor 'I'.");
                 }
             }
+        }
+        return "OK";
+    }
+
+    public String marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cndEsp) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_CNDESP = '" + cndEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_CNDESP com valor '" + cndEsp + "'.");
         }
         return "OK";
     }

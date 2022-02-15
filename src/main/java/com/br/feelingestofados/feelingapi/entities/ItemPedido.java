@@ -10,4 +10,7 @@ public class ItemPedido {
     private Integer qtdPed;
     private Double preUni;
     private Integer numCnj;
+    private String datEnt;
+    private String conEsp;
+    private String obsIpd;
 }

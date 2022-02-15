@@ -10,6 +10,7 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 public class FeelingController {
@@ -31,6 +32,15 @@ public class FeelingController {
     public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.findItensPedido(emp, fil, ped);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/pedido", produces = "application/json")
+    @ResponseBody
+    public String getPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findPedido(emp, fil, ped);
         else
             return TOKEN_INVALIDO;
     }
@@ -99,7 +109,22 @@ public class FeelingController {
                         wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
                         seqIpd, "C", "E", token);
             }
-            return wsRequestsService.handlePedido(wrapper, "C", "I", token);
+            String returnPedido = wsRequestsService.handlePedido(wrapper, "C", "I", token);
+            if (returnPedido.contains("<retorno>OK</retorno>")) {
+                AtomicInteger seqIpd = new AtomicInteger();
+                wrapper.getItens().forEach(itemPedido -> {
+                    seqIpd.getAndIncrement();
+                    if(itemPedido.getConEsp() != null) {
+                        try {
+                            queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getConEsp());
+                        } catch (Exception e) {
+                           e .printStackTrace();
+                        }
+                    }
+                });
+            }
+            return returnPedido;
         }
         else
             return TOKEN_INVALIDO;
