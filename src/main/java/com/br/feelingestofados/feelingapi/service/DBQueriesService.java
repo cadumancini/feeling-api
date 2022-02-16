@@ -102,13 +102,17 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
-    public String findClientes() throws Exception {
-        String sql = "SELECT CODCLI, NOMCLI, INTNET, FONCLI, CGCCPF, " +
-                            "(ENDCLI || ' ' || CPLEND) AS ENDCPL, (CIDCLI || '/' || SIGUFS) AS CIDEST, " +
-                            "INSEST " +
-                       "FROM E085CLI " +
-                      "WHERE SITCLI = 'A' " +
-                      "ORDER BY CODCLI";
+    public String findClientes(String token) throws Exception {
+        int codRep = findRepresentante(token);
+
+        String sql = "SELECT CLI.CODCLI, CLI.NOMCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
+                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
+                            "CLI.INSEST " +
+                       "FROM E085CLI CLI " +
+                      "WHERE CLI.SITCLI = 'A' ";
+        if(codRep > 0)
+            sql += "AND EXISTS (SELECT 1 FROM E085HCL HCL WHERE HCL.CODCLI = CLI.CODCLI AND HCL.CODREP = " + codRep + ") ";
+        sql += "ORDER BY CLI.CODCLI";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODCLI", "NOMCLI", "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
         return createJsonFromSqlResult(results, fields, "clientes");
@@ -145,6 +149,19 @@ public class DBQueriesService extends FeelingService{
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "CODCLI", "CODEMP",
                 "CODREP", "CODTRA", "CIFFOB");
         return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
+    public String findPedidosClientes(String codCli) {
+        String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
+                            "CLI.NOMCLI, REP.NOMREP " +
+                       "FROM E120PED PED, E085CLI CLI, E090REP REP " +
+                      "WHERE PED.CODCLI = CLI.CODCLI " +
+                        "AND PED.CODREP = REP.CODREP " +
+                        "AND PED.CODCLI = " + codCli + " " +
+                      "ORDER BY PED.NUMPED";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "NUMPED", "DATEMI", "NOMCLI", "NOMREP");
+        return createJsonFromSqlResult(results, fields, "pedidos");
     }
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped) throws Exception {
@@ -262,6 +279,18 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "usuario");
     }
 
+    private int findRepresentante(String token) throws Exception {
+        int codUsu = buscaCodUsuFromToken(token);
+        String sql = "SELECT CODREP FROM E099USU WHERE CODUSU = " + codUsu + " AND CODREP <> 0 AND ROWNUM = 1";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODREP");
+        String representante = createJsonFromSqlResult(results, fields, "representante");
+        JSONObject jObj = new JSONObject(representante);
+        if(jObj.getJSONArray("representante").length() > 0)
+            return jObj.getJSONArray("representante").getJSONObject(0).getInt("CODREP");
+        return 0;
+    }
+
     private String findUltimoSeqPce(String codEmp, String codFil, String numPed,
                                     String seqIpd, int codEtg, int seqMod) throws Exception {
         String sql = "SELECT NVL(MAX(SEQPCE), 0) AS SEQPCE " +
@@ -348,9 +377,7 @@ public class DBQueriesService extends FeelingService{
             String codCcu = jObj.getJSONArray("dados").getJSONObject(0).getString("CODCCU");
             String codPro = jObj.getJSONArray("dados").getJSONObject(0).getString("CODPRO");
 
-            String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
-            jObj = new JSONObject(findUsuario(nomUsu));
-            int codUsu = jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
+            int codUsu = buscaCodUsuFromToken(token);
 
             jObj = new JSONObject(findUltimoSeqPce(emp, fil, ped, ipd, codEtg, seqMod));
             int seqPce = jObj.getJSONArray("pce").getJSONObject(0).getInt("SEQPCE");
@@ -399,6 +426,12 @@ public class DBQueriesService extends FeelingService{
                         "AND SEQIPD = " + ipd;
         executeSqlStatement(sql);
         return "OK";
+    }
+
+    private int buscaCodUsuFromToken(String token) throws Exception {
+        String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
+        JSONObject jObj = new JSONObject(findUsuario(nomUsu));
+        return jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
     }
 
     private int executeSqlStatement(String sql) {
