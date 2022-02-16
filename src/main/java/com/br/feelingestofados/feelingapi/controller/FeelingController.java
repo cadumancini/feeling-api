@@ -54,6 +54,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/pedidos", produces = "application/json")
+    @ResponseBody
+    public String getPedidosUsuario(@RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findPedidosUsuario(token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @PutMapping(value = "/pedido", consumes = "application/json", produces = "application/xml")
     @ResponseBody
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
