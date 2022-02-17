@@ -194,7 +194,9 @@ public class DBQueriesService extends FeelingService{
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
                             "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
-                            "CPR.CODCPR, CPR.DESCPR " +
+                            "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
+                            "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
+                            "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, 0 AS NFVIPD " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -209,7 +211,8 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
-                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR");
+                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
+                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -435,6 +438,15 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
+    public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_LARDER = '" + derEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
+        }
+        return "OK";
+    }
+
     public String limparEquivalentes(String emp, String fil, String ped, String ipd) {
         String sql = "DELETE FROM E700PCE " +
                       "WHERE CODEMP = " + emp + " " +
@@ -476,7 +488,7 @@ public class DBQueriesService extends FeelingService{
             Map row = (Map)item;
             JSONObject jsonObj = new JSONObject();
             for(String field : fields) {
-                String value = field == null ? "" : row.get(field).toString();
+                String value = row.get(field) == null ? "" : row.get(field).toString();
                 jsonObj.put(field, value);
             }
             jsonArray.put(jsonObj);

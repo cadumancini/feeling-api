@@ -12,5 +12,6 @@ public class ItemPedido {
     private Integer numCnj;
     private String datEnt;
     private String conEsp;
+    private String derEsp;
     private String obsIpd;
 }

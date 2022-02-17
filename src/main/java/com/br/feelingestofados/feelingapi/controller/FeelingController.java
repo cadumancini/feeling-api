@@ -136,6 +136,10 @@ public class FeelingController {
                         try {
                             queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
                                     wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getConEsp());
+                            if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
+                                queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getDerEsp());
+                            }
                         } catch (Exception e) {
                            e .printStackTrace();
                         }
