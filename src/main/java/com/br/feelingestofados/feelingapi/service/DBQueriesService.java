@@ -196,7 +196,8 @@ public class DBQueriesService extends FeelingService{
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
                             "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
-                            "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, 0 AS NFVIPD " +
+                            "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
+                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -217,14 +218,14 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosProduto(String emp, String pro) throws Exception {
-        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI " +
+        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI, PRO.CODAGP " +
                        "FROM E075PRO PRO, E012FAM FAM " +
                       "WHERE PRO.CODEMP = FAM.CODEMP " +
                         "AND PRO.CODFAM = FAM.CODFAM " +
                         "AND PRO.CODEMP = " + emp + " " +
                         "AND PRO.CODPRO = '" + pro + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI");
+        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI", "CODAGP");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 

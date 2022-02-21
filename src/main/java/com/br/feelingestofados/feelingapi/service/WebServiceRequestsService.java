@@ -66,6 +66,7 @@ public class WebServiceRequestsService extends FeelingService{
                 String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
                 String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
+                String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -75,11 +76,14 @@ public class WebServiceRequestsService extends FeelingService{
                 eCodFam.appendChild(doc.createTextNode(codFam));
                 Element eNumOri = doc.createElement("numOri");
                 eNumOri.appendChild(doc.createTextNode(numOri));
+                Element eCodAgp = doc.createElement("codAgp");
+                eCodAgp.appendChild(doc.createTextNode(codAgp));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
                 eElement.appendChild(eCodFam);
                 eElement.appendChild(eNumOri);
+                eElement.appendChild(eCodAgp);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();
