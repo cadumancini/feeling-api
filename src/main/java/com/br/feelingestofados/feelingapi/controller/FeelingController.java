@@ -5,8 +5,8 @@ import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
