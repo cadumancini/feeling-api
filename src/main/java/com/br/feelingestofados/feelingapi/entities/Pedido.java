@@ -12,4 +12,5 @@ public class Pedido {
     private Integer codRep;
     private Integer codTra;
     private String cifFob;
+    private String obsPed;
 }

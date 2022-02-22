@@ -23,7 +23,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentes(String emp, String modelo, String componente) throws Exception {
-        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
+        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
                 "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                 "WHERE A.USU_CODEMP = B.CODEMP " +
                 "AND A.USU_CMPEQI = B.CODPRO " +
@@ -36,12 +36,12 @@ public class DBQueriesService extends FeelingService{
                 "ORDER BY A.USU_CMPEQI, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
     public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws Exception {
-            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
+            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
                     "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                     "WHERE A.USU_CODEMP = B.CODEMP " +
                     "AND A.USU_CMPEQI = B.CODPRO " +
@@ -58,7 +58,7 @@ public class DBQueriesService extends FeelingService{
                     "ORDER BY A.USU_CMPEQI, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
@@ -138,7 +138,8 @@ public class DBQueriesService extends FeelingService{
                                                    "WHERE IPD.CODEMP = PED.CODEMP " +
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
-                             "PED.SITPED, PED.PEDCLI, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, PED.CIFFOB " +
+                             "PED.SITPED, PED.PEDCLI, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
+                             "PED.CIFFOB, PED.OBSPED " +
                        "FROM E120PED PED, E028CPG CPG " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
@@ -147,7 +148,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
@@ -230,7 +231,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDerivacoesPossiveis(String emp, String pro) throws Exception {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
                         "AND DER.CODPRO = PRO.CODPRO " +
@@ -241,7 +242,7 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY DER.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
