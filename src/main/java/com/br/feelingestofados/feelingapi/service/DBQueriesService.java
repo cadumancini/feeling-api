@@ -152,6 +152,13 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
+    public String findCondicoesPagto(String emp) {
+        String sql = "SELECT CPG.CODCPG, CPG.DESCPG FROM E028CPG CPG WHERE CODEMP = " + emp + " ORDER BY CPG.DESCPG";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODCPG", "DESCPG");
+        return createJsonFromSqlResult(results, fields, "condicoes");
+    }
+
     public String findPedidosClientes(String codCli) {
         String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP " +

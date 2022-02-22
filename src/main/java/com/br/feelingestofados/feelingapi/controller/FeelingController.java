@@ -170,6 +170,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/condicoesPagto", produces = "application/json")
+    @ResponseBody
+    public String getCondicoesPagto(@RequestParam String emp, @RequestParam String token) throws Exception {
+        if(TokensManager.getInstance().isTokenValid(token))
+            return queriesService.findCondicoesPagto(emp);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/produtosPorEstilo", produces = "application/json")
     @ResponseBody
     public String getProdutosPorEstilo(@RequestParam String emp, @RequestParam String estilo, @RequestParam String token) throws Exception {
