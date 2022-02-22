@@ -267,7 +267,7 @@ public class FeelingController {
     public String enviarPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped,
                                @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.enviarPedidoEmpresa(emp, fil, ped);
+            return queriesService.enviarPedidoEmpresa(emp, fil, ped, token);
         else
             return TOKEN_INVALIDO;
     }

@@ -6,6 +6,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
@@ -17,6 +18,8 @@ import java.util.Map;
 
 @Component
 public class DBQueriesService extends FeelingService{
+    @Autowired
+    private WebServiceRequestsService wsRequestsService;
 
     public DBQueriesService(EntityManagerFactory factory) {
         super(factory);
@@ -189,7 +192,25 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "pedidos");
     }
 
-    public String enviarPedidoEmpresa(String emp, String fil, String ped) throws Exception {
+    public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
+        // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
+        String itensPedido = this.findItensPedido(emp, fil, ped);
+        JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
+        for(int i = 0; i < itens.length(); i++) {
+            JSONObject item = itens.getJSONObject(i);
+            String seqIpd = item.getString("SEQIPD");
+            String codPro = item.getString("CODPRO");
+            String codDer = item.getString("CODDER");
+            String desPro = item.getString("DESPRO");
+            String desDer = item.getString("DESDER");
+
+            // Buscando estrutura
+            String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
+            if(estrutura.contains("<proGen>S</proGen>") || estrutura.contains("<codDer>G</codDer>")) {
+                return "O item " + desPro + " " + desDer + " possui pendências na estrutura. Verifique!";
+            }
+        }
+
         String sql = "UPDATE E120PED SET SITPED = 3 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
