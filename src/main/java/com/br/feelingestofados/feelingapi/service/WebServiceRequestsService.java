@@ -60,13 +60,16 @@ public class WebServiceRequestsService extends FeelingService{
             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element eElement = (Element) nNode;
                 String codPro = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                String codDer = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                 JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
+                JSONObject jObjDer = new JSONObject(queriesService.findDadosDerivacao(codEmp, codPro, codDer));
 
                 String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
                 String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
                 String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
                 String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
+                String codRef = jObjDer.getJSONArray("dados").getJSONObject(0).getString("CODREF");
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -78,12 +81,15 @@ public class WebServiceRequestsService extends FeelingService{
                 eNumOri.appendChild(doc.createTextNode(numOri));
                 Element eCodAgp = doc.createElement("codAgp");
                 eCodAgp.appendChild(doc.createTextNode(codAgp));
+                Element eCodRef = doc.createElement("codRef");
+                eCodRef.appendChild(doc.createTextNode(codRef));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
                 eElement.appendChild(eCodFam);
                 eElement.appendChild(eNumOri);
                 eElement.appendChild(eCodAgp);
+                eElement.appendChild(eCodRef);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();

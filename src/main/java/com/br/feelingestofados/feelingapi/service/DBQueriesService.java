@@ -248,13 +248,24 @@ public class DBQueriesService extends FeelingService{
 
     public String findDadosProduto(String emp, String pro) throws Exception {
         String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI, PRO.CODAGP " +
-                       "FROM E075PRO PRO, E012FAM FAM " +
-                      "WHERE PRO.CODEMP = FAM.CODEMP " +
-                        "AND PRO.CODFAM = FAM.CODFAM " +
-                        "AND PRO.CODEMP = " + emp + " " +
-                        "AND PRO.CODPRO = '" + pro + "'";
+                "FROM E075PRO PRO, E012FAM FAM " +
+                "WHERE PRO.CODEMP = FAM.CODEMP " +
+                "AND PRO.CODFAM = FAM.CODFAM " +
+                "AND PRO.CODEMP = " + emp + " " +
+                "AND PRO.CODPRO = '" + pro + "'";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI", "CODAGP");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String findDadosDerivacao(String emp, String pro, String der) throws Exception {
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF " +
+                "FROM E075DER DER " +
+                "WHERE DER.CODEMP = " + emp + " " +
+                "AND DER.CODPRO = '" + pro + "' " +
+                "AND DER.CODDER = '" + der + "'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
