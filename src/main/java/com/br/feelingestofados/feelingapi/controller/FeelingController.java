@@ -217,9 +217,10 @@ public class FeelingController {
 
     @GetMapping(value = "/derivacoesPossiveis", produces = "application/json")
     @ResponseBody
-    public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro, @RequestParam String token) throws Exception {
+    public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro,
+                                         @RequestParam String mod, @RequestParam String derMod, @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.findDerivacoesPossiveis(emp, pro);
+            return queriesService.findDerivacoesPossiveis(emp, pro, mod, derMod);
         else
             return TOKEN_INVALIDO;
     }

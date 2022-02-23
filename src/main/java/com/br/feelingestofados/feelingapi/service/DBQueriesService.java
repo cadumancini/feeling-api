@@ -269,7 +269,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String findDerivacoesPossiveis(String emp, String pro) throws Exception {
+    public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) throws Exception {
         String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
@@ -278,6 +278,12 @@ public class DBQueriesService extends FeelingService{
                         "AND DER.CODPRO = '" + pro + "' " +
                         "AND DER.CODDER <> 'G' " +
                         "AND DER.SITDER = 'A' " +
+                        "AND EXISTS (SELECT 1 FROM E700CTM CTM " +
+                                     "WHERE CTM.CODEMP = DER.CODEMP " +
+                                       "AND CTM.CODMOD = '" + mod + "' " +
+                                       "AND CTM.CODDER = '" + derMod + "' " +
+                                       "AND CTM.CODCMP = DER.CODPRO " +
+                                       "AND CTM.DERCMP = 'G') " +
                       "ORDER BY DER.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
