@@ -25,16 +25,18 @@ public class DBQueriesService extends FeelingService{
         super(factory);
     }
 
-    public String findEquivalentes(String emp, String modelo, String componente) throws Exception {
+    public String findEquivalentes(String emp, String modelo, String componente, String der) throws Exception {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
                 "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                 "WHERE A.USU_CODEMP = B.CODEMP " +
                 "AND A.USU_CMPEQI = B.CODPRO " +
                 "AND B.CODEMP = C.CODEMP " +
                 "AND B.CODPRO = C.CODPRO " +
+                "AND A.USU_DEREQI = C.CODDER " +
                 "AND A.USU_CODEMP = " + emp + " " +
                 "AND A.USU_CODMOD = '" + modelo + "' " +
                 "AND A.USU_CODCMP = '" + componente + "' " +
+                "AND A.USU_DERCMP = '" + der + "' " +
                 "AND C.CODDER <> 'G' " +
                 "ORDER BY A.USU_CMPEQI, C.CODDER";
 
@@ -44,21 +46,19 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws Exception {
-            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
-                    "FROM USU_T075EQI A, E075PRO B, E075DER C " +
-                    "WHERE A.USU_CODEMP = B.CODEMP " +
-                    "AND A.USU_CMPEQI = B.CODPRO " +
-                    "AND B.CODEMP = C.CODEMP " +
-                    "AND B.CODPRO = C.CODPRO " +
-                    "AND A.USU_CODEMP = " + emp + " " +
-                    "AND A.USU_CODMOD = '" + modelo + "' " +
-                    "AND (A.USU_CMPEQI || C.CODDER) <> '" + componente + der + "' " +
-                    "AND A.USU_CODCMP IN (SELECT DISTINCT EQI.USU_CODCMP " +
-                                           "FROM USU_T075EQI EQI " +
-                                          "WHERE EQI.USU_CODMOD = '" + modelo + "' " +
-                                        "AND EQI.USU_CMPEQI = '" + componente + "') " +
-                    "AND C.CODDER <> 'G' " +
-                    "ORDER BY A.USU_CMPEQI, C.CODDER";
+            String sql = "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CODCMP = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DERCMP = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CMPEQI = '" + componente + "' " +
+                        "AND A.USU_DEREQI = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                        "ORDER BY A.USU_CODCMP, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");

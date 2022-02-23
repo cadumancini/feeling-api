@@ -199,9 +199,9 @@ public class FeelingController {
 
     @GetMapping(value = "/equivalentes", produces = "application/json")
     @ResponseBody
-    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String token) throws Exception {
+    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String derivacao, @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.findEquivalentes(emp, modelo, componente);
+            return queriesService.findEquivalentes(emp, modelo, componente, derivacao);
         else
             return TOKEN_INVALIDO;
     }
