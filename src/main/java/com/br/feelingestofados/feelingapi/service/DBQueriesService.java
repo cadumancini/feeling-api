@@ -26,19 +26,55 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) throws Exception {
-        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
-                "FROM USU_T075EQI A, E075PRO B, E075DER C " +
-                "WHERE A.USU_CODEMP = B.CODEMP " +
-                "AND A.USU_CMPEQI = B.CODPRO " +
-                "AND B.CODEMP = C.CODEMP " +
-                "AND B.CODPRO = C.CODPRO " +
-                "AND A.USU_DEREQI = C.CODDER " +
-                "AND A.USU_CODEMP = " + emp + " " +
-                "AND A.USU_CODMOD = '" + modelo + "' " +
-                "AND A.USU_CODCMP = '" + componente + "' " +
-                "AND A.USU_DERCMP = '" + der + "' " +
-                "AND C.CODDER <> 'G' " +
-                "ORDER BY A.USU_CMPEQI, C.CODDER";
+        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DEREQI = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CODCMP = '" + componente + "' " +
+                        "AND A.USU_DERCMP = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "UNION " +
+                    "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CODCMP = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DERCMP = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CMPEQI = '" + componente + "' " +
+                        "AND A.USU_DEREQI = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "UNION " +
+                    "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DEREQI = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND (A.USU_CODCMP || A.USU_DERCMP) IN (SELECT DISTINCT (EQI.USU_CODCMP || DER.CODDER) " +
+                                                                "FROM USU_T075EQI EQI, E075PRO PRO, E075DER DER " +
+                                                                "WHERE EQI.USU_CODEMP = PRO.CODEMP " +
+                                                                "AND EQI.USU_CODCMP = PRO.CODPRO " +
+                                                                "AND PRO.CODEMP = DER.CODEMP " +
+                                                                "AND PRO.CODPRO = DER.CODPRO " +
+                                                                "AND EQI.USU_DERCMP = DER.CODDER " +
+                                                                "AND EQI.USU_CODEMP = " + emp + " " +
+                                                                "AND EQI.USU_CODMOD = '" + modelo + "' " +
+                                                                "AND EQI.USU_CMPEQI = '" + componente + "' " +
+                                                                "AND EQI.USU_DEREQI = '" + der + "') " +
+                        "AND (A.USU_CMPEQI || A.USU_DEREQI) <> '" + componente + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "ORDER BY CODPRO, CODDER";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
