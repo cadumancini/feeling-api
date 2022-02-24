@@ -25,7 +25,7 @@ public class DBQueriesService extends FeelingService{
         super(factory);
     }
 
-    public String findEquivalentes(String emp, String modelo, String componente, String der) throws Exception {
+    public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
@@ -81,7 +81,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws Exception {
+    public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) {
             String sql = "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
@@ -101,7 +101,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    public String findEstilos(String codEmp) throws Exception {
+    public String findEstilos(String codEmp) {
         String sql = "SELECT CODCPR, DESCPR " +
                        "FROM E084CPR " +
                        "WHERE CODEMP = " + codEmp + " " +
@@ -114,7 +114,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "estilos");
     }
 
-    public String findProdutosPorEstilo(String codEmp, String estilo) throws Exception {
+    public String findProdutosPorEstilo(String codEmp, String estilo) {
         String sql = "SELECT CODPRO, DESPRO " +
                        "FROM E075PRO " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -128,7 +128,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "produtos");
     }
 
-    public String findDerivacoesPorProduto(String codEmp, String codPro) throws Exception {
+    public String findDerivacoesPorProduto(String codEmp, String codPro) {
         String sql = "SELECT CODDER, DESDER " +
                        "FROM E075DER " +
                        "WHERE CODEMP = " + codEmp + " " +
@@ -157,7 +157,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "clientes");
     }
 
-    public String findDadosCliente(String codCli) throws Exception {
+    public String findDadosCliente(String codCli) {
         String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA " +
                        "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
@@ -171,7 +171,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
-    public String findPedido(String emp, String fil, String ped) throws Exception {
+    public String findPedido(String emp, String fil, String ped) {
         String sql = "SELECT CPG.DESCPG, TO_CHAR((SELECT MAX(IPD.DATENT) " +
                                                    "FROM E120IPD IPD " +
                                                    "WHERE IPD.CODEMP = PED.CODEMP " +
@@ -255,7 +255,7 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
-    public String findItensPedido(String emp, String fil, String ped) throws Exception {
+    public String findItensPedido(String emp, String fil, String ped) {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
                             "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
@@ -282,7 +282,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
-    public String findDadosProduto(String emp, String pro) throws Exception {
+    public String findDadosProduto(String emp, String pro) {
         String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI, PRO.CODAGP " +
                 "FROM E075PRO PRO, E012FAM FAM " +
                 "WHERE PRO.CODEMP = FAM.CODEMP " +
@@ -294,7 +294,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String findDadosDerivacao(String emp, String pro, String der) throws Exception {
+    public String findDadosDerivacao(String emp, String pro, String der) {
         String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF " +
                 "FROM E075DER DER " +
                 "WHERE DER.CODEMP = " + emp + " " +
@@ -305,7 +305,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) throws Exception {
+    public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
         String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
@@ -327,7 +327,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
-    private String findDadosEquivalente(String codEmp, String codMod, String derMod, String codCmp, String derCmp) throws Exception {
+    private String findDadosEquivalente(String codEmp, String codMod, String derMod, String codCmp, String derCmp) {
         String sql = "SELECT CTM.CODETG, CTM.SEQMOD, CTM.QTDUTI, CTM.QTDFRQ, " +
                             "CTM.PERPRD, CTM.PRDQTD, CTM.UNIME2, CMM.TIPQTD, " +
                             "CMM.CODCCU, PRO.CODPRO " +
@@ -351,7 +351,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    private String findDadosEquivalenteBySeqMod(String codEmp, String codMod, String derMod, int seqMod) throws Exception {
+    private String findDadosEquivalenteBySeqMod(String codEmp, String codMod, String derMod, int seqMod) {
         String sql = "SELECT CTM.CODETG, CTM.SEQMOD, CTM.QTDUTI, CTM.QTDFRQ, " +
                 "CTM.PERPRD, CTM.PRDQTD, CTM.UNIME2, CMM.TIPQTD, " +
                 "CMM.CODCCU, PRO.CODPRO " +
@@ -374,7 +374,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
     
-    private String findUsuario(String nomUsu) throws Exception {
+    private String findUsuario(String nomUsu) {
         String sql = "SELECT CODUSU FROM R999USU WHERE UPPER(NOMUSU) = UPPER('" + nomUsu + "')";
 
         List<Object> results = listResultsFromSql(sql);
@@ -395,7 +395,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     private String findUltimoSeqPce(String codEmp, String codFil, String numPed,
-                                    String seqIpd, int codEtg, int seqMod) throws Exception {
+                                    String seqIpd, int codEtg, int seqMod) {
         String sql = "SELECT NVL(MAX(SEQPCE), 0) AS SEQPCE " +
                        "FROM E700PCE " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -412,7 +412,7 @@ public class DBQueriesService extends FeelingService{
 
     private String findEquivalenteExistente(String codEmp, String codFil, String numPed,
                                             String seqIpd, String codMod, String codCmp,
-                                            String derCmp) throws Exception {
+                                            String derCmp) {
         String sql = "SELECT SEQMOD " +
                        "FROM E700PCE " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -428,7 +428,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "seqMod");
     }
 
-    public String findItensMontagem(String emp, String pro, String der) throws Exception {
+    public String findItensMontagem(String emp, String pro, String der) {
         String sql = "SELECT CTM.SEQMOD, CTM.CODCMP, CTM.DERCMP, (PRO.CPLPRO || DER.DESCPL) AS DSCCMP " +
                        "FROM E700CTM CTM, E075PRO PRO, E075DER DER " +
                       "WHERE CTM.CODEMP = PRO.CODEMP " +
@@ -540,7 +540,7 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
-    private int buscaCodUsuFromToken(String token) throws Exception {
+    private int buscaCodUsuFromToken(String token) {
         String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
         JSONObject jObj = new JSONObject(findUsuario(nomUsu));
         return jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");

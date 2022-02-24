@@ -29,7 +29,7 @@ public class FeelingController {
 
     @GetMapping(value = "/itensPedido", produces = "application/json")
     @ResponseBody
-    public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws Exception {
+    public String getItensPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findItensPedido(emp, fil, ped);
         else
@@ -38,7 +38,7 @@ public class FeelingController {
 
     @GetMapping(value = "/pedido", produces = "application/json")
     @ResponseBody
-    public String getPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) throws Exception {
+    public String getPedido(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findPedido(emp, fil, ped);
         else
@@ -163,7 +163,7 @@ public class FeelingController {
 
     @GetMapping(value = "/estilos", produces = "application/json")
     @ResponseBody
-    public String getEstilos(@RequestParam String emp, @RequestParam String token) throws Exception {
+    public String getEstilos(@RequestParam String emp, @RequestParam String token) {
         if(TokensManager.getInstance().isTokenValid(token))
             return queriesService.findEstilos(emp);
         else
@@ -172,7 +172,7 @@ public class FeelingController {
 
     @GetMapping(value = "/condicoesPagto", produces = "application/json")
     @ResponseBody
-    public String getCondicoesPagto(@RequestParam String emp, @RequestParam String token) throws Exception {
+    public String getCondicoesPagto(@RequestParam String emp, @RequestParam String token) {
         if(TokensManager.getInstance().isTokenValid(token))
             return queriesService.findCondicoesPagto(emp);
         else
@@ -181,7 +181,7 @@ public class FeelingController {
 
     @GetMapping(value = "/produtosPorEstilo", produces = "application/json")
     @ResponseBody
-    public String getProdutosPorEstilo(@RequestParam String emp, @RequestParam String estilo, @RequestParam String token) throws Exception {
+    public String getProdutosPorEstilo(@RequestParam String emp, @RequestParam String estilo, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findProdutosPorEstilo(emp, estilo);
         else
@@ -190,7 +190,7 @@ public class FeelingController {
 
     @GetMapping(value = "/derivacoesPorProduto", produces = "application/json")
     @ResponseBody
-    public String getDerivacoesPorProduto(@RequestParam String emp, @RequestParam String produto, @RequestParam String token) throws Exception {
+    public String getDerivacoesPorProduto(@RequestParam String emp, @RequestParam String produto, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findDerivacoesPorProduto(emp, produto);
         else
@@ -199,7 +199,7 @@ public class FeelingController {
 
     @GetMapping(value = "/equivalentes", produces = "application/json")
     @ResponseBody
-    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String derivacao, @RequestParam String token) throws Exception {
+    public String getEquivalentes(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String derivacao, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findEquivalentes(emp, modelo, componente, derivacao);
         else
@@ -208,7 +208,7 @@ public class FeelingController {
 
     @GetMapping(value = "/equivalentesAdicionais", produces = "application/json")
     @ResponseBody
-    public String getEquivalentesAdicionais(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String der, @RequestParam String token) throws Exception {
+    public String getEquivalentesAdicionais(@RequestParam String emp, @RequestParam String modelo, @RequestParam String componente, @RequestParam String der, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findEquivalentesAdicionais(emp, modelo, componente, der);
         else
@@ -218,7 +218,7 @@ public class FeelingController {
     @GetMapping(value = "/derivacoesPossiveis", produces = "application/json")
     @ResponseBody
     public String getDerivacoesPossiveis(@RequestParam String emp, @RequestParam String pro,
-                                         @RequestParam String mod, @RequestParam String derMod, @RequestParam String token) throws Exception {
+                                         @RequestParam String mod, @RequestParam String derMod, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findDerivacoesPossiveis(emp, pro, mod, derMod);
         else
@@ -246,7 +246,7 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosCliente", produces = "application/json")
     @ResponseBody
-    public String getDadosCliente(@RequestParam String token, @RequestParam String codCli) throws Exception {
+    public String getDadosCliente(@RequestParam String token, @RequestParam String codCli) {
         if(checkToken(token))
             return queriesService.findDadosCliente(codCli);
         else
@@ -275,7 +275,7 @@ public class FeelingController {
 
     @GetMapping(value = "/itensMontagem", produces = "application/json")
     @ResponseBody
-    public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) throws Exception {
+    public String getItensMontagem(@RequestParam String emp, @RequestParam String pro, @RequestParam String der, @RequestParam String token) {
         if(checkToken(token))
             return queriesService.findItensMontagem(emp, pro, der);
         else
