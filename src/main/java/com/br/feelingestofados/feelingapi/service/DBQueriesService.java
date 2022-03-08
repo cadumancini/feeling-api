@@ -6,6 +6,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManagerFactory;
@@ -17,52 +18,90 @@ import java.util.Map;
 
 @Component
 public class DBQueriesService extends FeelingService{
+    @Autowired
+    private WebServiceRequestsService wsRequestsService;
 
     public DBQueriesService(EntityManagerFactory factory) {
         super(factory);
     }
 
-    public String findEquivalentes(String emp, String modelo, String componente) throws Exception {
-        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
-                "FROM USU_T075EQI A, E075PRO B, E075DER C " +
-                "WHERE A.USU_CODEMP = B.CODEMP " +
-                "AND A.USU_CMPEQI = B.CODPRO " +
-                "AND B.CODEMP = C.CODEMP " +
-                "AND B.CODPRO = C.CODPRO " +
-                "AND A.USU_CODEMP = " + emp + " " +
-                "AND A.USU_CODMOD = '" + modelo + "' " +
-                "AND A.USU_CODCMP = '" + componente + "' " +
-                "AND C.CODDER <> 'G' " +
-                "ORDER BY A.USU_CMPEQI, C.CODDER";
+    public String findEquivalentes(String emp, String modelo, String componente, String der) {
+        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DEREQI = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CODCMP = '" + componente + "' " +
+                        "AND A.USU_DERCMP = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "UNION " +
+                    "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CODCMP = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DERCMP = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CMPEQI = '" + componente + "' " +
+                        "AND A.USU_DEREQI = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "UNION " +
+                    "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CMPEQI = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DEREQI = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND (A.USU_CODCMP || A.USU_DERCMP) IN (SELECT DISTINCT (EQI.USU_CODCMP || DER.CODDER) " +
+                                                                "FROM USU_T075EQI EQI, E075PRO PRO, E075DER DER " +
+                                                                "WHERE EQI.USU_CODEMP = PRO.CODEMP " +
+                                                                "AND EQI.USU_CODCMP = PRO.CODPRO " +
+                                                                "AND PRO.CODEMP = DER.CODEMP " +
+                                                                "AND PRO.CODPRO = DER.CODPRO " +
+                                                                "AND EQI.USU_DERCMP = DER.CODDER " +
+                                                                "AND EQI.USU_CODEMP = " + emp + " " +
+                                                                "AND EQI.USU_CODMOD = '" + modelo + "' " +
+                                                                "AND EQI.USU_CMPEQI = '" + componente + "' " +
+                                                                "AND EQI.USU_DEREQI = '" + der + "') " +
+                        "AND (A.USU_CMPEQI || A.USU_DEREQI) <> '" + componente + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                    "ORDER BY CODPRO, CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) throws Exception {
-            String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI " +
-                    "FROM USU_T075EQI A, E075PRO B, E075DER C " +
-                    "WHERE A.USU_CODEMP = B.CODEMP " +
-                    "AND A.USU_CMPEQI = B.CODPRO " +
-                    "AND B.CODEMP = C.CODEMP " +
-                    "AND B.CODPRO = C.CODPRO " +
-                    "AND A.USU_CODEMP = " + emp + " " +
-                    "AND A.USU_CODMOD = '" + modelo + "' " +
-                    "AND (A.USU_CMPEQI || C.CODDER) <> '" + componente + der + "' " +
-                    "AND A.USU_CODCMP IN (SELECT DISTINCT EQI.USU_CODCMP " +
-                                           "FROM USU_T075EQI EQI " +
-                                          "WHERE EQI.USU_CODMOD = '" + modelo + "' " +
-                                        "AND EQI.USU_CMPEQI = '" + componente + "') " +
-                    "AND C.CODDER <> 'G' " +
-                    "ORDER BY A.USU_CMPEQI, C.CODDER";
+    public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) {
+            String sql = "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
+                        "FROM USU_T075EQI A, E075PRO B, E075DER C " +
+                        "WHERE A.USU_CODEMP = B.CODEMP " +
+                        "AND A.USU_CODCMP = B.CODPRO " +
+                        "AND B.CODEMP = C.CODEMP " +
+                        "AND B.CODPRO = C.CODPRO " +
+                        "AND A.USU_DERCMP = C.CODDER " +
+                        "AND A.USU_CODEMP = " + emp + " " +
+                        "AND A.USU_CODMOD = '" + modelo + "' " +
+                        "AND A.USU_CMPEQI = '" + componente + "' " +
+                        "AND A.USU_DEREQI = '" + der + "' " +
+                        "AND C.CODDER <> 'G' " +
+                        "ORDER BY A.USU_CODCMP, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "equivalentes");
     }
 
-    public String findEstilos(String codEmp) throws Exception {
+    public String findEstilos(String codEmp) {
         String sql = "SELECT CODCPR, DESCPR " +
                        "FROM E084CPR " +
                        "WHERE CODEMP = " + codEmp + " " +
@@ -75,7 +114,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "estilos");
     }
 
-    public String findProdutosPorEstilo(String codEmp, String estilo) throws Exception {
+    public String findProdutosPorEstilo(String codEmp, String estilo) {
         String sql = "SELECT CODPRO, DESPRO " +
                        "FROM E075PRO " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -89,7 +128,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "produtos");
     }
 
-    public String findDerivacoesPorProduto(String codEmp, String codPro) throws Exception {
+    public String findDerivacoesPorProduto(String codEmp, String codPro) {
         String sql = "SELECT CODDER, DESDER " +
                        "FROM E075DER " +
                        "WHERE CODEMP = " + codEmp + " " +
@@ -102,46 +141,172 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
-    public String findClientes() throws Exception {
-        String sql = "SELECT CODCLI, NOMCLI " +
-                       "FROM E085CLI " +
-                      "WHERE SITCLI = 'A' " +
-                      "ORDER BY CODCLI";
+    public String findClientes(String token) throws Exception {
+        int codRep = findRepresentante(token);
+
+        String sql = "SELECT CLI.CODCLI, CLI.NOMCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
+                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
+                            "CLI.INSEST " +
+                       "FROM E085CLI CLI " +
+                      "WHERE CLI.SITCLI = 'A' ";
+        if(codRep > 0)
+            sql += "AND EXISTS (SELECT 1 FROM E085HCL HCL WHERE HCL.CODCLI = CLI.CODCLI AND HCL.CODREP = " + codRep + ") ";
+        sql += "ORDER BY CLI.CODCLI";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODCLI", "NOMCLI");
+        List<String> fields = Arrays.asList("CODCLI", "NOMCLI", "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
         return createJsonFromSqlResult(results, fields, "clientes");
     }
 
-    public String findItensPedido(String emp, String fil, String ped) throws Exception {
-        String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO " +
-                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER " +
+    public String findDadosCliente(String codCli) {
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA " +
+                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
+                      "WHERE HCL.CODEMP = EMP.CODEMP " +
+                        "AND HCL.CODREP = REP.CODREP " +
+                        "AND HCL.CODTRA = TRA.CODTRA " +
+                        "AND HCL.CODFIL = 1 " +
+                        "AND HCL.CODCLI = " + codCli + " " +
+                      "ORDER BY HCL.CODEMP";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA");
+        return createJsonFromSqlResult(results, fields, "dadosCliente");
+    }
+
+    public String findPedido(String emp, String fil, String ped) {
+        String sql = "SELECT CPG.DESCPG, TO_CHAR((SELECT MAX(IPD.DATENT) " +
+                                                   "FROM E120IPD IPD " +
+                                                   "WHERE IPD.CODEMP = PED.CODEMP " +
+                                                   "AND IPD.CODFIL = PED.CODFIL " +
+                                                   "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
+                             "PED.SITPED, PED.PEDCLI, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
+                             "PED.CIFFOB, PED.OBSPED " +
+                       "FROM E120PED PED, E028CPG CPG " +
+                      "WHERE PED.CODEMP = CPG.CODEMP " +
+                        "AND PED.CODCPG = CPG.CODCPG " +
+                        "AND PED.CODEMP = " + emp + " " +
+                        "AND PED.CODFIL = " + fil + " " +
+                        "AND PED.NUMPED = " + ped;
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "CODCLI", "CODEMP",
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED");
+        return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
+    public String findCondicoesPagto(String emp) {
+        String sql = "SELECT CPG.CODCPG, CPG.DESCPG FROM E028CPG CPG WHERE CODEMP = " + emp + " ORDER BY CPG.DESCPG";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODCPG", "DESCPG");
+        return createJsonFromSqlResult(results, fields, "condicoes");
+    }
+
+    public String findPedidosClientes(String codCli) {
+        String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
+                            "CLI.NOMCLI, REP.NOMREP " +
+                        "FROM E120PED PED, E085CLI CLI, E090REP REP " +
+                        "WHERE PED.CODCLI = CLI.CODCLI " +
+                        "AND PED.CODREP = REP.CODREP " +
+                        "AND PED.CODCLI = " + codCli + " " +
+                        "ORDER BY PED.NUMPED";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "NUMPED", "DATEMI", "NOMCLI", "NOMREP");
+        return createJsonFromSqlResult(results, fields, "pedidos");
+    }
+
+    public String findPedidosUsuario(String token) throws Exception {
+        int codUsu = buscaCodUsuFromToken(token);
+        String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
+                            "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
+                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST " +
+                        "FROM E120PED PED, E085CLI CLI, E090REP REP, E073TRA TRA " +
+                        "WHERE PED.CODCLI = CLI.CODCLI " +
+                        "AND PED.CODREP = REP.CODREP " +
+                        "AND PED.CODTRA = TRA.CODTRA " +
+                        "AND PED.USUGER = " + codUsu + " " +
+                        "ORDER BY PED.NUMPED";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
+                                                "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
+        return createJsonFromSqlResult(results, fields, "pedidos");
+    }
+
+    public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
+        // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
+        String itensPedido = this.findItensPedido(emp, fil, ped);
+        JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
+        for(int i = 0; i < itens.length(); i++) {
+            JSONObject item = itens.getJSONObject(i);
+            String seqIpd = item.getString("SEQIPD");
+            String codPro = item.getString("CODPRO");
+            String codDer = item.getString("CODDER");
+            String desPro = item.getString("DESPRO");
+            String desDer = item.getString("DESDER");
+
+            // Buscando estrutura
+            String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
+            if(estrutura.contains("<proGen>S</proGen>") || estrutura.contains("<codDer>G</codDer>")) {
+                return "O item " + desPro + " " + desDer + " possui pendências na estrutura. Verifique!";
+            }
+        }
+
+        String sql = "UPDATE E120PED SET SITPED = 3 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
+        }
+        return "OK";
+    }
+
+    public String findItensPedido(String emp, String fil, String ped) {
+        String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
+                            "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
+                            "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
+                            "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
+                            "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
+                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD " +
+                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
                         "AND IPD.CODEMP = DER.CODEMP " +
                         "AND IPD.CODPRO = DER.CODPRO " +
                         "AND IPD.CODDER = DER.CODDER " +
+                        "AND IPD.CODEMP = CPR.CODEMP " +
+                        "AND CPR.CODCPR = SUBSTR(IPD.CODPRO, 3, 4) " +
                         "AND IPD.CODEMP = " + emp + " " +
                         "AND IPD.CODFIL = " + fil + " " +
-                        "AND IPD.NUMPED = " + ped;
+                        "AND IPD.NUMPED = " + ped + " " +
+                      "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO");
+        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
+                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
+                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
-    public String findDadosProduto(String emp, String pro) throws Exception {
-        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI " +
-                       "FROM E075PRO PRO, E012FAM FAM " +
-                      "WHERE PRO.CODEMP = FAM.CODEMP " +
-                        "AND PRO.CODFAM = FAM.CODFAM " +
-                        "AND PRO.CODEMP = " + emp + " " +
-                        "AND PRO.CODPRO = '" + pro + "'";
+    public String findDadosProduto(String emp, String pro) {
+        String sql = "SELECT NVL(FAM.USU_EXICMP, 'N') AS EXICMP, NVL(PRO.USU_PROGEN, 'N') AS PROGEN, PRO.CODFAM, PRO.NUMORI, PRO.CODAGP " +
+                "FROM E075PRO PRO, E012FAM FAM " +
+                "WHERE PRO.CODEMP = FAM.CODEMP " +
+                "AND PRO.CODFAM = FAM.CODFAM " +
+                "AND PRO.CODEMP = " + emp + " " +
+                "AND PRO.CODPRO = '" + pro + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI");
+        List<String> fields = Arrays.asList("EXICMP", "PROGEN", "CODFAM", "NUMORI", "CODAGP");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String findDerivacoesPossiveis(String emp, String pro) throws Exception {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI " +
+    public String findDadosDerivacao(String emp, String pro, String der) {
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF " +
+                "FROM E075DER DER " +
+                "WHERE DER.CODEMP = " + emp + " " +
+                "AND DER.CODPRO = '" + pro + "' " +
+                "AND DER.CODDER = '" + der + "'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
+        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
                         "AND DER.CODPRO = PRO.CODPRO " +
@@ -149,14 +314,20 @@ public class DBQueriesService extends FeelingService{
                         "AND DER.CODPRO = '" + pro + "' " +
                         "AND DER.CODDER <> 'G' " +
                         "AND DER.SITDER = 'A' " +
+                        "AND EXISTS (SELECT 1 FROM E700CTM CTM " +
+                                     "WHERE CTM.CODEMP = DER.CODEMP " +
+                                       "AND CTM.CODMOD = '" + mod + "' " +
+                                       "AND CTM.CODDER = '" + derMod + "' " +
+                                       "AND CTM.CODCMP = DER.CODPRO " +
+                                       "AND CTM.DERCMP = 'G') " +
                       "ORDER BY DER.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "DSCEQI", "CODREF");
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
-    private String findDadosEquivalente(String codEmp, String codMod, String derMod, String codCmp, String derCmp) throws Exception {
+    private String findDadosEquivalente(String codEmp, String codMod, String derMod, String codCmp, String derCmp) {
         String sql = "SELECT CTM.CODETG, CTM.SEQMOD, CTM.QTDUTI, CTM.QTDFRQ, " +
                             "CTM.PERPRD, CTM.PRDQTD, CTM.UNIME2, CMM.TIPQTD, " +
                             "CMM.CODCCU, PRO.CODPRO " +
@@ -180,7 +351,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    private String findDadosEquivalenteBySeqMod(String codEmp, String codMod, String derMod, int seqMod) throws Exception {
+    private String findDadosEquivalenteBySeqMod(String codEmp, String codMod, String derMod, int seqMod) {
         String sql = "SELECT CTM.CODETG, CTM.SEQMOD, CTM.QTDUTI, CTM.QTDFRQ, " +
                 "CTM.PERPRD, CTM.PRDQTD, CTM.UNIME2, CMM.TIPQTD, " +
                 "CMM.CODCCU, PRO.CODPRO " +
@@ -203,7 +374,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
     
-    private String findUsuario(String nomUsu) throws Exception {
+    private String findUsuario(String nomUsu) {
         String sql = "SELECT CODUSU FROM R999USU WHERE UPPER(NOMUSU) = UPPER('" + nomUsu + "')";
 
         List<Object> results = listResultsFromSql(sql);
@@ -211,8 +382,20 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "usuario");
     }
 
+    private int findRepresentante(String token) throws Exception {
+        int codUsu = buscaCodUsuFromToken(token);
+        String sql = "SELECT CODREP FROM E099USU WHERE CODUSU = " + codUsu + " AND CODREP <> 0 AND ROWNUM = 1";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODREP");
+        String representante = createJsonFromSqlResult(results, fields, "representante");
+        JSONObject jObj = new JSONObject(representante);
+        if(jObj.getJSONArray("representante").length() > 0)
+            return jObj.getJSONArray("representante").getJSONObject(0).getInt("CODREP");
+        return 0;
+    }
+
     private String findUltimoSeqPce(String codEmp, String codFil, String numPed,
-                                    String seqIpd, int codEtg, int seqMod) throws Exception {
+                                    String seqIpd, int codEtg, int seqMod) {
         String sql = "SELECT NVL(MAX(SEQPCE), 0) AS SEQPCE " +
                        "FROM E700PCE " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -229,7 +412,7 @@ public class DBQueriesService extends FeelingService{
 
     private String findEquivalenteExistente(String codEmp, String codFil, String numPed,
                                             String seqIpd, String codMod, String codCmp,
-                                            String derCmp) throws Exception {
+                                            String derCmp) {
         String sql = "SELECT SEQMOD " +
                        "FROM E700PCE " +
                       "WHERE CODEMP = " + codEmp + " " +
@@ -245,7 +428,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "seqMod");
     }
 
-    public String findItensMontagem(String emp, String pro, String der) throws Exception {
+    public String findItensMontagem(String emp, String pro, String der) {
         String sql = "SELECT CTM.SEQMOD, CTM.CODCMP, CTM.DERCMP, (PRO.CPLPRO || DER.DESCPL) AS DSCCMP " +
                        "FROM E700CTM CTM, E075PRO PRO, E075DER DER " +
                       "WHERE CTM.CODEMP = PRO.CODEMP " +
@@ -297,9 +480,7 @@ public class DBQueriesService extends FeelingService{
             String codCcu = jObj.getJSONArray("dados").getJSONObject(0).getString("CODCCU");
             String codPro = jObj.getJSONArray("dados").getJSONObject(0).getString("CODPRO");
 
-            String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
-            jObj = new JSONObject(findUsuario(nomUsu));
-            int codUsu = jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
+            int codUsu = buscaCodUsuFromToken(token);
 
             jObj = new JSONObject(findUltimoSeqPce(emp, fil, ped, ipd, codEtg, seqMod));
             int seqPce = jObj.getJSONArray("pce").getJSONObject(0).getInt("SEQPCE");
@@ -331,6 +512,40 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
+    public String marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cndEsp) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_CNDESP = '" + cndEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_CNDESP com valor '" + cndEsp + "'.");
+        }
+        return "OK";
+    }
+
+    public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_LARDER = '" + derEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
+        }
+        return "OK";
+    }
+
+    public String limparEquivalentes(String emp, String fil, String ped, String ipd) {
+        String sql = "DELETE FROM E700PCE " +
+                      "WHERE CODEMP = " + emp + " " +
+                        "AND CODFIL = " + fil + " " +
+                        "AND NUMPED = " + ped + " " +
+                        "AND SEQIPD = " + ipd;
+        executeSqlStatement(sql);
+        return "OK";
+    }
+
+    private int buscaCodUsuFromToken(String token) {
+        String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
+        JSONObject jObj = new JSONObject(findUsuario(nomUsu));
+        return jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
+    }
+
     private int executeSqlStatement(String sql) {
         Transaction transaction = null;
         int rowsAffected = 0;
@@ -350,13 +565,13 @@ public class DBQueriesService extends FeelingService{
         return rowsAffected;
     }
 
-    private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) throws Exception {
+    private String createJsonFromSqlResult(List<Object> result, List<String> fields, String resultsName) {
         JSONArray jsonArray = new JSONArray();
         for(Object item : result) {
             Map row = (Map)item;
             JSONObject jsonObj = new JSONObject();
             for(String field : fields) {
-                String value = row.get(field).toString();
+                String value = row.get(field) == null ? "" : row.get(field).toString();
                 jsonObj.put(field, value);
             }
             jsonArray.put(jsonObj);

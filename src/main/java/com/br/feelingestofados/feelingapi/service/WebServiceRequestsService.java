@@ -60,12 +60,16 @@ public class WebServiceRequestsService extends FeelingService{
             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element eElement = (Element) nNode;
                 String codPro = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                String codDer = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                 JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
+                JSONObject jObjDer = new JSONObject(queriesService.findDadosDerivacao(codEmp, codPro, codDer));
 
                 String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
                 String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
                 String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
+                String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
+                String codRef = jObjDer.getJSONArray("dados").getJSONObject(0).getString("CODREF");
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -75,11 +79,17 @@ public class WebServiceRequestsService extends FeelingService{
                 eCodFam.appendChild(doc.createTextNode(codFam));
                 Element eNumOri = doc.createElement("numOri");
                 eNumOri.appendChild(doc.createTextNode(numOri));
+                Element eCodAgp = doc.createElement("codAgp");
+                eCodAgp.appendChild(doc.createTextNode(codAgp));
+                Element eCodRef = doc.createElement("codRef");
+                eCodRef.appendChild(doc.createTextNode(codRef));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
                 eElement.appendChild(eCodFam);
                 eElement.appendChild(eNumOri);
+                eElement.appendChild(eCodAgp);
+                eElement.appendChild(eCodRef);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();
@@ -121,7 +131,14 @@ public class WebServiceRequestsService extends FeelingService{
         HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, opePed, opeIpd);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos", user, pswd, "0", params);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
+    }
+
+    public String handlePedido(String codEmp, String codFil, String numPed, String seqIpd, String opePed, String opeIpd, String token) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForPedido(codEmp, codFil, numPed, seqIpd, opePed, opeIpd);
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
@@ -129,8 +146,20 @@ public class WebServiceRequestsService extends FeelingService{
         params.put("codEmp", pedidoWrapper.getPedido().getCodEmp());
         params.put("codFil", pedidoWrapper.getPedido().getCodFil());
         params.put("numPed", pedidoWrapper.getPedido().getNumPed());
-        params.put("codCli", pedidoWrapper.getPedido().getCodCli());
-        params.put("pedCli", pedidoWrapper.getPedido().getPedCli());
+        if(pedidoWrapper.getPedido().getCodCli() != null)
+            params.put("codCli", pedidoWrapper.getPedido().getCodCli());
+        if(pedidoWrapper.getPedido().getPedCli() != null)
+            params.put("pedCli", pedidoWrapper.getPedido().getPedCli());
+        if(pedidoWrapper.getPedido().getCodRep() != null)
+            params.put("codRep", pedidoWrapper.getPedido().getCodRep());
+        if(pedidoWrapper.getPedido().getCodTra() != null)
+            params.put("codTra", pedidoWrapper.getPedido().getCodTra());
+        if(pedidoWrapper.getPedido().getCifFob() != null)
+            params.put("cifFob", pedidoWrapper.getPedido().getCifFob());
+        if(pedidoWrapper.getPedido().getObsPed() != null)
+            params.put("obsPed", pedidoWrapper.getPedido().getObsPed());
+        if(pedidoWrapper.getPedido().getCodCpg() != null)
+            params.put("codCpg", pedidoWrapper.getPedido().getCodCpg());
         params.put("opeExe", opePed);
 
         if(!pedidoWrapper.getItens().isEmpty()) {
@@ -142,11 +171,34 @@ public class WebServiceRequestsService extends FeelingService{
                 paramsItem.put("seqIpd", itemPedido.getSeqIpd());
                 paramsItem.put("qtdPed", itemPedido.getQtdPed());
                 paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
+                paramsItem.put("seqPcl", itemPedido.getNumCnj());
+                paramsItem.put("datEnt", itemPedido.getDatEnt());
+                paramsItem.put("obsIpd", itemPedido.getObsIpd());
+                paramsItem.put("perDsc", String.valueOf(itemPedido.getPerDsc()).replace(".", ","));
                 paramsItem.put("opeExe", opeIpd);
                 listaItens.add(paramsItem);
             });
             params.put("produto", listaItens);
         }
+
+        HashMap<String, HashMap> paramsPedido = new HashMap<>();
+        paramsPedido.put("pedido", params);
+        return paramsPedido;
+    }
+
+    private HashMap<String, HashMap> prepareParamsForPedido(String codEmp, String codFil, String numPed, String seqIpd, String opePed, String opeIpd) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("codEmp", codEmp);
+        params.put("codFil", codFil);
+        params.put("numPed", numPed);
+        params.put("opeExe", opePed);
+
+        List<HashMap<String, Object>> listaItens = new ArrayList<>();
+        HashMap<String, Object> paramsItem = new HashMap<>();
+        paramsItem.put("seqIpd", seqIpd);
+        paramsItem.put("opeExe", opeIpd);
+        listaItens.add(paramsItem);
+        params.put("produto", listaItens);
 
         HashMap<String, HashMap> paramsPedido = new HashMap<>();
         paramsPedido.put("pedido", params);

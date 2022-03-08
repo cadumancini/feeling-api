@@ -42,7 +42,17 @@ public class SOAPClient {
                             ((ArrayList) value1).forEach(produto -> {
                                 xmlBuilder.append("<" + key1 + ">");
                                 ((HashMap<?, ?>) produto).forEach((key2, value2) -> {
-                                    xmlBuilder.append("<" + key2 + ">" + value2 + "</" + key2+ ">");
+                                    if(value2 instanceof  ArrayList) {
+                                        ((ArrayList) value2).forEach(campo -> {
+                                            xmlBuilder.append("<" + key2 + ">");
+                                            ((HashMap<?, ?>) campo).forEach((key3, value3) -> {
+                                                xmlBuilder.append("<" + key3 + ">" + value3 + "</" + key3 + ">");
+                                            });
+                                            xmlBuilder.append("</" + key2 + ">");
+                                        });
+                                    } else {
+                                        xmlBuilder.append("<" + key2 + ">" + value2 + "</" + key2 + ">");
+                                    }
                                 });
                                 xmlBuilder.append("</" + key1 + ">");
                             });
