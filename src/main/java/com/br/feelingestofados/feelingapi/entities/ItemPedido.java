@@ -9,7 +9,7 @@ public class ItemPedido {
     private Integer seqIpd;
     private Integer qtdPed;
     private Double preUni;
-    private Integer numCnj;
+    private String numCnj;
     private String datEnt;
     private String conEsp;
     private String derEsp;
