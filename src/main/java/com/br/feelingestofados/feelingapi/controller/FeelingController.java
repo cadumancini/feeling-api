@@ -244,6 +244,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/transportadoras", produces = "application/json")
+    @ResponseBody
+    public String getTransportadoras(@RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findTransportadoras();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/dadosCliente", produces = "application/json")
     @ResponseBody
     public String getDadosCliente(@RequestParam String token, @RequestParam String codCli) {

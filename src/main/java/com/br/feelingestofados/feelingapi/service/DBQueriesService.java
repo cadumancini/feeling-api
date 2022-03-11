@@ -145,16 +145,23 @@ public class DBQueriesService extends FeelingService{
         int codRep = findRepresentante(token);
 
         String sql = "SELECT CLI.CODCLI, CLI.NOMCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
-                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
-                            "CLI.INSEST " +
-                       "FROM E085CLI CLI " +
-                      "WHERE CLI.SITCLI = 'A' ";
+                "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
+                "CLI.INSEST " +
+                "FROM E085CLI CLI " +
+                "WHERE CLI.SITCLI = 'A' ";
         if(codRep > 0)
             sql += "AND EXISTS (SELECT 1 FROM E085HCL HCL WHERE HCL.CODCLI = CLI.CODCLI AND HCL.CODREP = " + codRep + ") ";
         sql += "ORDER BY CLI.CODCLI";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODCLI", "NOMCLI", "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
         return createJsonFromSqlResult(results, fields, "clientes");
+    }
+
+    public String findTransportadoras() {
+        String sql = "SELECT CODTRA, NOMTRA FROM E073TRA WHERE SITTRA = 'A' ORDER BY CODTRA";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODTRA", "NOMTRA");
+        return createJsonFromSqlResult(results, fields, "transportadoras");
     }
 
     public String findDadosCliente(String codCli) {
