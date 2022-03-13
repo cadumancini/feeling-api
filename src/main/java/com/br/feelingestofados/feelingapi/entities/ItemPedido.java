@@ -15,4 +15,5 @@ public class ItemPedido {
     private String derEsp;
     private String obsIpd;
     private Double perDsc;
+    private Double perCom;
 }

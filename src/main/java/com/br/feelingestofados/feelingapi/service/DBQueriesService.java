@@ -165,7 +165,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosCliente(String codCli) {
-        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA " +
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM " +
                        "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
                         "AND HCL.CODREP = REP.CODREP " +
@@ -174,7 +174,7 @@ public class DBQueriesService extends FeelingService{
                         "AND HCL.CODCLI = " + codCli + " " +
                       "ORDER BY HCL.CODEMP";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA");
+        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA", "PERCOM");
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
