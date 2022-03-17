@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
@@ -118,14 +119,23 @@ public class FeelingController {
             for(int i = 0; i < itens.length(); i++) {
                 JSONObject item = itens.getJSONObject(i);
                 String seqIpd = item.getString("SEQIPD");
-                // limpando E700PCE
-                queriesService.limparEquivalentes(wrapper.getPedido().getCodEmp().toString(),
-                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                        seqIpd);
-                // excluindo item do pedido
-                wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
-                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                        seqIpd, "C", "E", token);
+                // verificar se o item do pedido do banco existe nos parâmetros, se não existir, excluir
+                AtomicBoolean existe = new AtomicBoolean(false);
+                wrapper.getItens().forEach(itemPedido -> {
+                    if(itemPedido.getSeqIpd().toString().equals(seqIpd)) {
+                        existe.set(true);
+                    }
+                });
+                if(!existe.get()) {
+                    // limpando E700PCE
+                    queriesService.limparEquivalentes(wrapper.getPedido().getCodEmp().toString(),
+                            wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                            seqIpd);
+                    // excluindo item do pedido
+                    wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
+                            wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                            seqIpd, "C", "E", token);
+                }
             }
             String returnPedido = wsRequestsService.handlePedido(wrapper, "C", "I", token);
             if (returnPedido.contains("<retorno>OK</retorno>")) {
@@ -135,10 +145,12 @@ public class FeelingController {
                     if(itemPedido.getConEsp() != null) {
                         try {
                             queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
-                                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getConEsp());
+                                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                    itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getConEsp());
                             if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
                                 queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
-                                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getDerEsp());
+                                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                        itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getDerEsp());
                             }
                         } catch (Exception e) {
                            e .printStackTrace();

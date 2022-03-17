@@ -188,7 +188,10 @@ public class WebServiceRequestsService extends FeelingService{
                 paramsItem.put("obsIpd", itemPedido.getObsIpd());
                 paramsItem.put("perDsc", String.valueOf(itemPedido.getPerDsc()).replace(".", ","));
                 paramsItem.put("perCom", String.valueOf(itemPedido.getPerCom()).replace(".", ","));
-                paramsItem.put("opeExe", opeIpd);
+                if(itemPedido.getSeqIpd() > 0)
+                    paramsItem.put("opeExe", "A");
+                else
+                    paramsItem.put("opeExe", "I");
                 listaItens.add(paramsItem);
             });
             params.put("produto", listaItens);
