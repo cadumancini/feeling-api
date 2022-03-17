@@ -8,8 +8,22 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.persistence.EntityManagerFactory;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -236,6 +250,9 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
+        String pesoCubagem = "";
+        Double pesTot = 0d;
+        Double volTot = 0d;
         // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
         String itensPedido = this.findItensPedido(emp, fil, ped);
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
@@ -252,6 +269,27 @@ public class DBQueriesService extends FeelingService{
             if(estrutura.contains("<proGen>S</proGen>") || estrutura.contains("<codDer>G</codDer>")) {
                 return "O item " + desPro + " " + desDer + " possui pendências na estrutura. Verifique!";
             }
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            ByteArrayInputStream input = new ByteArrayInputStream(estrutura.getBytes(StandardCharsets.UTF_8));
+            Document doc = builder.parse(input);
+            doc.getDocumentElement().normalize();
+            NodeList nList = doc.getElementsByTagName("componentes");
+            for (int cmp = 0; cmp < nList.getLength(); cmp++) {
+                Node nNode = nList.item(cmp);
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
+                    if(codFam.equals("15001")) {
+                        pesTot += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                        volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
+                    }
+                }
+            }
         }
 
         String sql = "UPDATE E120PED SET SITPED = 3 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
@@ -259,7 +297,11 @@ public class DBQueriesService extends FeelingService{
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
         }
-        return "OK";
+        JSONObject jObj = new JSONObject();
+        jObj.put("pesoTotal", pesTot.toString());
+        jObj.put("volumeTotal", volTot.toString());
+        pesoCubagem = jObj.toString();
+        return pesoCubagem;
     }
 
     public String findItensPedido(String emp, String fil, String ped) {
@@ -302,13 +344,13 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosDerivacao(String emp, String pro, String der) {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER " +
                 "FROM E075DER DER " +
                 "WHERE DER.CODEMP = " + emp + " " +
                 "AND DER.CODPRO = '" + pro + "' " +
                 "AND DER.CODDER = '" + der + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 

@@ -70,6 +70,9 @@ public class WebServiceRequestsService extends FeelingService{
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
                 String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
                 String codRef = jObjDer.getJSONArray("dados").getJSONObject(0).getString("CODREF");
+                String pesBru = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESBRU");
+                String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
+                String volDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("VOLDER");
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -83,6 +86,12 @@ public class WebServiceRequestsService extends FeelingService{
                 eCodAgp.appendChild(doc.createTextNode(codAgp));
                 Element eCodRef = doc.createElement("codRef");
                 eCodRef.appendChild(doc.createTextNode(codRef));
+                Element ePesBru = doc.createElement("pesBru");
+                ePesBru.appendChild(doc.createTextNode(pesBru));
+                Element ePesLiq = doc.createElement("pesLiq");
+                ePesLiq.appendChild(doc.createTextNode(pesLiq));
+                Element eVolDer = doc.createElement("volDer");
+                eVolDer.appendChild(doc.createTextNode(volDer));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
@@ -90,6 +99,9 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(eNumOri);
                 eElement.appendChild(eCodAgp);
                 eElement.appendChild(eCodRef);
+                eElement.appendChild(ePesBru);
+                eElement.appendChild(ePesLiq);
+                eElement.appendChild(eVolDer);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();
