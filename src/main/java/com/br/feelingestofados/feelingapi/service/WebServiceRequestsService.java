@@ -172,7 +172,13 @@ public class WebServiceRequestsService extends FeelingService{
             params.put("obsPed", pedidoWrapper.getPedido().getObsPed());
         if(pedidoWrapper.getPedido().getCodCpg() != null)
             params.put("codCpg", pedidoWrapper.getPedido().getCodCpg());
-        params.put("opeExe", opePed);
+        if(pedidoWrapper.getPedido().getNumPed() > 0)
+            if(pedidoWrapper.getItens().isEmpty())
+                params.put("opeExe", "A");
+            else
+                params.put("opeExe", "C");
+        else
+            params.put("opeExe", "I");
 
         if(!pedidoWrapper.getItens().isEmpty()) {
             List<HashMap<String, Object>> listaItens = new ArrayList<>();
