@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,12 +18,10 @@ import javax.persistence.EntityManagerFactory;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
-import java.io.StringWriter;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -38,6 +37,8 @@ public class DBQueriesService extends FeelingService{
     public DBQueriesService(EntityManagerFactory factory) {
         super(factory);
     }
+
+    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -587,6 +588,29 @@ public class DBQueriesService extends FeelingService{
                         "AND SEQIPD = " + ipd;
         executeSqlStatement(sql);
         return "OK";
+    }
+
+    public String uploadArquivo(String emp, String fil, String ped, String ipd, MultipartFile file) throws IOException {
+        String destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        File dest = new File(destination);
+        if(dest.exists()) {
+            int index = 1;
+            destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            while(new File(destination).exists()) {
+                index++;
+                destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            }
+            dest = new File(destination);
+        }
+        file.transferTo(dest);
+        return "OK";
+    }
+
+    public String[] findArquivos(String emp, String fil, String ped, String ipd) {
+        File files = new File(ANEXOS_PATH);
+        FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
+        String[] fileNames = files.list(filter);
+        return fileNames;
     }
 
     private int buscaCodUsuFromToken(String token) {
