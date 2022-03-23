@@ -155,6 +155,11 @@ public class FeelingController {
                                 wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
                                 itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getMedEsp(),
                                 itemPedido.getDesEsp(), itemPedido.getConEsp(), itemPedido.getPraEsp(), itemPedido.getOutEsp());
+                        queriesService.marcarParamComerciais(wrapper.getPedido().getCodEmp().toString(),
+                                wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getPerDs1(),
+                                itemPedido.getPerDs2(), itemPedido.getPerDs3(), itemPedido.getPerDs4(), itemPedido.getPerDs5(),
+                                itemPedido.getPerGue(), itemPedido.getVlrRet());
                         if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
                             queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
                                     wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),

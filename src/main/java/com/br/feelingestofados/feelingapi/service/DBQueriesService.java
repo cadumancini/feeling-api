@@ -179,16 +179,19 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosCliente(String codCli) {
-        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM " +
-                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM, " +
+                            "HCL.PERDS1, HCL.PERDS2, HCL.PERDS3, HCL.PERDS4, HCL.PERDS5, CLI.USU_PERGUE AS PERGUE " +
+                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA, E085CLI CLI " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
                         "AND HCL.CODREP = REP.CODREP " +
                         "AND HCL.CODTRA = TRA.CODTRA " +
+                        "AND HCL.CODCLI = CLI.CODCLI " +
                         "AND HCL.CODFIL = 1 " +
                         "AND HCL.CODCLI = " + codCli + " " +
                       "ORDER BY HCL.CODEMP";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA", "PERCOM");
+        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA", "PERCOM",
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE");
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
@@ -311,7 +314,10 @@ public class DBQueriesService extends FeelingService{
                             "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
                             "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD, " +
                             "NVL(IPD.USU_MEDESP, 'N') AS CMED, NVL(IPD.USU_DSCESP, 'N') AS CDES, NVL(IPD.USU_PGTESP, 'N') AS CPAG, " +
-                            "NVL(IPD.USU_PRZESP, 'N') AS CPRA, NVL(IPD.USU_OUTESP, 'N') AS COUT " +
+                            "NVL(IPD.USU_PRZESP, 'N') AS CPRA, NVL(IPD.USU_OUTESP, 'N') AS COUT, " +
+                            "NVL(IPD.PERDS1, 0) AS PERDS1, NVL(IPD.PERDS2, 0) AS PERDS2, NVL(IPD.PERDS3, 0) AS PERDS3, " +
+                            "NVL(IPD.PERDS4, 0) AS PERDS4, NVL(IPD.PERDS5, 0) AS PERDS5, NVL(IPD.USU_PERGUE, 0) AS PERGUE, " +
+                            "NVL(IPD.USU_VLRRET, 0) AS VLRRET " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -327,7 +333,8 @@ public class DBQueriesService extends FeelingService{
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
-                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT");
+                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -577,6 +584,17 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
+        }
+        return "OK";
+    }
+
+    public String marcarParamComerciais(String emp, String fil, String ped, String ipd, Double ds1, Double ds2, Double ds3, Double ds4, Double ds5, Double guelta, Double rt) throws Exception {
+        String sql = "UPDATE E120IPD SET PERDS1 = " + ds1 + ", PERDS2 = " + ds2 + ", PERDS3 = " + ds3 + ", PERDS4 = " + ds4 +
+                ", PERDS5 = " + ds5 + ", USU_PERGUE = " + guelta +", USU_VLRRET = " + rt + " WHERE CODEMP = " + emp +
+                " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campos com parâmetros comerciais");
         }
         return "OK";
     }
