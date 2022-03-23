@@ -15,9 +15,9 @@ public class ItemPedido {
     private String obsIpd;
     private Double perDsc;
     private Double perCom;
-    private String cMed;
-    private String cDes;
-    private String cCon;
-    private String cPra;
-    private String cOut;
+    private String medEsp;
+    private String desEsp;
+    private String conEsp;
+    private String praEsp;
+    private String outEsp;
 }

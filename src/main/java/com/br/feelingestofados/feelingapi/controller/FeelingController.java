@@ -23,7 +23,6 @@ import java.util.zip.ZipOutputStream;
 @RestController
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
-
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
 
     @Autowired
@@ -154,8 +153,8 @@ public class FeelingController {
                     try {
                         queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
                                 wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getCMed(),
-                                itemPedido.getCDes(), itemPedido.getCCon(), itemPedido.getCPra(), itemPedido.getCOut());
+                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getMedEsp(),
+                                itemPedido.getDesEsp(), itemPedido.getConEsp(), itemPedido.getPraEsp(), itemPedido.getOutEsp());
                         if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
                             queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
                                     wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
