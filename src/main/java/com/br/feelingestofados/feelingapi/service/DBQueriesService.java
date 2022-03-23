@@ -307,12 +307,14 @@ public class DBQueriesService extends FeelingService{
 
     public String findItensPedido(String emp, String fil, String ped) {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, IPD.PREUNI AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
                             "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
                             "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
-                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD " +
+                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD, " +
+                            "NVL(IPD.USU_MEDESP, 'N') AS CMED, NVL(IPD.USU_DSCESP, 'N') AS CDES, NVL(IPD.USU_PGTESP, 'N') AS CPAG, " +
+                            "NVL(IPD.USU_PRZESP, 'N') AS CPRA, NVL(IPD.USU_OUTESP, 'N') AS COUT " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -327,8 +329,8 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
-                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
-                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD");
+                "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
+                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -562,13 +564,15 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
-    public String marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cndEsp) throws Exception {
-        String sql = "UPDATE E120IPD SET USU_CNDESP = '" + cndEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+    public void marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cMed, String cDes,
+                                       String cCon, String cPra, String cOut) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_MEDESP = '" + cMed +"', USU_DSCESP = '" + cDes +"', USU_PGTESP = '" + cCon +"', " +
+                "USU_PRZESP = '" + cPra +"', USU_OUTESP = '" + cOut +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " " +
+                "AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_CNDESP com valor '" + cndEsp + "'.");
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar condições especiais.");
         }
-        return "OK";
     }
 
     public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {

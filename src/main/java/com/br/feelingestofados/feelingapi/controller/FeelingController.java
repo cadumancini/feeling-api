@@ -151,19 +151,18 @@ public class FeelingController {
                 AtomicInteger seqIpd = new AtomicInteger();
                 wrapper.getItens().forEach(itemPedido -> {
                     seqIpd.getAndIncrement();
-                    if(itemPedido.getConEsp() != null) {
-                        try {
-                            queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                    try {
+                        queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                                wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getCMed(),
+                                itemPedido.getCDes(), itemPedido.getCCon(), itemPedido.getCPra(), itemPedido.getCOut());
+                        if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
+                            queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
                                     wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                                    itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getConEsp());
-                            if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
-                                queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
-                                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                                        itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getDerEsp());
-                            }
-                        } catch (Exception e) {
-                           e .printStackTrace();
+                                    itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getDerEsp());
                         }
+                    } catch (Exception e) {
+                       e .printStackTrace();
                     }
                 });
             }
