@@ -180,7 +180,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosCliente(String codCli) {
-        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM, " +
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM, HCL.CIFFOB, " +
                             "HCL.PERDS1, HCL.PERDS2, HCL.PERDS3, HCL.PERDS4, HCL.PERDS5, CLI.USU_PERGUE AS PERGUE " +
                        "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA, E085CLI CLI " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
@@ -192,7 +192,7 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY HCL.CODEMP";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA", "PERCOM",
-                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE");
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "CIFFOB");
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
