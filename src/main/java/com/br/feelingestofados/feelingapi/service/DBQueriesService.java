@@ -38,6 +38,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -335,7 +336,27 @@ public class DBQueriesService extends FeelingService{
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET");
-        return createJsonFromSqlResult(results, fields, "itens");
+        String itens = createJsonFromSqlResult(results, fields, "itens");
+
+        JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");
+        for(int i = 0; i < itensJson.length(); i++) {
+            JSONObject item = itensJson.getJSONObject(i);
+            String seqIpd = item.getString("SEQIPD");
+            // verificar se o item do pedido possui anexo
+            File files = new File(ANEXOS_PATH);
+            FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + seqIpd);
+            String[] fileNames = files.list(filter);
+            String temAnexo = "N";
+            if(fileNames != null) {
+                if (files.list(filter).length > 0) {
+                    temAnexo = "S";
+                }
+            }
+            itensJson.getJSONObject(i).put("TEMANX", temAnexo);
+        }
+        JSONObject itensRetornar = new JSONObject();
+        itensRetornar.put("itens", itensJson);
+        return itensRetornar.toString();
     }
 
     public String findDadosProduto(String emp, String pro) {

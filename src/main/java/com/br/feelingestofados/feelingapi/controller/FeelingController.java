@@ -24,6 +24,7 @@ import java.util.zip.ZipOutputStream;
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
