@@ -180,13 +180,15 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosCliente(String codCli) {
-        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HCL.PERCOM, HCL.CIFFOB, " +
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HRP.PERCOM, HCL.CIFFOB, " +
                             "HCL.PERDS1, HCL.PERDS2, HCL.PERDS3, HCL.PERDS4, HCL.PERDS5, CLI.USU_PERGUE AS PERGUE " +
-                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA, E085CLI CLI " +
+                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA, E085CLI CLI, E090HRP HRP " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
                         "AND HCL.CODREP = REP.CODREP " +
                         "AND HCL.CODTRA = TRA.CODTRA " +
                         "AND HCL.CODCLI = CLI.CODCLI " +
+                        "AND HCL.CODEMP = HRP.CODEMP " +
+                        "AND HCL.CODREP = HRP.CODREP " +
                         "AND HCL.CODFIL = 1 " +
                         "AND HCL.CODCLI = " + codCli + " " +
                       "ORDER BY HCL.CODEMP";
