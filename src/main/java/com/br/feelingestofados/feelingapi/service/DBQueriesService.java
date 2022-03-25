@@ -257,7 +257,8 @@ public class DBQueriesService extends FeelingService{
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
         String pesoCubagem = "";
-        Double pesTot = 0d;
+        Double pesTotBru = 0d;
+        Double pesTotLiq = 0d;
         Double volTot = 0d;
         // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
         String itensPedido = this.findItensPedido(emp, fil, ped);
@@ -289,7 +290,8 @@ public class DBQueriesService extends FeelingService{
                     Element eElement = (Element) nNode;
                     String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
                     if(codFam.equals("15001")) {
-                        pesTot += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                        pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                        pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
                         volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
                     }
                 }
@@ -302,7 +304,8 @@ public class DBQueriesService extends FeelingService{
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
         }
         JSONObject jObj = new JSONObject();
-        jObj.put("pesoTotal", pesTot.toString());
+        jObj.put("pesoTotalBruto", pesTotBru.toString());
+        jObj.put("pesoTotalLiq", pesTotLiq.toString());
         jObj.put("volumeTotal", volTot.toString());
         pesoCubagem = jObj.toString();
         return pesoCubagem;
