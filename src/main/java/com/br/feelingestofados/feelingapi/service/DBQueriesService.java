@@ -130,7 +130,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findProdutosPorEstilo(String codEmp, String estilo) {
-        String sql = "SELECT CODPRO, DESPRO " +
+        String sql = "SELECT CODPRO, DESPRO, NVL(USU_MEDMIN, 0) AS MEDMIN, NVL(USU_MEDMAX, 0) AS MEDMAX " +
                        "FROM E075PRO " +
                       "WHERE CODEMP = " + codEmp + " " +
                         "AND CODPRO LIKE '__" + estilo + "___' " +
@@ -139,7 +139,7 @@ public class DBQueriesService extends FeelingService{
                       "ORDER BY DESPRO";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "DESPRO");
+        List<String> fields = Arrays.asList("CODPRO", "DESPRO", "MEDMIN", "MEDMAX");
         return createJsonFromSqlResult(results, fields, "produtos");
     }
 
@@ -323,7 +323,7 @@ public class DBQueriesService extends FeelingService{
                             "NVL(IPD.USU_PRZESP, 'N') AS CPRA, NVL(IPD.USU_OUTESP, 'N') AS COUT, " +
                             "NVL(IPD.PERDS1, 0) AS PERDS1, NVL(IPD.PERDS2, 0) AS PERDS2, NVL(IPD.PERDS3, 0) AS PERDS3, " +
                             "NVL(IPD.PERDS4, 0) AS PERDS4, NVL(IPD.PERDS5, 0) AS PERDS5, NVL(IPD.USU_PERGUE, 0) AS PERGUE, " +
-                            "NVL(IPD.USU_VLRRET, 0) AS VLRRET " +
+                            "NVL(IPD.USU_VLRRET, 0) AS VLRRET, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -340,7 +340,7 @@ public class DBQueriesService extends FeelingService{
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
-                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET");
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX");
         String itens = createJsonFromSqlResult(results, fields, "itens");
 
         JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");
