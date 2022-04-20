@@ -300,7 +300,7 @@ public class DBQueriesService extends FeelingService{
                         pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
                         volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
                     }
-                    if(proGen.equals("S") || codDerEst.equals("G")) {
+                    if(proGen.equals("S") || codDerEst.equals("G") || codDerEst.equals("GM")) {
                         temErro = true;
                         erros.append("-> ").append(codProEst).append(" (").append(desProEst).append(") - der. ").append(codDerEst).append("\n");
                     }
