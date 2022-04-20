@@ -130,12 +130,15 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findProdutosPorEstilo(String codEmp, String estilo) {
-        String sql = "SELECT CODPRO, DESPRO, NVL(USU_MEDMIN, 0) AS MEDMIN, NVL(USU_MEDMAX, 0) AS MEDMAX " +
-                       "FROM E075PRO " +
-                      "WHERE CODEMP = " + codEmp + " " +
-                        "AND CODPRO LIKE '__" + estilo + "___' " +
-                        "AND CODORI = 'ACA'" +
-                        "AND SITPRO = 'A' " +
+        String sql = "SELECT PRO.CODPRO, PRO.DESPRO, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
+                       "FROM E075PRO PRO, E700MOD MOD " +
+                      "WHERE PRO.CODEMP = MOD.CODEMP " +
+                        "AND PRO.CODMOD = MOD.CODMOD " +
+                        "AND PRO.CODEMP = " + codEmp + " " +
+                        "AND PRO.CODPRO LIKE '__" + estilo + "___' " +
+                        "AND PRO.CODORI = 'ACA'" +
+                        "AND PRO.SITPRO = 'A' " +
+                        "AND MOD.SITMOD = 'A' " +
                       "ORDER BY DESPRO";
 
         List<Object> results = listResultsFromSql(sql);
@@ -273,10 +276,9 @@ public class DBQueriesService extends FeelingService{
 
             // Buscando estrutura
             String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
-            if(estrutura.contains("<proGen>S</proGen>") || estrutura.contains("<codDer>G</codDer>")) {
-                return "O item " + desPro + " " + desDer + " possui pendências na estrutura. Verifique!";
-            }
 
+            boolean temErro = false;
+            StringBuilder erros = new StringBuilder();
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -289,12 +291,23 @@ public class DBQueriesService extends FeelingService{
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element eElement = (Element) nNode;
                     String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
+                    String proGen = eElement.getElementsByTagName("proGen").item(0).getTextContent();
+                    String desProEst = eElement.getElementsByTagName("desPro").item(0).getTextContent();
+                    String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                    String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                     if(codFam.equals("15001")) {
                         pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
                         pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
                         volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
                     }
+                    if(proGen.equals("S") || codDerEst.equals("G")) {
+                        temErro = true;
+                        erros.append("-> ").append(codProEst).append(" (").append(desProEst).append(") - der. ").append(codDerEst).append("\n");
+                    }
                 }
+            }
+            if(temErro) {
+                return "O item " + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
             }
         }
 
