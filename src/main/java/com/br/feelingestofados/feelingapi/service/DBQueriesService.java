@@ -345,6 +345,7 @@ public class DBQueriesService extends FeelingService{
                         "AND IPD.CODDER = DER.CODDER " +
                         "AND IPD.CODEMP = CPR.CODEMP " +
                         "AND CPR.CODCPR = SUBSTR(IPD.CODPRO, 3, 4) " +
+                        "AND CPR.CODMPR = 'ESTILOS' " +
                         "AND IPD.CODEMP = " + emp + " " +
                         "AND IPD.CODFIL = " + fil + " " +
                         "AND IPD.NUMPED = " + ped + " " +
