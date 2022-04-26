@@ -13,7 +13,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.persistence.EntityManagerFactory;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -47,8 +46,6 @@ public class WebServiceRequestsService extends FeelingService{
 
     private String addAditionalFields(String codEmp, String estruturaXml) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         DocumentBuilder builder = factory.newDocumentBuilder();
 
         ByteArrayInputStream input = new ByteArrayInputStream(estruturaXml.getBytes(StandardCharsets.UTF_8));
@@ -70,6 +67,9 @@ public class WebServiceRequestsService extends FeelingService{
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
                 String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
                 String codRef = jObjDer.getJSONArray("dados").getJSONObject(0).getString("CODREF");
+                String pesBru = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESBRU");
+                String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
+                String volDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("VOLDER");
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -83,6 +83,12 @@ public class WebServiceRequestsService extends FeelingService{
                 eCodAgp.appendChild(doc.createTextNode(codAgp));
                 Element eCodRef = doc.createElement("codRef");
                 eCodRef.appendChild(doc.createTextNode(codRef));
+                Element ePesBru = doc.createElement("pesBru");
+                ePesBru.appendChild(doc.createTextNode(pesBru));
+                Element ePesLiq = doc.createElement("pesLiq");
+                ePesLiq.appendChild(doc.createTextNode(pesLiq));
+                Element eVolDer = doc.createElement("volDer");
+                eVolDer.appendChild(doc.createTextNode(volDer));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
@@ -90,11 +96,14 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(eNumOri);
                 eElement.appendChild(eCodAgp);
                 eElement.appendChild(eCodRef);
+                eElement.appendChild(ePesBru);
+                eElement.appendChild(ePesLiq);
+                eElement.appendChild(eVolDer);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+//        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+//        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
         Transformer transformer = tf.newTransformer();
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(doc), new StreamResult(writer));
@@ -160,7 +169,13 @@ public class WebServiceRequestsService extends FeelingService{
             params.put("obsPed", pedidoWrapper.getPedido().getObsPed());
         if(pedidoWrapper.getPedido().getCodCpg() != null)
             params.put("codCpg", pedidoWrapper.getPedido().getCodCpg());
-        params.put("opeExe", opePed);
+        if(pedidoWrapper.getPedido().getNumPed() > 0)
+            if(pedidoWrapper.getItens().isEmpty())
+                params.put("opeExe", "A");
+            else
+                params.put("opeExe", "C");
+        else
+            params.put("opeExe", "I");
 
         if(!pedidoWrapper.getItens().isEmpty()) {
             List<HashMap<String, Object>> listaItens = new ArrayList<>();
@@ -174,8 +189,11 @@ public class WebServiceRequestsService extends FeelingService{
                 paramsItem.put("seqPcl", itemPedido.getNumCnj());
                 paramsItem.put("datEnt", itemPedido.getDatEnt());
                 paramsItem.put("obsIpd", itemPedido.getObsIpd());
-                paramsItem.put("perDsc", String.valueOf(itemPedido.getPerDsc()).replace(".", ","));
-                paramsItem.put("opeExe", opeIpd);
+                paramsItem.put("perCom", String.valueOf(itemPedido.getPerCom()).replace(".", ","));
+                if(itemPedido.getSeqIpd() > 0)
+                    paramsItem.put("opeExe", "A");
+                else
+                    paramsItem.put("opeExe", "I");
                 listaItens.add(paramsItem);
             });
             params.put("produto", listaItens);

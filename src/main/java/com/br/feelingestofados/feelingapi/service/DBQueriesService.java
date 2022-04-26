@@ -8,8 +8,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.persistence.EntityManagerFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,6 +36,9 @@ public class DBQueriesService extends FeelingService{
     public DBQueriesService(EntityManagerFactory factory) {
         super(factory);
     }
+
+    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -115,16 +130,19 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findProdutosPorEstilo(String codEmp, String estilo) {
-        String sql = "SELECT CODPRO, DESPRO " +
-                       "FROM E075PRO " +
-                      "WHERE CODEMP = " + codEmp + " " +
-                        "AND CODPRO LIKE '__" + estilo + "___' " +
-                        "AND CODORI = 'ACA'" +
-                        "AND SITPRO = 'A' " +
+        String sql = "SELECT PRO.CODPRO, PRO.DESPRO, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
+                       "FROM E075PRO PRO, E700MOD MOD " +
+                      "WHERE PRO.CODEMP = MOD.CODEMP " +
+                        "AND PRO.CODMOD = MOD.CODMOD " +
+                        "AND PRO.CODEMP = " + codEmp + " " +
+                        "AND PRO.CODPRO LIKE '__" + estilo + "___' " +
+                        "AND PRO.CODORI = 'ACA'" +
+                        "AND PRO.SITPRO = 'A' " +
+                        "AND MOD.SITMOD = 'A' " +
                       "ORDER BY DESPRO";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "DESPRO");
+        List<String> fields = Arrays.asList("CODPRO", "DESPRO", "MEDMIN", "MEDMAX");
         return createJsonFromSqlResult(results, fields, "produtos");
     }
 
@@ -145,10 +163,10 @@ public class DBQueriesService extends FeelingService{
         int codRep = findRepresentante(token);
 
         String sql = "SELECT CLI.CODCLI, CLI.NOMCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
-                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
-                            "CLI.INSEST " +
-                       "FROM E085CLI CLI " +
-                      "WHERE CLI.SITCLI = 'A' ";
+                "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, " +
+                "CLI.INSEST " +
+                "FROM E085CLI CLI " +
+                "WHERE CLI.SITCLI = 'A' ";
         if(codRep > 0)
             sql += "AND EXISTS (SELECT 1 FROM E085HCL HCL WHERE HCL.CODCLI = CLI.CODCLI AND HCL.CODREP = " + codRep + ") ";
         sql += "ORDER BY CLI.CODCLI";
@@ -157,17 +175,29 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "clientes");
     }
 
+    public String findTransportadoras() {
+        String sql = "SELECT CODTRA, NOMTRA FROM E073TRA WHERE SITTRA = 'A' ORDER BY CODTRA";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODTRA", "NOMTRA");
+        return createJsonFromSqlResult(results, fields, "transportadoras");
+    }
+
     public String findDadosCliente(String codCli) {
-        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA " +
-                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA " +
+        String sql = "SELECT HCL.CODEMP, HCL.CODREP, HCL.CODTRA, EMP.NOMEMP, REP.NOMREP, TRA.NOMTRA, HRP.PERCOM, HCL.CIFFOB, " +
+                            "HCL.PERDS1, HCL.PERDS2, HCL.PERDS3, HCL.PERDS4, HCL.PERDS5, CLI.USU_PERGUE AS PERGUE " +
+                       "FROM E085HCL HCL, E070EMP EMP, E090REP REP, E073TRA TRA, E085CLI CLI, E090HRP HRP " +
                       "WHERE HCL.CODEMP = EMP.CODEMP " +
                         "AND HCL.CODREP = REP.CODREP " +
                         "AND HCL.CODTRA = TRA.CODTRA " +
+                        "AND HCL.CODCLI = CLI.CODCLI " +
+                        "AND HCL.CODEMP = HRP.CODEMP " +
+                        "AND HCL.CODREP = HRP.CODREP " +
                         "AND HCL.CODFIL = 1 " +
                         "AND HCL.CODCLI = " + codCli + " " +
                       "ORDER BY HCL.CODEMP";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA");
+        List<String> fields = Arrays.asList("CODEMP", "CODREP", "CODTRA", "NOMEMP", "NOMREP", "NOMTRA", "PERCOM",
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "CIFFOB");
         return createJsonFromSqlResult(results, fields, "dadosCliente");
     }
 
@@ -229,6 +259,10 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
+        String pesoCubagem = "";
+        Double pesTotBru = 0d;
+        Double pesTotLiq = 0d;
+        Double volTot = 0d;
         // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
         String itensPedido = this.findItensPedido(emp, fil, ped);
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
@@ -242,8 +276,38 @@ public class DBQueriesService extends FeelingService{
 
             // Buscando estrutura
             String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
-            if(estrutura.contains("<proGen>S</proGen>") || estrutura.contains("<codDer>G</codDer>")) {
-                return "O item " + desPro + " " + desDer + " possui pendências na estrutura. Verifique!";
+
+            boolean temErro = false;
+            StringBuilder erros = new StringBuilder();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            ByteArrayInputStream input = new ByteArrayInputStream(estrutura.getBytes(StandardCharsets.UTF_8));
+            Document doc = builder.parse(input);
+            doc.getDocumentElement().normalize();
+            NodeList nList = doc.getElementsByTagName("componentes");
+            for (int cmp = 0; cmp < nList.getLength(); cmp++) {
+                Node nNode = nList.item(cmp);
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
+                    String proGen = eElement.getElementsByTagName("proGen").item(0).getTextContent();
+                    String desProEst = eElement.getElementsByTagName("desPro").item(0).getTextContent();
+                    String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                    String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
+                    if(codFam.equals("15001")) {
+                        pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                        pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
+                        volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
+                    }
+                    if(proGen.equals("S") || codDerEst.equals("G") || codDerEst.equals("GM")) {
+                        temErro = true;
+                        erros.append("-> ").append(codProEst).append(" (").append(desProEst).append(") - der. ").append(codDerEst).append("\n");
+                    }
+                }
+            }
+            if(temErro) {
+                return "O item " + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
             }
         }
 
@@ -252,17 +316,27 @@ public class DBQueriesService extends FeelingService{
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
         }
-        return "OK";
+        JSONObject jObj = new JSONObject();
+        jObj.put("pesoTotalBruto", pesTotBru.toString());
+        jObj.put("pesoTotalLiq", pesTotLiq.toString());
+        jObj.put("volumeTotal", volTot.toString());
+        pesoCubagem = jObj.toString();
+        return pesoCubagem;
     }
 
     public String findItensPedido(String emp, String fil, String ped) {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, NVL(IPD.USU_CNDESP, ' ') AS CNDESP, " +
-                            "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, (IPD.PREUNI * IPD.QTDPED) AS VLRIPD, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, " +
+                            "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, IPD.PREUNI AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
                             "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
                             "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
-                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD " +
+                            "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD, " +
+                            "NVL(IPD.USU_MEDESP, 'N') AS CMED, NVL(IPD.USU_DSCESP, 'N') AS CDES, NVL(IPD.USU_PGTESP, 'N') AS CPAG, " +
+                            "NVL(IPD.USU_PRZESP, 'N') AS CPRA, NVL(IPD.USU_OUTESP, 'N') AS COUT, " +
+                            "NVL(IPD.PERDS1, 0) AS PERDS1, NVL(IPD.PERDS2, 0) AS PERDS2, NVL(IPD.PERDS3, 0) AS PERDS3, " +
+                            "NVL(IPD.PERDS4, 0) AS PERDS4, NVL(IPD.PERDS5, 0) AS PERDS5, NVL(IPD.USU_PERGUE, 0) AS PERGUE, " +
+                            "NVL(IPD.USU_VLRRET, 0) AS VLRRET, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -271,15 +345,37 @@ public class DBQueriesService extends FeelingService{
                         "AND IPD.CODDER = DER.CODDER " +
                         "AND IPD.CODEMP = CPR.CODEMP " +
                         "AND CPR.CODCPR = SUBSTR(IPD.CODPRO, 3, 4) " +
+                        "AND CPR.CODMPR = 'ESTILOS' " +
                         "AND IPD.CODEMP = " + emp + " " +
                         "AND IPD.CODFIL = " + fil + " " +
                         "AND IPD.NUMPED = " + ped + " " +
                       "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
-                "PERDSC", "PERCOM", "OBSIPD", "CNDESP", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
-                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD");
-        return createJsonFromSqlResult(results, fields, "itens");
+                "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
+                "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
+                "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX");
+        String itens = createJsonFromSqlResult(results, fields, "itens");
+
+        JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");
+        for(int i = 0; i < itensJson.length(); i++) {
+            JSONObject item = itensJson.getJSONObject(i);
+            String seqIpd = item.getString("SEQIPD");
+            // verificar se o item do pedido possui anexo
+            File files = new File(ANEXOS_PATH);
+            FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + seqIpd);
+            String[] fileNames = files.list(filter);
+            String temAnexo = "N";
+            if(fileNames != null) {
+                if (files.list(filter).length > 0) {
+                    temAnexo = "S";
+                }
+            }
+            itensJson.getJSONObject(i).put("TEMANX", temAnexo);
+        }
+        JSONObject itensRetornar = new JSONObject();
+        itensRetornar.put("itens", itensJson);
+        return itensRetornar.toString();
     }
 
     public String findDadosProduto(String emp, String pro) {
@@ -295,13 +391,13 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosDerivacao(String emp, String pro, String der) {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER " +
                 "FROM E075DER DER " +
                 "WHERE DER.CODEMP = " + emp + " " +
                 "AND DER.CODPRO = '" + pro + "' " +
                 "AND DER.CODDER = '" + der + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
@@ -512,13 +608,15 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
-    public String marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cndEsp) throws Exception {
-        String sql = "UPDATE E120IPD SET USU_CNDESP = '" + cndEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+    public void marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cMed, String cDes,
+                                       String cCon, String cPra, String cOut) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_MEDESP = '" + cMed +"', USU_DSCESP = '" + cDes +"', USU_PGTESP = '" + cCon +"', " +
+                "USU_PRZESP = '" + cPra +"', USU_OUTESP = '" + cOut +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " " +
+                "AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_CNDESP com valor '" + cndEsp + "'.");
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar condições especiais.");
         }
-        return "OK";
     }
 
     public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {
@@ -526,6 +624,17 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
+        }
+        return "OK";
+    }
+
+    public String marcarParamComerciais(String emp, String fil, String ped, String ipd, Double ds1, Double ds2, Double ds3, Double ds4, Double ds5, Double guelta, Double rt) throws Exception {
+        String sql = "UPDATE E120IPD SET PERDS1 = " + ds1 + ", PERDS2 = " + ds2 + ", PERDS3 = " + ds3 + ", PERDS4 = " + ds4 +
+                ", PERDS5 = " + ds5 + ", USU_PERGUE = " + guelta +", USU_VLRRET = " + rt + " WHERE CODEMP = " + emp +
+                " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campos com parâmetros comerciais");
         }
         return "OK";
     }
@@ -538,6 +647,29 @@ public class DBQueriesService extends FeelingService{
                         "AND SEQIPD = " + ipd;
         executeSqlStatement(sql);
         return "OK";
+    }
+
+    public String uploadArquivo(String emp, String fil, String ped, String ipd, MultipartFile file) throws IOException {
+        String destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        File dest = new File(destination);
+        if(dest.exists()) {
+            int index = 1;
+            destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            while(new File(destination).exists()) {
+                index++;
+                destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            }
+            dest = new File(destination);
+        }
+        file.transferTo(dest);
+        return "OK";
+    }
+
+    public String[] findArquivos(String emp, String fil, String ped, String ipd) {
+        File files = new File(ANEXOS_PATH);
+        FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
+        String[] fileNames = files.list(filter);
+        return fileNames;
     }
 
     private int buscaCodUsuFromToken(String token) {

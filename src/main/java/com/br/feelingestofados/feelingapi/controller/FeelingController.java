@@ -7,14 +7,24 @@ import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
+    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
@@ -118,31 +128,46 @@ public class FeelingController {
             for(int i = 0; i < itens.length(); i++) {
                 JSONObject item = itens.getJSONObject(i);
                 String seqIpd = item.getString("SEQIPD");
-                // limpando E700PCE
-                queriesService.limparEquivalentes(wrapper.getPedido().getCodEmp().toString(),
-                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                        seqIpd);
-                // excluindo item do pedido
-                wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
-                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
-                        seqIpd, "C", "E", token);
+                // verificar se o item do pedido do banco existe nos parâmetros, se não existir, excluir
+                AtomicBoolean existe = new AtomicBoolean(false);
+                wrapper.getItens().forEach(itemPedido -> {
+                    if(itemPedido.getSeqIpd().toString().equals(seqIpd)) {
+                        existe.set(true);
+                    }
+                });
+                if(!existe.get()) {
+                    // limpando E700PCE
+                    queriesService.limparEquivalentes(wrapper.getPedido().getCodEmp().toString(),
+                            wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                            seqIpd);
+                    // excluindo item do pedido
+                    wsRequestsService.handlePedido(wrapper.getPedido().getCodEmp().toString(),
+                            wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                            seqIpd, "C", "E", token);
+                }
             }
             String returnPedido = wsRequestsService.handlePedido(wrapper, "C", "I", token);
             if (returnPedido.contains("<retorno>OK</retorno>")) {
                 AtomicInteger seqIpd = new AtomicInteger();
                 wrapper.getItens().forEach(itemPedido -> {
                     seqIpd.getAndIncrement();
-                    if(itemPedido.getConEsp() != null) {
-                        try {
-                            queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
-                                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getConEsp());
-                            if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
-                                queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
-                                        wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(), seqIpd.toString(), itemPedido.getDerEsp());
-                            }
-                        } catch (Exception e) {
-                           e .printStackTrace();
+                    try {
+                        queriesService.marcarCondicaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                                wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getMedEsp(),
+                                itemPedido.getDesEsp(), itemPedido.getConEsp(), itemPedido.getPraEsp(), itemPedido.getOutEsp());
+                        queriesService.marcarParamComerciais(wrapper.getPedido().getCodEmp().toString(),
+                                wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getPerDs1(),
+                                itemPedido.getPerDs2(), itemPedido.getPerDs3(), itemPedido.getPerDs4(), itemPedido.getPerDs5(),
+                                itemPedido.getPerGue(), itemPedido.getVlrRet());
+                        if(itemPedido.getDerEsp() != null && !itemPedido.getDerEsp().isEmpty()) {
+                            queriesService.marcarDerivacaoEspecial(wrapper.getPedido().getCodEmp().toString(),
+                                    wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
+                                    itemPedido.getSeqIpd() > 0 ? itemPedido.getSeqIpd().toString() : seqIpd.toString(), itemPedido.getDerEsp());
                         }
+                    } catch (Exception e) {
+                       e .printStackTrace();
                     }
                 });
             }
@@ -244,6 +269,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/transportadoras", produces = "application/json")
+    @ResponseBody
+    public String getTransportadoras(@RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findTransportadoras();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/dadosCliente", produces = "application/json")
     @ResponseBody
     public String getDadosCliente(@RequestParam String token, @RequestParam String codCli) {
@@ -280,6 +314,48 @@ public class FeelingController {
             return queriesService.findItensMontagem(emp, pro, der);
         else
             return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/uploadArquivo", produces = "application/json")
+    @ResponseBody
+    public String uploadArquivo(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String ipd,
+                                @RequestParam String token, @RequestParam("file") MultipartFile file) throws IOException {
+        if(checkToken(token))
+            return queriesService.uploadArquivo(emp, fil, ped, ipd, file);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/downloadArquivo", produces = "application/zip")
+    public void downloadArquivo(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String ipd,
+                                @RequestParam String token, HttpServletResponse response) throws IOException {
+        if(checkToken(token)) {
+            String[] arquivos = queriesService.findArquivos(emp, fil, ped, ipd);
+            if (arquivos.length == 0) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                response.getWriter().write("VAZIO");
+                response.getWriter().flush();
+            } else {
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                for (String fileName : arquivos) {
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_PATH + fileName);
+                    ZipEntry zipEntry = new ZipEntry(resource.getFilename());
+                    zipEntry.setSize(resource.contentLength());
+                    zipOut.putNextEntry(zipEntry);
+                    StreamUtils.copy(resource.getInputStream(), zipOut);
+                    zipOut.closeEntry();
+                }
+                zipOut.finish();
+                zipOut.close();
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + emp + "-" + fil + "-" + ped + "-" + ipd + ".zip" + "\"");
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(TOKEN_INVALIDO);
+            response.getWriter().flush();
+        }
+
     }
 
     protected boolean checkToken(String token) {
