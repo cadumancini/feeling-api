@@ -52,6 +52,8 @@ public class DBQueriesService extends FeelingService{
                         "AND A.USU_CODMOD = '" + modelo + "' " +
                         "AND A.USU_CODCMP = '" + componente + "' " +
                         "AND A.USU_DERCMP = '" + der + "' " +
+                        "AND B.SITPRO = 'A' " +
+                        "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
                     "UNION " +
                     "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
@@ -65,6 +67,8 @@ public class DBQueriesService extends FeelingService{
                         "AND A.USU_CODMOD = '" + modelo + "' " +
                         "AND A.USU_CMPEQI = '" + componente + "' " +
                         "AND A.USU_DEREQI = '" + der + "' " +
+                        "AND B.SITPRO = 'A' " +
+                        "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
                     "UNION " +
                     "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
@@ -89,6 +93,8 @@ public class DBQueriesService extends FeelingService{
                                                                 "AND EQI.USU_DEREQI = '" + der + "') " +
                         "AND (A.USU_CMPEQI || A.USU_DEREQI) <> '" + componente + der + "' " +
                         "AND C.CODDER <> 'G' " +
+                        "AND B.SITPRO = 'A' " +
+                        "AND C.SITDER = 'A' " +
                     "ORDER BY CODPRO, CODDER";
 
         List<Object> results = listResultsFromSql(sql);
