@@ -170,10 +170,7 @@ public class WebServiceRequestsService extends FeelingService{
         if(pedidoWrapper.getPedido().getCodCpg() != null)
             params.put("codCpg", pedidoWrapper.getPedido().getCodCpg());
         if(pedidoWrapper.getPedido().getNumPed() > 0)
-            if(pedidoWrapper.getItens().isEmpty())
-                params.put("opeExe", "A");
-            else
-                params.put("opeExe", "C");
+            params.put("opeExe", "C");
         else
             params.put("opeExe", "I");
 
