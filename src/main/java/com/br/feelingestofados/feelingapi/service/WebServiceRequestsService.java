@@ -66,6 +66,7 @@ public class WebServiceRequestsService extends FeelingService{
                 String codFam = jObj.getJSONArray("dados").getJSONObject(0).getString("CODFAM");
                 String numOri = jObj.getJSONArray("dados").getJSONObject(0).getString("NUMORI");
                 String codAgp = jObj.getJSONArray("dados").getJSONObject(0).getString("CODAGP");
+                String desNfv = jObj.getJSONArray("dados").getJSONObject(0).getString("DESNFV");
                 String codRef = jObjDer.getJSONArray("dados").getJSONObject(0).getString("CODREF");
                 String pesBru = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESBRU");
                 String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
@@ -81,6 +82,8 @@ public class WebServiceRequestsService extends FeelingService{
                 eNumOri.appendChild(doc.createTextNode(numOri));
                 Element eCodAgp = doc.createElement("codAgp");
                 eCodAgp.appendChild(doc.createTextNode(codAgp));
+                Element eDesNfv = doc.createElement("desNfv");
+                eDesNfv.appendChild(doc.createTextNode(desNfv));
                 Element eCodRef = doc.createElement("codRef");
                 eCodRef.appendChild(doc.createTextNode(codRef));
                 Element ePesBru = doc.createElement("pesBru");
@@ -95,6 +98,7 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(eCodFam);
                 eElement.appendChild(eNumOri);
                 eElement.appendChild(eCodAgp);
+                eElement.appendChild(eDesNfv);
                 eElement.appendChild(eCodRef);
                 eElement.appendChild(ePesBru);
                 eElement.appendChild(ePesLiq);
@@ -102,8 +106,6 @@ public class WebServiceRequestsService extends FeelingService{
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();
-//        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-//        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
         Transformer transformer = tf.newTransformer();
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(doc), new StreamResult(writer));
