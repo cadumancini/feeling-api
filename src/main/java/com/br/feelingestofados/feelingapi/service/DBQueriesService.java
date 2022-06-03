@@ -41,7 +41,7 @@ public class DBQueriesService extends FeelingService{
 //    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
-        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
+        String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
                         "AND A.USU_CMPEQI = B.CODPRO " +
@@ -56,7 +56,7 @@ public class DBQueriesService extends FeelingService{
                         "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
                     "UNION " +
-                    "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
+                    "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
                         "AND A.USU_CODCMP = B.CODPRO " +
@@ -71,7 +71,7 @@ public class DBQueriesService extends FeelingService{
                         "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
                     "UNION " +
-                    "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
+                    "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
                         "AND A.USU_CMPEQI = B.CODPRO " +
@@ -103,7 +103,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEquivalentesAdicionais(String emp, String modelo, String componente, String der) {
-            String sql = "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESPRO || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
+            String sql = "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " +
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
                         "WHERE A.USU_CODEMP = B.CODEMP " +
                         "AND A.USU_CODCMP = B.CODPRO " +
