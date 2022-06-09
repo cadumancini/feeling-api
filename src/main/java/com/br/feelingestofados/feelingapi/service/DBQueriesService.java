@@ -422,7 +422,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESPRO || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +
                       "WHERE DER.CODEMP = PRO.CODEMP " +
                         "AND DER.CODPRO = PRO.CODPRO " +
@@ -641,6 +641,7 @@ public class DBQueriesService extends FeelingService{
 
     public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {
         String sql = "UPDATE E120IPD SET USU_LARDER = '" + derEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        System.out.println(sql);
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
@@ -650,7 +651,7 @@ public class DBQueriesService extends FeelingService{
 
     public String marcarParamComerciais(String emp, String fil, String ped, String ipd, Double ds1, Double ds2, Double ds3, Double ds4, Double ds5, Double guelta, Double rt) throws Exception {
         String sql = "UPDATE E120IPD SET PERDS1 = " + ds1 + ", PERDS2 = " + ds2 + ", PERDS3 = " + ds3 + ", PERDS4 = " + ds4 +
-                ", PERDS5 = " + ds5 + ", USU_PERGUE = " + guelta +", USU_VLRRET = " + rt + ", USU_TPREOLD = E120IPD.PREUNI WHERE CODEMP = " + emp +
+                ", PERDS5 = " + ds5 + ", USU_PERGUE = " + guelta +", USU_VLRRET = " + rt + ", USU_PREOLD = E120IPD.PREUNI WHERE CODEMP = " + emp +
                 " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
