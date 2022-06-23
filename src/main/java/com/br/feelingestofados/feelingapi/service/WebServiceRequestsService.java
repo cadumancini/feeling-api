@@ -152,6 +152,13 @@ public class WebServiceRequestsService extends FeelingService{
         return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
+    public String updateSitPedido(String codEmp, String codFil, String numPed, String sitPed, String opePed, String token) throws IOException {
+        HashMap<String, HashMap> params = prepareParamsForSitPedido(codEmp, codFil, numPed, sitPed, opePed);
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
+    }
+
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
         HashMap<String, Object> params = new HashMap<>();
         params.put("codEmp", pedidoWrapper.getPedido().getCodEmp());
@@ -216,6 +223,20 @@ public class WebServiceRequestsService extends FeelingService{
         paramsItem.put("opeExe", opeIpd);
         listaItens.add(paramsItem);
         params.put("produto", listaItens);
+
+        HashMap<String, HashMap> paramsPedido = new HashMap<>();
+        paramsPedido.put("pedido", params);
+        return paramsPedido;
+    }
+
+    private HashMap<String, HashMap> prepareParamsForSitPedido(String codEmp, String codFil, String numPed, String sitPed, String opePed) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("codEmp", codEmp);
+        params.put("codFil", codFil);
+        params.put("numPed", numPed);
+        params.put("fecPed", sitPed);
+        params.put("sitPed", "3");
+        params.put("opeExe", opePed);
 
         HashMap<String, HashMap> paramsPedido = new HashMap<>();
         paramsPedido.put("pedido", params);
