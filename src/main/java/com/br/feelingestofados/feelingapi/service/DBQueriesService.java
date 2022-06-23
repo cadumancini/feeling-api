@@ -250,7 +250,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findPedidosUsuario(String token) throws Exception {
-        int codUsu = buscaCodUsuFromToken(token);
+//        int codUsu = buscaCodUsuFromToken(token);
         String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
                             "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST " +
@@ -258,7 +258,7 @@ public class DBQueriesService extends FeelingService{
                         "WHERE PED.CODCLI = CLI.CODCLI " +
                         "AND PED.CODREP = REP.CODREP " +
                         "AND PED.CODTRA = TRA.CODTRA " +
-                        "AND PED.USUGER = " + codUsu + " " +
+//                        "AND PED.USUGER = " + codUsu + " " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
@@ -333,6 +333,9 @@ public class DBQueriesService extends FeelingService{
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
         }
+//        wsRequestsService.updateSitPedido(emp, fil, ped, "1", "C", token);
+//        wsRequestsService.updateSitPedido(emp, fil, ped, "S", "C", token);
+
         JSONObject jObj = new JSONObject();
         jObj.put("pesoTotalBruto", pesTotBru.toString());
         jObj.put("pesoTotalLiq", pesTotLiq.toString());
