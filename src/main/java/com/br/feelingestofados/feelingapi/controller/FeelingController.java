@@ -358,6 +358,25 @@ public class FeelingController {
 
     }
 
+    @GetMapping(value = "/trocas", produces = "application/json")
+    @ResponseBody
+    public String getTrocas(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String ipd, @RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findTrocas(emp, fil, ped, ipd);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/enviarStringExclusivos", produces = "application/json")
+    @ResponseBody
+    public String enviarStringExclusivos(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String ipd,
+                                @RequestParam String token, @RequestParam String exclusivos) throws Exception {
+        if(checkToken(token))
+            return queriesService.enviarStringTrocas(emp, fil, ped, ipd, exclusivos);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }

@@ -258,6 +258,7 @@ public class DBQueriesService extends FeelingService{
                         "WHERE PED.CODCLI = CLI.CODCLI " +
                         "AND PED.CODREP = REP.CODREP " +
                         "AND PED.CODTRA = TRA.CODTRA " +
+                        "AND PED.SITPED IN (1,2,3,9) " +
 //                        "AND PED.USUGER = " + codUsu + " " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
@@ -565,6 +566,37 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "itensMontagem");
     }
 
+    public String findTrocas(String emp, String fil, String ped, String ipd) {
+        String sql = "SELECT PCE.CODETG, PCE.SEQMOD, PCE.CODPRO, PCE.CODDER, PCE.CODCMP, PCE.DERCMP "+
+                       "FROM E700PCE PCE " +
+                      "WHERE PCE.CODEMP = " + emp + " " +
+                        "AND PCE.NUMPED = " + ped + " " +
+                        "AND PCE.CODFIL = " + fil + " " +
+                        "AND PCE.SEQIPD = " + ipd + " " +
+                        "AND PCE.SEQPCE = (SELECT MAX(X.SEQPCE) " +
+                                            "FROM E700PCE X " +
+                                           "WHERE PCE.CODEMP = X.CODEMP " +
+                                             "AND PCE.CODFIL = X.CODFIL " +
+                                             "AND PCE.NUMPED = X.NUMPED " +
+                                             "AND PCE.SEQIPD = X.SEQIPD " +
+                                             "AND PCE.CODETG = X.CODETG " +
+                                             "AND PCE.SEQMOD = X.SEQMOD " +
+                                             "AND PCE.CODMOD = X.CODMOD)";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODETG", "SEQMOD", "CODPRO", "CODDER", "CODCMP", "DERCMP");
+        return createJsonFromSqlResult(results, fields, "trocas");
+    }
+
+    public String enviarStringTrocas(String emp, String fil, String ped, String ipd, String trocas) throws Exception {
+        String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo INDPCE com valor 'I'.");
+        }
+        return "OK";
+    }
+
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
@@ -615,7 +647,7 @@ public class DBQueriesService extends FeelingService{
                                               "SBSPRO,CODDEP,CODLOT,SELPRO,SELCUS) " +
                                       "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + "," + codEtg + "," + seqMod + "," + seqPce + ",'" + mod + "','" + cmpAtu + "'," +
                                                "'" + derCmpAtu + "'," + qtdUti + ", " + qtdFrq + ", " + perPrd + ", " + prdQtd + ",'" + uniMe2 + "','" + tipQtd + "','" + dscCmp + "','I'," +
-                                               "'A','" + datAlt + "','" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
+                                               "'A',TO_DATE('" + datAlt + "', 'DD/MM/YYYY'),'" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
                                                "' ',' ',' ','S','S')";
             int rowsAffected = executeSqlStatement(sql);
             if (rowsAffected == 0) {
@@ -644,7 +676,6 @@ public class DBQueriesService extends FeelingService{
 
     public String marcarDerivacaoEspecial(String emp, String fil, String ped, String ipd, String derEsp) throws Exception {
         String sql = "UPDATE E120IPD SET USU_LARDER = '" + derEsp +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
-        System.out.println(sql);
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_LARDER com valor '" + derEsp + "'.");
