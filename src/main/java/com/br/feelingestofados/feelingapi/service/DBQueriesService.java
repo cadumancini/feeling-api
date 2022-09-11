@@ -567,9 +567,11 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findTrocas(String emp, String fil, String ped, String ipd) {
-        String sql = "SELECT PCE.CODETG, PCE.SEQMOD, PCE.CODPRO, PCE.CODDER, PCE.CODCMP, PCE.DERCMP "+
-                       "FROM E700PCE PCE " +
-                      "WHERE PCE.CODEMP = " + emp + " " +
+        String sql = "SELECT PCE.CODETG, PCE.SEQMOD, PCE.CODPRO, PCE.CODDER, PCE.CODCMP, PCE.DERCMP, PRO.CODFAM "+
+                       "FROM E700PCE PCE, E075PRO PRO " +
+                      "WHERE PCE.CODEMP = PRO.CODEMP " +
+                        "AND PCE.CODCMP = PRO.CODPRO " +
+                        "AND PCE.CODEMP = " + emp + " " +
                         "AND PCE.NUMPED = " + ped + " " +
                         "AND PCE.CODFIL = " + fil + " " +
                         "AND PCE.SEQIPD = " + ipd + " " +
@@ -584,7 +586,7 @@ public class DBQueriesService extends FeelingService{
                                              "AND PCE.CODMOD = X.CODMOD)";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODETG", "SEQMOD", "CODPRO", "CODDER", "CODCMP", "DERCMP");
+        List<String> fields = Arrays.asList("CODETG", "SEQMOD", "CODPRO", "CODDER", "CODCMP", "DERCMP", "CODFAM");
         return createJsonFromSqlResult(results, fields, "trocas");
     }
 
