@@ -75,9 +75,20 @@ public class FeelingController {
 
     @PutMapping(value = "/pedido", consumes = "application/json", produces = "application/xml")
     @ResponseBody
-    public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws IOException {
-        if(checkToken(token))
-            return wsRequestsService.handlePedido(pedidoWrapper, "I", "I", token);
+    public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws Exception {
+        if(checkToken(token)) {
+            String returnPedido = wsRequestsService.handlePedido(pedidoWrapper, "I", "I", token);
+            if (!returnPedido.contains("<numPed>0</numPed>")) {
+                int indexStart = returnPedido.indexOf("<numPed>");
+                int indexEnd = returnPedido.indexOf("</numPed>");
+                String numPed = returnPedido.substring((indexStart + 8), indexEnd);
+                if(pedidoWrapper.getPedido().getPedRep() != null && !pedidoWrapper.getPedido().getPedRep().toString().equals("0")) {
+                    queriesService.marcarPedidoRep(pedidoWrapper.getPedido().getCodEmp().toString(),
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep().toString());
+                }
+            }
+            return returnPedido;
+        }
         else
             return TOKEN_INVALIDO;
     }

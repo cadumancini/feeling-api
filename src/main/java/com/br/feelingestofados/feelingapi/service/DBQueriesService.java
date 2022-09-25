@@ -215,7 +215,7 @@ public class DBQueriesService extends FeelingService{
                                                    "WHERE IPD.CODEMP = PED.CODEMP " +
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
-                             "PED.SITPED, PED.PEDCLI, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
+                             "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
                              "PED.CIFFOB, PED.OBSPED " +
                        "FROM E120PED PED, E028CPG CPG " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
@@ -224,7 +224,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.CODFIL = " + fil + " " +
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "CODCLI", "CODEMP",
+        List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
                 "CODREP", "CODTRA", "CIFFOB", "OBSPED");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
@@ -251,7 +251,7 @@ public class DBQueriesService extends FeelingService{
 
     public String findPedidosUsuario(String token) throws Exception {
 //        int codUsu = buscaCodUsuFromToken(token);
-        String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
+        String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
                             "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST " +
                         "FROM E120PED PED, E085CLI CLI, E090REP REP, E073TRA TRA " +
@@ -262,7 +262,7 @@ public class DBQueriesService extends FeelingService{
 //                        "AND PED.USUGER = " + codUsu + " " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
+        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "PEDREP", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
                                                 "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
         return createJsonFromSqlResult(results, fields, "pedidos");
     }
@@ -673,6 +673,14 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar condições especiais.");
+        }
+    }
+
+    public void marcarPedidoRep(String emp, String fil, String ped, String pedRep) throws Exception {
+        String sql = "UPDATE E120PED SET USU_PEDREP = '" + pedRep +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido representante.");
         }
     }
 
