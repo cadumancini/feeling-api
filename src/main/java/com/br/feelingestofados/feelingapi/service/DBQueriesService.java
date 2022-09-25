@@ -136,7 +136,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findProdutosPorEstilo(String codEmp, String estilo) {
-        String sql = "SELECT PRO.CODPRO, PRO.DESPRO, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
+        String sql = "SELECT PRO.CODPRO, PRO.DESNFV AS DESPRO, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX " +
                        "FROM E075PRO PRO, E700MOD MOD " +
                       "WHERE PRO.CODEMP = MOD.CODEMP " +
                         "AND PRO.CODMOD = MOD.CODMOD " +
