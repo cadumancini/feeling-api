@@ -64,6 +64,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/pedidoRepresentante", produces = "application/json")
+    @ResponseBody
+    public String getPedidoRepresentante(@RequestParam String emp, @RequestParam String fil, @RequestParam String pedRep, @RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findPedidoRepresentante(emp, fil, pedRep);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/pedidos", produces = "application/json")
     @ResponseBody
     public String getPedidosUsuario(@RequestParam String token) throws Exception {

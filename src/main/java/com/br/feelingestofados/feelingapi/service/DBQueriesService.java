@@ -676,6 +676,14 @@ public class DBQueriesService extends FeelingService{
         }
     }
 
+    public String findPedidoRepresentante(String emp, String fil, String pedRep) {
+        String sql = "SELECT NUMPED FROM E120PED WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND USU_PEDREP = '" + pedRep + "'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMPED");
+        return createJsonFromSqlResult(results, fields, "pedidos");
+    }
+
     public void marcarPedidoRep(String emp, String fil, String ped, String pedRep) throws Exception {
         String sql = "UPDATE E120PED SET USU_PEDREP = '" + pedRep +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
