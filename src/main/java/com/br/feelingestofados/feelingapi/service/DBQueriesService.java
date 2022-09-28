@@ -216,16 +216,18 @@ public class DBQueriesService extends FeelingService{
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
-                             "PED.CIFFOB, PED.OBSPED " +
-                       "FROM E120PED PED, E028CPG CPG " +
+                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI " +
+                       "FROM E120PED PED, E028CPG CPG, E001TNS TNS " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
+                        "AND PED.CODEMP = TNS.CODEMP " +
+                        "AND PED.TNSPRO = TNS.CODTNS " +
                         "AND PED.CODEMP = " + emp + " " +
                         "AND PED.CODFIL = " + fil + " " +
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB", "OBSPED");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
@@ -253,18 +255,27 @@ public class DBQueriesService extends FeelingService{
 //        int codUsu = buscaCodUsuFromToken(token);
         String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
-                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST " +
-                        "FROM E120PED PED, E085CLI CLI, E090REP REP, E073TRA TRA " +
+                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST, PED.TNSPRO, TNS.VENIPI " +
+                        "FROM E120PED PED, E085CLI CLI, E090REP REP, E073TRA TRA, E001TNS TNS " +
                         "WHERE PED.CODCLI = CLI.CODCLI " +
                         "AND PED.CODREP = REP.CODREP " +
                         "AND PED.CODTRA = TRA.CODTRA " +
+                        "AND PED.CODEMP = TNS.CODEMP " +
+                        "AND PED.TNSPRO = TNS.CODTNS " +
                         "AND PED.SITPED IN (1,2,3,9) " +
 //                        "AND PED.USUGER = " + codUsu + " " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "PEDREP", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
-                                                "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST");
+                                                "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST", "TNSPRO", "VENIPI");
         return createJsonFromSqlResult(results, fields, "pedidos");
+    }
+
+    public String findTransacoes(String emp) throws Exception {
+        String sql = "SELECT CODTNS, DESTNS, DETTNS, VENIPI FROM E001TNS WHERE CODEMP = " + emp + " AND SITTNS = 'A' AND LISMOD = 'VEP' ORDER BY CODTNS";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODTNS", "DESTNS", "DETTNS", "VENIPI");
+        return createJsonFromSqlResult(results, fields, "transacoes");
     }
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
@@ -350,7 +361,8 @@ public class DBQueriesService extends FeelingService{
                             "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, IPD.PREUNI AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
-                            "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, ((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) AS IPIIPD, " +
+                            "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, " +
+                            "CASE WHEN TNS.VENIPI = 'S' THEN 0 ELSE ((PRO.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) END AS IPIIPD, " +
                             "((IPD.PERICM / 100) * (IPD.PREUNI * IPD.QTDPED)) AS ICMIPD, " +
                             "(((IPD.PERIPI / 100) * (IPD.PREUNI * IPD.QTDPED)) + (IPD.PREUNI * IPD.QTDPED)) AS NFVIPD, " +
                             "NVL(IPD.USU_MEDESP, 'N') AS CMED, NVL(IPD.USU_DSCESP, 'N') AS CDES, NVL(IPD.USU_PGTESP, 'N') AS CPAG, " +
@@ -359,14 +371,16 @@ public class DBQueriesService extends FeelingService{
                             "NVL(IPD.PERDS4, 0) AS PERDS4, NVL(IPD.PERDS5, 0) AS PERDS5, NVL(IPD.USU_PERGUE, 0) AS PERGUE, " +
                             "NVL(IPD.USU_VLRRET, 0) AS VLRRET, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX, " +
                             "(NVL(IPD.USU_PESLIQ, 0) * IPD.QTDPED) AS PESLIQ, (NVL(IPD.USU_PESBRU, 0) * IPD.QTDPED) AS PESBRU, " +
-                            "(NVL(IPD.USU_VOLDER, 0) * IPD.QTDPED) AS VOLDER " +
-                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR " +
+                            "(NVL(IPD.USU_VOLDER, 0) * IPD.QTDPED) AS VOLDER, IPD.TNSPRO, TNS.VENIPI " +
+                       "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR, E001TNS TNS " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
                         "AND IPD.CODEMP = DER.CODEMP " +
                         "AND IPD.CODPRO = DER.CODPRO " +
                         "AND IPD.CODDER = DER.CODDER " +
                         "AND IPD.CODEMP = CPR.CODEMP " +
+                        "AND IPD.CODEMP = TNS.CODEMP " +
+                        "AND IPD.TNSPRO = TNS.CODTNS " +
                         "AND CPR.CODCPR = SUBSTR(IPD.CODPRO, 3, 4) " +
                         "AND CPR.CODMPR = 'ESTILOS' " +
                         "AND IPD.CODEMP = " + emp + " " +
@@ -378,7 +392,7 @@ public class DBQueriesService extends FeelingService{
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX",
-                "PESLIQ", "PESBRU", "VOLDER");
+                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI");
         String itens = createJsonFromSqlResult(results, fields, "itens");
 
         JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");

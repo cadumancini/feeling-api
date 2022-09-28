@@ -178,6 +178,8 @@ public class WebServiceRequestsService extends FeelingService{
             params.put("obsPed", pedidoWrapper.getPedido().getObsPed());
         if(pedidoWrapper.getPedido().getCodCpg() != null)
             params.put("codCpg", pedidoWrapper.getPedido().getCodCpg());
+        if(pedidoWrapper.getPedido().getTnsPro() != null)
+            params.put("tnsPro", pedidoWrapper.getPedido().getTnsPro());
         if(pedidoWrapper.getPedido().getNumPed() > 0)
             params.put("opeExe", "C");
         else
@@ -195,6 +197,7 @@ public class WebServiceRequestsService extends FeelingService{
                 paramsItem.put("seqPcl", itemPedido.getNumCnj());
                 paramsItem.put("datEnt", itemPedido.getDatEnt());
                 paramsItem.put("obsIpd", itemPedido.getObsIpd());
+                paramsItem.put("tnsPro", itemPedido.getTnsPro());
                 paramsItem.put("perCom", String.valueOf(itemPedido.getPerCom()).replace(".", ","));
                 if(itemPedido.getSeqIpd() > 0)
                     paramsItem.put("opeExe", "A");

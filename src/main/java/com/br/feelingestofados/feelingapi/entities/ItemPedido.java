@@ -26,4 +26,5 @@ public class ItemPedido {
     private String conEsp;
     private String praEsp;
     private String outEsp;
+    private String tnsPro;
 }
