@@ -40,11 +40,11 @@ public class WebServiceRequestsService extends FeelingService{
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
         String estruturaXml = SOAPClient.requestFromSeniorWS("customizado", "Estrutura", user, pswd, "0", params);
-        estruturaXml = addAditionalFields(codEmp, estruturaXml);
+        estruturaXml = addAditionalFields(codEmp, numPed, estruturaXml);
         return estruturaXml;
     }
 
-    private String addAditionalFields(String codEmp, String estruturaXml) throws Exception {
+    private String addAditionalFields(String codEmp, String numPed, String estruturaXml) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -60,6 +60,7 @@ public class WebServiceRequestsService extends FeelingService{
                 String codDer = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                 JSONObject jObj = new JSONObject(queriesService.findDadosProduto(codEmp, codPro));
                 JSONObject jObjDer = new JSONObject(queriesService.findDadosDerivacao(codEmp, codPro, codDer));
+                JSONObject jObjProCli = new JSONObject(queriesService.findDescricaoProdCliente(codEmp, codPro, numPed));
 
                 String exiCmp = jObj.getJSONArray("dados").getJSONObject(0).getString("EXICMP");
                 String proGen = jObj.getJSONArray("dados").getJSONObject(0).getString("PROGEN");
@@ -71,6 +72,8 @@ public class WebServiceRequestsService extends FeelingService{
                 String pesBru = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESBRU");
                 String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
                 String volDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("VOLDER");
+                String desPpc = jObjProCli.getJSONArray("produto").length() > 0 ? 
+                    jObjProCli.getJSONArray("produto").getJSONObject(0).getString("DESNFV") : desNfv;
 
                 Element eExiCmp = doc.createElement("exiCmp");
                 eExiCmp.appendChild(doc.createTextNode(exiCmp));
@@ -92,6 +95,8 @@ public class WebServiceRequestsService extends FeelingService{
                 ePesLiq.appendChild(doc.createTextNode(pesLiq));
                 Element eVolDer = doc.createElement("volDer");
                 eVolDer.appendChild(doc.createTextNode(volDer));
+                Element eDesPpc = doc.createElement("desPpc");
+                eDesPpc.appendChild(doc.createTextNode(desPpc));
 
                 eElement.appendChild(eExiCmp);
                 eElement.appendChild(eProGen);
@@ -103,6 +108,7 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(ePesBru);
                 eElement.appendChild(ePesLiq);
                 eElement.appendChild(eVolDer);
+                eElement.appendChild(eDesPpc);
             }
         }
         TransformerFactory tf = TransformerFactory.newInstance();

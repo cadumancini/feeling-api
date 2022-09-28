@@ -216,7 +216,7 @@ public class DBQueriesService extends FeelingService{
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
-                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI " +
+                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT " +
                        "FROM E120PED PED, E028CPG CPG, E001TNS TNS " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
@@ -227,8 +227,20 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT");
         return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
+    public String findDescricaoProdCliente(String emp, String pro, String ped) {
+        String sql = "SELECT PPC.DESNFV FROM E075PPC PPC, E120PED PED " +
+                      "WHERE PPC.CODEMP = PED.CODEMP " +
+                        "AND PPC.CODCLI = PED.CODCLI " +
+                        "AND PPC.CODEMP = " + emp + " " +
+                        "AND PED.NUMPED = " + ped + " " +
+                        "AND PPC.CODPRO = '" + pro + "'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("DESNFV");
+        return createJsonFromSqlResult(results, fields, "produto");
     }
 
     public String findCondicoesPagto(String emp) {
@@ -340,10 +352,10 @@ public class DBQueriesService extends FeelingService{
             }
         }
 
-        String sql = "UPDATE E120PED SET SITPED = 3 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        String sql = "UPDATE E120PED SET CODMOT = 75 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo SITPED com valor 3.");
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo CODMOT com valor 75.");
         }
 //        wsRequestsService.updateSitPedido(emp, fil, ped, "1", "C", token);
 //        wsRequestsService.updateSitPedido(emp, fil, ped, "S", "C", token);
@@ -608,7 +620,7 @@ public class DBQueriesService extends FeelingService{
         String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo INDPCE com valor 'I'.");
+            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_DESCPL.");
         }
         return "OK";
     }
