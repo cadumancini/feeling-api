@@ -352,7 +352,7 @@ public class DBQueriesService extends FeelingService{
             }
         }
 
-        String sql = "UPDATE E120PED SET CODMOT = 75 WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        String sql = "UPDATE E120PED SET CODMOT = 75, PEDBLO = 'S' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo CODMOT com valor 75.");
