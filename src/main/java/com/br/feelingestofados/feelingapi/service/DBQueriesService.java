@@ -441,13 +441,13 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosDerivacao(String emp, String pro, String der) {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER, DER.DESCPL " +
                 "FROM E075DER DER " +
                 "WHERE DER.CODEMP = " + emp + " " +
                 "AND DER.CODPRO = '" + pro + "' " +
                 "AND DER.CODDER = '" + der + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 

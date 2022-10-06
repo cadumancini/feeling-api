@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SOAPClient {
-    private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
-    // private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+    // private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+    private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
     private static final String wsUrlEnd = "?wsdl";
 
     public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {

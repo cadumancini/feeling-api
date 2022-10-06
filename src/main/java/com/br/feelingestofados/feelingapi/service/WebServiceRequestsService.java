@@ -72,6 +72,7 @@ public class WebServiceRequestsService extends FeelingService{
                 String pesBru = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESBRU");
                 String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
                 String volDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("VOLDER");
+                String desCpl = jObjDer.getJSONArray("dados").getJSONObject(0).getString("DESCPL");
                 String desPpc = jObjProCli.getJSONArray("produto").length() > 0 ? 
                     jObjProCli.getJSONArray("produto").getJSONObject(0).getString("DESNFV") : desNfv;
 
@@ -95,6 +96,8 @@ public class WebServiceRequestsService extends FeelingService{
                 ePesLiq.appendChild(doc.createTextNode(pesLiq));
                 Element eVolDer = doc.createElement("volDer");
                 eVolDer.appendChild(doc.createTextNode(volDer));
+                Element eDesCpl = doc.createElement("desCpl");
+                eDesCpl.appendChild(doc.createTextNode(desCpl));
                 Element eDesPpc = doc.createElement("desPpc");
                 eDesPpc.appendChild(doc.createTextNode(desPpc));
 
@@ -108,6 +111,7 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(ePesBru);
                 eElement.appendChild(ePesLiq);
                 eElement.appendChild(eVolDer);
+                eElement.appendChild(eDesCpl);
                 eElement.appendChild(eDesPpc);
             }
         }
