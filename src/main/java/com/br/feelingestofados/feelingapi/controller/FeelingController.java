@@ -96,7 +96,7 @@ public class FeelingController {
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws Exception {
         if(checkToken(token)) {
             String returnPedido = wsRequestsService.handlePedido(pedidoWrapper, "I", "I", token);
-            if (!returnPedido.contains("<numPed>0</numPed>")) {
+            if (!returnPedido.contains("<numPed>0</numPed>") && returnPedido.contains("<numPed>")) {
                 int indexStart = returnPedido.indexOf("<numPed>");
                 int indexEnd = returnPedido.indexOf("</numPed>");
                 String numPed = returnPedido.substring((indexStart + 8), indexEnd);

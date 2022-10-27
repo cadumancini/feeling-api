@@ -682,6 +682,11 @@ public class DBQueriesService extends FeelingService{
                                                "'" + derCmpAtu + "'," + qtdUti + ", " + qtdFrq + ", " + perPrd + ", " + prdQtd + ",'" + uniMe2 + "','" + tipQtd + "','" + dscCmp + "','I'," +
                                                "'A',TO_DATE('" + datAlt + "', 'DD/MM/YYYY'),'" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
                                                "' ',' ',' ','S','S')";
+
+            if (codPro.equals("") || codPro.equals(" ") || sql.contains(",' ',' ',' ',' ',' ',")) {
+                System.out.println("E700PCE COM CAMPO VAZIO");
+                System.out.println(sql);
+            }
             int rowsAffected = executeSqlStatement(sql);
             if (rowsAffected == 0) {
                 throw new Exception("Nenhuma linha inserida (E700PCE) ao substituir componente.");
@@ -719,7 +724,7 @@ public class DBQueriesService extends FeelingService{
         String sql = "UPDATE E120PED SET USU_PEDREP = '" + pedRep +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido representante.");
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido representante. Comando: " + sql);
         }
     }
 
