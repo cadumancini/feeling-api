@@ -289,6 +289,33 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/dadosProdutoDerivacao", produces = "application/json")
+    @ResponseBody
+    public String getDadosProduto(@RequestParam String token, @RequestParam String emp, @RequestParam String pro, @RequestParam String der) throws Exception {
+        if(checkToken(token))
+            return queriesService.findDadosDerivacao(emp, pro, der);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/depositos", produces = "application/json")
+    @ResponseBody
+    public String getDepositos(@RequestParam String token, @RequestParam String pro, @RequestParam String der) throws Exception {
+        if(checkToken(token))
+            return queriesService.findDepositosLigados(pro, der);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/dadosLote", produces = "application/json")
+    @ResponseBody
+    public String getDadosLote(@RequestParam String token, @RequestParam String lote) throws Exception {
+        if(checkToken(token))
+            return queriesService.findDadosLote(token, lote);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/clientes", produces = "application/json")
     @ResponseBody
     public String getClientes(@RequestParam String token) throws Exception {

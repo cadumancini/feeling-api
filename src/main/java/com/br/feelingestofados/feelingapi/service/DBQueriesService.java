@@ -441,13 +441,48 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosDerivacao(String emp, String pro, String der) {
-        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER, DER.DESCPL " +
-                "FROM E075DER DER " +
-                "WHERE DER.CODEMP = " + emp + " " +
+        String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER, DER.DESCPL, " +
+                            "PRO.CPLPRO, PRO.DESNFV, DER.DESDER, DER.DEPPAD AS DEPDER, PRO.DEPPAD AS DEPPRO, FAM.DEPPAD AS DEPFAM, " +
+                            "ORI.DEPPAD AS DEPORI, PRO.UNIMED " +
+                "FROM E075DER DER, E075PRO PRO, E012FAM FAM, E083ORI ORI " +
+                "WHERE DER.CODEMP = PRO.CODEMP " +
+                "AND DER.CODPRO = PRO.CODPRO " +
+                "AND PRO.CODEMP = FAM.CODEMP " +
+                "AND PRO.CODFAM = FAM.CODFAM " +
+                "AND PRO.CODEMP = ORI.CODEMP " +
+                "AND PRO.CODORI = ORI.CODORI " +
+                "AND DER.CODEMP = " + emp + " " +
                 "AND DER.CODPRO = '" + pro + "' " +
                 "AND DER.CODDER = '" + der + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL",
+                                    "CPLPRO", "DESNFV", "DESDER", "DEPDER", "DEPPRO", "DEPFAM", "DEPORI", "UNIMED");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String findDadosLote(String emp, String lote) {
+        String sql = "SELECT DLS.CODPRO, DLS.CODDER " +
+                "FROM E210DLS DLS " +
+                "WHERE DLS.CODLOT = '" + lote + "' " +
+                "AND ROWNUM = 1";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODPRO", "CODDER");
+        String resultString = createJsonFromSqlResult(results, fields, "dados");
+
+        JSONObject jObj = new JSONObject(resultString);
+        if(jObj.getJSONArray("dados").length() > 0) {
+            String codPro = jObj.getJSONArray("dados").getJSONObject(0).getString("CODPRO");
+            String codDer = jObj.getJSONArray("dados").getJSONObject(0).getString("CODDER");
+            return this.findDadosDerivacao(emp, codPro, codDer);
+        } else {
+            return resultString;
+        }
+    }
+
+    public String findDepositosLigados(String pro, String der) {
+        String sql = "SELECT DISTINCT CODDEP FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND SITEST = 'A' ORDER BY CODDEP";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODDEP");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
