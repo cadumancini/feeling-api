@@ -309,9 +309,9 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosLote", produces = "application/json")
     @ResponseBody
-    public String getDadosLote(@RequestParam String token, @RequestParam String lote) throws Exception {
+    public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) throws Exception {
         if(checkToken(token))
-            return queriesService.findDadosLote(token, lote);
+            return queriesService.findDadosLote(emp, lote);
         else
             return TOKEN_INVALIDO;
     }
