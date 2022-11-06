@@ -91,6 +91,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/cadastro", produces = "application/json")
+    @ResponseBody
+    public String getCadastro(@RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findCadastro(token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @PutMapping(value = "/pedido", consumes = "application/json", produces = "application/xml")
     @ResponseBody
     public String createPedido(@RequestBody PedidoWrapper pedidoWrapper, @RequestParam String token) throws Exception {

@@ -562,6 +562,36 @@ public class DBQueriesService extends FeelingService{
         List<String> fields = Arrays.asList("CODUSU");
         return createJsonFromSqlResult(results, fields, "usuario");
     }
+    
+    public String findOperador(String nomUsu) {
+        String sql = "SELECT E906.NUMCAD, E906.NOMOPE " +
+                       "FROM R999USU R999, E099USU E099, E906OPE E906 " +
+                      "WHERE R999.CODUSU = E099.CODUSU " +
+                        "AND E099.NUMCAD = E906.NUMCAD " +
+                        "AND UPPER(R999.NOMUSU) = UPPER('" + nomUsu + "') " +
+                        "AND E906.CODEMP = 1 " +
+                        "AND ROWNUM = 1";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMCAD", "NOMOPE");
+        return createJsonFromSqlResult(results, fields, "operador");
+    }
+
+    public String findCadastro(String token) {
+        String numCad = TokensManager.getInstance().getNumCadFromToken(token);
+        String nomOpe = TokensManager.getInstance().getNomOpeFromToken(token);
+        
+        JSONObject objCadastro = new JSONObject();
+        objCadastro.put("NUMCAD", numCad);
+        objCadastro.put("NOMOPE", nomOpe);
+
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.put(objCadastro);
+
+        JSONObject objReturn = new JSONObject();
+        objReturn.put("operador", jsonArray);
+        return objReturn.toString();
+    }
 
     private int findRepresentante(String token) throws Exception {
         int codUsu = buscaCodUsuFromToken(token);

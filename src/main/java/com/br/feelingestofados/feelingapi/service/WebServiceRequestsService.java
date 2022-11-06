@@ -140,9 +140,17 @@ public class WebServiceRequestsService extends FeelingService{
         if(response.contains("Credenciais inválidas"))
             return "Credenciais inválidas";
         else {
+            String numCad = "";
+            String nomOpe = "";
+            JSONObject jObj = new JSONObject(queriesService.findOperador(user));
+            if(jObj.getJSONArray("operador").length() > 0) {
+                numCad = jObj.getJSONArray("operador").getJSONObject(0).getString("NUMCAD");
+                nomOpe = jObj.getJSONArray("operador").getJSONObject(0).getString("NOMOPE");
+            }
+
             Date currentDateTime = Calendar.getInstance().getTime();
             String hash = DigestUtils.sha256Hex(user + pswd + currentDateTime);
-            TokensManager.getInstance().addToken(hash, user, pswd);
+            TokensManager.getInstance().addToken(hash, user, pswd, numCad, nomOpe);
 
             return hash;
         }
