@@ -486,6 +486,71 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
+    public String findQtdeEstoque(String pro, String der, String dep) {
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("QTDEST");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String findQtdeEstoque(String emp, String pro, String der, String dep) {
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODEMP = " + emp + " CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("QTDEST");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
+    public String movimentarEstoque(String pro, String der, String depOri, String depDes, String qtdCon) {
+        if (depOri.equals(depDes)) {
+            String estEmp1Json = this.findQtdeEstoque("1", pro, der, depOri);
+            String estEmp2Json = this.findQtdeEstoque("2", pro, der, depOri);
+            String estEmp3Json = this.findQtdeEstoque("3", pro, der, depOri);
+
+            String qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            
+            // zerar estoque emp2 e emp3
+            
+            Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
+            if (qtdMov != 0.0) {
+                String codTns = qtdMov > 0.0 ? "90255" : "90205";
+                qtdMov = Math.abs(qtdMov);
+            }
+            
+            // movimentar emp1
+        } else {
+            String estEmp1Json = this.findQtdeEstoque("1", pro, der, depOri);
+            String estEmp2Json = this.findQtdeEstoque("2", pro, der, depOri);
+            String estEmp3Json = this.findQtdeEstoque("3", pro, der, depOri);
+
+            String qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            
+            // zerar estoque emp1, emp2 e emp3 no depOri
+            
+            estEmp1Json = this.findQtdeEstoque("1", pro, der, depDes);
+            estEmp2Json = this.findQtdeEstoque("2", pro, der, depDes);
+            estEmp3Json = this.findQtdeEstoque("3", pro, der, depDes);
+            
+            qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            
+            // zerar estoque emp2 e emp3 no depDes
+            
+            Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
+            if (qtdMov != 0.0) {
+                String codTns = qtdMov > 0.0 ? "90255" : "90205";
+                qtdMov = Math.abs(qtdMov);
+            }
+            
+            // movimentar emp1 no depDes
+        }
+        return "ok";
+    }
+
     public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
         String sql = "SELECT DER.CODPRO, DER.CODDER, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCEQI, DER.USU_CODREF AS CODREF " +
                        "FROM E075DER DER, E075PRO PRO " +

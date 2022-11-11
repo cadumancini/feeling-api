@@ -316,6 +316,24 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/estoque", produces = "application/json")
+    @ResponseBody
+    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep) throws Exception {
+        if(checkToken(token))
+            return queriesService.findQtdeEstoque(pro, der, dep);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/contagem", produces = "application/json")
+    @ResponseBody
+    public String movimentarEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String depOri, @RequestParam String depDes, @RequestParam String qtdMov) throws Exception {
+        if(checkToken(token))
+            return queriesService.movimentarEstoque(pro, der, depOri, depDes, qtdMov);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/dadosLote", produces = "application/json")
     @ResponseBody
     public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) throws Exception {
