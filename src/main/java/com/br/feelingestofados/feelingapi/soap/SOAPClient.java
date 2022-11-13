@@ -24,6 +24,14 @@ public class SOAPClient {
         return response;
     }
 
+    public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, String params) throws IOException {
+        String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
+        String url = wsUrl + wsPath + wsUrlEnd;
+        String response = postRequest(url, xmlBody);
+
+        return response;
+    }
+
     private static String prepareXmlBody(String service, String usr, String pswd, String encryption, HashMap params) {
         StringBuilder xmlBuilder = new StringBuilder("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ser=\"http://services.senior.com.br\">");
         xmlBuilder.append("<soapenv:Body>");
@@ -69,6 +77,23 @@ public class SOAPClient {
             });
             xmlBuilder.append("</parameters>");
         }
+        xmlBuilder.append("</ser:" + service + ">");
+        xmlBuilder.append("</soapenv:Body>");
+        xmlBuilder.append("</soapenv:Envelope>");
+
+        return xmlBuilder.toString();
+    }
+
+    private static String prepareXmlBody(String service, String usr, String pswd, String encryption, String params) {
+        StringBuilder xmlBuilder = new StringBuilder("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ser=\"http://services.senior.com.br\">");
+        xmlBuilder.append("<soapenv:Body>");
+        xmlBuilder.append("<ser:" + service + ">");
+        xmlBuilder.append("<user>" + usr + "</user>");
+        xmlBuilder.append("<password>" + pswd + "</password>");
+        xmlBuilder.append("<encryption>" + encryption + "</encryption>");
+        xmlBuilder.append("<parameters>");
+        xmlBuilder.append(params);
+        xmlBuilder.append("</parameters>");
         xmlBuilder.append("</ser:" + service + ">");
         xmlBuilder.append("</soapenv:Body>");
         xmlBuilder.append("</soapenv:Envelope>");

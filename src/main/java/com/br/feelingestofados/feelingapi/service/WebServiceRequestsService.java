@@ -263,4 +263,48 @@ public class WebServiceRequestsService extends FeelingService{
         paramsPedido.put("pedido", params);
         return paramsPedido;
     }
+
+    public String handleContagem(String codEmp, String codPro, String codDer, String codDep, 
+                                    String codLot, String qtdMov, String codTns, String token) throws IOException {
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        String retorno = "";
+        if (codEmp.equals("1")) {
+            // realizar contagem
+            HashMap<String, HashMap> params = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
+            retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        } else {
+            // mudar empresa
+            String params = prepareParamsForMudarEmpresa(codEmp);
+            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+            // realizar contagem
+            HashMap<String, HashMap> paramsCont = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
+            retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", paramsCont);
+            // voltar para empresa 1
+            params = prepareParamsForMudarEmpresa("1");
+            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        }
+        return retorno;
+    }
+
+    private String prepareParamsForMudarEmpresa(String codEmp) {
+        String paramSid = "<SID><param>acao=sid.srv.altempfil</param></SID><SID><param>CODEMP=" + codEmp + "</param></SID>";
+        return paramSid;
+    }
+
+    private HashMap<String, HashMap> prepareParamsForContagem(String codEmp, String codPro, String codDer, String codDep, 
+                                            String codLot, String qtdMov, String codTns) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("codEmp", codEmp);
+        params.put("codPro", codPro);
+        params.put("codDer", codDer);
+        params.put("codDep", codDep);
+        params.put("codLot", codLot);
+        params.put("qtdMov", qtdMov);
+        params.put("codTns", codTns);
+
+        HashMap<String, HashMap> paramsPedido = new HashMap<>();
+        paramsPedido.put("dadosGerais", params);
+        return paramsPedido;
+    }
 }

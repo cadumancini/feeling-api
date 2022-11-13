@@ -327,9 +327,9 @@ public class FeelingController {
 
     @PostMapping(value = "/contagem", produces = "application/json")
     @ResponseBody
-    public String movimentarEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String depOri, @RequestParam String depDes, @RequestParam String qtdMov) throws Exception {
+    public String movimentarEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String lot, @RequestParam String depOri, @RequestParam String depDes, @RequestParam String qtdMov) throws Exception {
         if(checkToken(token))
-            return queriesService.movimentarEstoque(pro, der, depOri, depDes, qtdMov);
+            return queriesService.movimentarEstoque(pro, der, lot, depOri, depDes, qtdMov, token);
         else
             return TOKEN_INVALIDO;
     }

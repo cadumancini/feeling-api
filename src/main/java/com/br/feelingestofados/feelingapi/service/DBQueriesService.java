@@ -38,6 +38,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+    private String retorno;
 //    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
@@ -493,6 +494,13 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
+    public String findEstoqueLote(String lot) {
+        String sql = "SELECT QTDEST, CODEMP FROM E210DLS WHERE CODLOT = '" + lot + "'";
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("QTDEST", "CODEMP");
+        return createJsonFromSqlResult(results, fields, "dados");
+    }
+
     public String findQtdeEstoque(String emp, String pro, String der, String dep) {
         String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODEMP = " + emp + " CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
         List<Object> results = listResultsFromSql(sql);
@@ -500,25 +508,39 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String movimentarEstoque(String pro, String der, String depOri, String depDes, String qtdCon) {
-        if (depOri.equals(depDes)) {
-            String estEmp1Json = this.findQtdeEstoque("1", pro, der, depOri);
-            String estEmp2Json = this.findQtdeEstoque("2", pro, der, depOri);
-            String estEmp3Json = this.findQtdeEstoque("3", pro, der, depOri);
+    public String movimentarEstoque(String pro, String der, String codLot, String depOri, String depDes, String qtdCon, String token) throws IOException {
+        String retorno = "";
+        if(!codLot.equals("")) {
+            String resultLote = this.findEstoqueLote(codLot);
 
-            String qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            String qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            String qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            
-            // zerar estoque emp2 e emp3
-            
-            Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
-            if (qtdMov != 0.0) {
-                String codTns = qtdMov > 0.0 ? "90255" : "90205";
-                qtdMov = Math.abs(qtdMov);
+            // ver em qual empresa está o lote
+            String qtdEstLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String empLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("CODEMP");
+
+            if(empLote.equals("1")) {
+                // movientar emp1
+                Double qtdMov = Double.parseDouble(qtdEstLote) - Double.parseDouble(qtdCon);
+                String codTns = "";
+                if (qtdMov != 0.0) {
+                    codTns = qtdMov > 0.0 ? "90255" : "90205";
+                    qtdMov = Math.abs(qtdMov);
+                }
+                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
+
+            } else {
+                //   zerar empresa atual do lote com qtd atual
+                retorno = wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
+
+                //   movimentar emp1 com lote com qtd contada
+                Double qtdMov = Double.parseDouble(qtdEstLote) - Double.parseDouble(qtdCon);
+                String codTns = "";
+                if (qtdMov != 0.0) {
+                    codTns = qtdMov > 0.0 ? "90255" : "90205";
+                    qtdMov = Math.abs(qtdMov);
+                }
+                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
             }
-            
-            // movimentar emp1
+
         } else {
             String estEmp1Json = this.findQtdeEstoque("1", pro, der, depOri);
             String estEmp2Json = this.findQtdeEstoque("2", pro, der, depOri);
@@ -527,28 +549,59 @@ public class DBQueriesService extends FeelingService{
             String qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            
-            // zerar estoque emp1, emp2 e emp3 no depOri
-            
-            estEmp1Json = this.findQtdeEstoque("1", pro, der, depDes);
-            estEmp2Json = this.findQtdeEstoque("2", pro, der, depDes);
-            estEmp3Json = this.findQtdeEstoque("3", pro, der, depDes);
-            
-            qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-            
-            // zerar estoque emp2 e emp3 no depDes
-            
-            Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
-            if (qtdMov != 0.0) {
-                String codTns = qtdMov > 0.0 ? "90255" : "90205";
-                qtdMov = Math.abs(qtdMov);
+
+            if (depOri.equals(depDes)) {
+                // zerar estoque emp2
+                retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdEstEmp2, "90255", token);
+
+                // zerar estoque emp3
+                retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdEstEmp3, "90255", token);
+                
+                // movimentar emp1
+                Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
+                String codTns = "";
+                if (qtdMov != 0.0) {
+                    codTns = qtdMov > 0.0 ? "90255" : "90205";
+                    qtdMov = Math.abs(qtdMov);
+                }
+                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
+                
+            } else {
+                // zerar estoque emp1 no depOri
+                if (!qtdEstEmp1.equals("0")) retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdEstEmp1, "90255", token);
+
+                // zerar estoque emp2 no depOri
+                if (!qtdEstEmp2.equals("0")) retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdEstEmp2, "90255", token);
+
+                // zerar estoque emp3 no depOri
+                if (!qtdEstEmp3.equals("0")) retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdEstEmp3, "90255", token);
+                
+                estEmp1Json = this.findQtdeEstoque("1", pro, der, depDes);
+                estEmp2Json = this.findQtdeEstoque("2", pro, der, depDes);
+                estEmp3Json = this.findQtdeEstoque("3", pro, der, depDes);
+                
+                qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+                qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+                qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+                
+                // zerar estoque emp2 no depDes
+                if (!qtdEstEmp2.equals("0")) retorno = wsRequestsService.handleContagem("2", pro, der, depDes, codLot, qtdEstEmp2, "90255", token);
+                
+                // zerar estoque emp3 no depDes
+                if (!qtdEstEmp3.equals("0")) retorno = wsRequestsService.handleContagem("3", pro, der, depDes, codLot, qtdEstEmp3, "90255", token);
+                
+                // movimentar emp1 no depDes:
+                Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
+                String codTns = "";
+                if (qtdMov != 0.0) {
+                    codTns = qtdMov > 0.0 ? "90255" : "90205";
+                    qtdMov = Math.abs(qtdMov);
+                }
+                retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
+                
             }
-            
-            // movimentar emp1 no depDes
         }
-        return "ok";
+        return retorno;
     }
 
     public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
