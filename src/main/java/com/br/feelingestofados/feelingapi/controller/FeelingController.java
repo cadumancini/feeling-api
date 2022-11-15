@@ -318,9 +318,13 @@ public class FeelingController {
 
     @GetMapping(value = "/estoque", produces = "application/json")
     @ResponseBody
-    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep) throws Exception {
+    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep, @RequestParam String lot) throws Exception {
         if(checkToken(token))
-            return queriesService.findQtdeEstoque(pro, der, dep);
+            if(!lot.equals("")) {
+                return queriesService.findEstoqueLote(lot);
+            } else {
+                return queriesService.findQtdeEstoque(pro, der, dep);
+            }
         else
             return TOKEN_INVALIDO;
     }

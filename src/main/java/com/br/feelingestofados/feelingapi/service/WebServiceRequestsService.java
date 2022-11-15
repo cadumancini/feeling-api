@@ -266,24 +266,45 @@ public class WebServiceRequestsService extends FeelingService{
 
     public String handleContagem(String codEmp, String codPro, String codDer, String codDep, 
                                     String codLot, String qtdMov, String codTns, String token) throws IOException {
+        qtdMov = qtdMov.replace('.', ',');
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
         String retorno = "";
-        if (codEmp.equals("1")) {
-            // realizar contagem
-            HashMap<String, HashMap> params = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
-            retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
-        } else {
-            // mudar empresa
-            String params = prepareParamsForMudarEmpresa(codEmp);
-            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
-            // realizar contagem
-            HashMap<String, HashMap> paramsCont = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
-            retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", paramsCont);
+
+        // mudar empresa
+        String params = prepareParamsForMudarEmpresa(codEmp);
+        SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        // realizar contagem
+        HashMap<String, HashMap> paramsCont = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
+        retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_est_estoques", "MovimentarEstoque", user, pswd, "0", paramsCont);
+        
+        if (!codEmp.equals("1")) {
             // voltar para empresa 1
             params = prepareParamsForMudarEmpresa("1");
             SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
         }
+
+        return retorno;
+    }
+
+    public String executarRelatorio(String codEmp, String codPro, String codDer, String codLot, String codRel, String token) throws IOException {
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+
+        // mudar empresa
+        String params = prepareParamsForMudarEmpresa(codEmp);
+        SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+
+        // executar relatorio
+        params = prepareParamsForRelatorio(codPro, codDer, codLot, codRel);
+        String retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_relatorio", "Executar", user, pswd, "0", params);
+        
+        if (!codEmp.equals("1")) {
+            // voltar para empresa 1
+            params = prepareParamsForMudarEmpresa("1");
+            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        }
+
         return retorno;
     }
 
@@ -306,5 +327,14 @@ public class WebServiceRequestsService extends FeelingService{
         HashMap<String, HashMap> paramsPedido = new HashMap<>();
         paramsPedido.put("dadosGerais", params);
         return paramsPedido;
+    }
+
+    private String prepareParamsForRelatorio(String codPro, String codDer, String codLot, String codRel) {
+        String paramSid = "<prEntrada><![CDATA[<ECodPro=" + codPro + "><ECodDer=" + codDer + ">" + (!codLot.equals("") ? ("<ECodLot=" + codLot + ">") : "") + "]]></prEntrada>" + 
+                          "<prEntranceIsXML>F</prEntranceIsXML>" + 
+                          "<prRelatorio>" + codRel + "</prRelatorio>" +
+                          "<prSaveFormat>tsfPDF</prSaveFormat>" +
+                          "<prExecFmt>tefFile</prExecFmt>";
+        return paramSid;
     }
 }

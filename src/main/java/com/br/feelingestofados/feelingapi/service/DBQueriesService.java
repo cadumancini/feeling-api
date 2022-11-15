@@ -502,7 +502,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findQtdeEstoque(String emp, String pro, String der, String dep) {
-        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODEMP = " + emp + " CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODEMP = " + emp + " AND CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("QTDEST");
         return createJsonFromSqlResult(results, fields, "dados");
@@ -517,28 +517,37 @@ public class DBQueriesService extends FeelingService{
             String qtdEstLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String empLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("CODEMP");
 
-            if(empLote.equals("1")) {
-                // movientar emp1
-                Double qtdMov = Double.parseDouble(qtdEstLote) - Double.parseDouble(qtdCon);
-                String codTns = "";
-                if (qtdMov != 0.0) {
-                    codTns = qtdMov > 0.0 ? "90255" : "90205";
-                    qtdMov = Math.abs(qtdMov);
-                }
-                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
+            if (depOri.equals(depDes)) {
+                if(empLote.equals("1")) {
+                    // movientar emp1
+                    qtdCon = qtdCon.replace(',', '.');
+                    Double qtdMov = Double.parseDouble(qtdEstLote) - Double.parseDouble(qtdCon);
+                    String codTns = "";
+                    if (qtdMov != 0.0) {
+                        codTns = qtdMov > 0.0 ? "90255" : "90205";
+                        qtdMov = Math.abs(qtdMov);
+                    }
+                    retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
 
+                } else {
+                    //   zerar empresa atual do lote com qtd atual
+                    retorno = wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
+
+                    //   movimentar emp1 com lote com qtd contada
+                    qtdCon = qtdCon.replace(',', '.');
+                    Double qtdMov = Double.parseDouble(qtdCon);
+                    String codTns = "90205";
+                    retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
+                }
             } else {
-                //   zerar empresa atual do lote com qtd atual
+                // zerar empresa atual no depOri
                 retorno = wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
 
-                //   movimentar emp1 com lote com qtd contada
-                Double qtdMov = Double.parseDouble(qtdEstLote) - Double.parseDouble(qtdCon);
-                String codTns = "";
-                if (qtdMov != 0.0) {
-                    codTns = qtdMov > 0.0 ? "90255" : "90205";
-                    qtdMov = Math.abs(qtdMov);
-                }
-                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
+                // movientar emp1 no depDes
+                qtdCon = qtdCon.replace(',', '.');
+                Double qtdMov = Double.parseDouble(qtdCon);
+                String codTns = "90205";
+                retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
             }
 
         } else {
@@ -552,12 +561,13 @@ public class DBQueriesService extends FeelingService{
 
             if (depOri.equals(depDes)) {
                 // zerar estoque emp2
-                retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdEstEmp2, "90255", token);
+                if (!qtdEstEmp2.equals("0")) retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdEstEmp2, "90255", token);
 
                 // zerar estoque emp3
-                retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdEstEmp3, "90255", token);
+                if (!qtdEstEmp3.equals("0")) retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdEstEmp3, "90255", token);
                 
                 // movimentar emp1
+                qtdCon = qtdCon.replace(',', '.');
                 Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
                 String codTns = "";
                 if (qtdMov != 0.0) {
@@ -591,6 +601,7 @@ public class DBQueriesService extends FeelingService{
                 if (!qtdEstEmp3.equals("0")) retorno = wsRequestsService.handleContagem("3", pro, der, depDes, codLot, qtdEstEmp3, "90255", token);
                 
                 // movimentar emp1 no depDes:
+                qtdCon = qtdCon.replace(',', '.');
                 Double qtdMov = Double.parseDouble(qtdEstEmp1) - Double.parseDouble(qtdCon);
                 String codTns = "";
                 if (qtdMov != 0.0) {
@@ -600,6 +611,11 @@ public class DBQueriesService extends FeelingService{
                 retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
                 
             }
+        }
+
+        if (retorno.contains("<mensagemRetorno>Processado com Sucesso.</mensagemRetorno>")) {
+            // chamar impressao de etiqueta
+            wsRequestsService.executarRelatorio("1", pro, der, codLot, "MPOP400.GER", token);
         }
         return retorno;
     }
