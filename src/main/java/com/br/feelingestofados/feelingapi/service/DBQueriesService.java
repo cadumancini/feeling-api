@@ -613,9 +613,9 @@ public class DBQueriesService extends FeelingService{
             }
         }
 
-        if (retorno.contains("<mensagemRetorno>Processado com Sucesso.</mensagemRetorno>")) {
+        if (retorno.contains("<mensagemRetorno>Processado com Sucesso.</mensagemRetorno>") && !codLot.equals("")) {
             // chamar impressao de etiqueta
-            wsRequestsService.executarRelatorio("1", pro, der, codLot, "MPOP400.GER", token);
+            wsRequestsService.executarRelatorio("1", pro, der, codLot, qtdCon, token);
         }
         return retorno;
     }

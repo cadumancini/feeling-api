@@ -287,7 +287,7 @@ public class WebServiceRequestsService extends FeelingService{
         return retorno;
     }
 
-    public String executarRelatorio(String codEmp, String codPro, String codDer, String codLot, String codRel, String token) throws IOException {
+    public String executarRelatorio(String codEmp, String codPro, String codDer, String codLot, String qtdCon, String token) throws IOException {
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
 
@@ -296,7 +296,7 @@ public class WebServiceRequestsService extends FeelingService{
         SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
 
         // executar relatorio
-        params = prepareParamsForRelatorio(codPro, codDer, codLot, codRel);
+        params = prepareParamsForRelatorio(codPro, codDer, codLot, qtdCon);
         String retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_relatorio", "Executar", user, pswd, "0", params);
         
         if (!codEmp.equals("1")) {
@@ -304,7 +304,8 @@ public class WebServiceRequestsService extends FeelingService{
             params = prepareParamsForMudarEmpresa("1");
             SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
         }
-
+        System.out.println("Retorno relatório:");
+        System.out.println(retorno);
         return retorno;
     }
 
@@ -329,10 +330,10 @@ public class WebServiceRequestsService extends FeelingService{
         return paramsPedido;
     }
 
-    private String prepareParamsForRelatorio(String codPro, String codDer, String codLot, String codRel) {
-        String paramSid = "<prEntrada><![CDATA[<ECodPro=" + codPro + "><ECodDer=" + codDer + ">" + (!codLot.equals("") ? ("<ECodLot=" + codLot + ">") : "") + "]]></prEntrada>" + 
+    private String prepareParamsForRelatorio(String codPro, String codDer, String codLot, String qtdCon) {
+        String paramSid = "<prEntrada><![CDATA[<ECodPro=" + codPro + "><ECodDer=" + codDer + ">" + (!codLot.equals("") ? ("<ECodLot=" + codLot + ">") : ("<EQtdUni=" + qtdCon + "><EQtdImp=1>")) + "]]></prEntrada>" + 
                           "<prEntranceIsXML>F</prEntranceIsXML>" + 
-                          "<prRelatorio>" + codRel + "</prRelatorio>" +
+                          "<prRelatorio>" + (!codLot.equals("") ? "MPOP400.GER" : "SEIV300.GER") + "</prRelatorio>" +
                           "<prSaveFormat>tsfPDF</prSaveFormat>" +
                           "<prExecFmt>tefFile</prExecFmt>";
         return paramSid;

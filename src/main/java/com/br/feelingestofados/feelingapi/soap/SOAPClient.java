@@ -12,13 +12,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SOAPClient {
-    private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
-    // private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+    // private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+    private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
     private static final String wsUrlEnd = "?wsdl";
 
     public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
         String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
         String url = wsUrl + wsPath + wsUrlEnd;
+        System.out.println("URL: " + url);
+        System.out.println("Params: " + xmlBody);
         String response = postRequest(url, xmlBody);
 
         return response;
@@ -27,6 +29,8 @@ public class SOAPClient {
     public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, String params) throws IOException {
         String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
         String url = wsUrl + wsPath + wsUrlEnd;
+        System.out.println("URL: " + url);
+        System.out.println("Params: " + xmlBody);
         String response = postRequest(url, xmlBody);
 
         return response;
@@ -104,7 +108,7 @@ public class SOAPClient {
     private static String postRequest(String url, String xmlBody) throws IOException {
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost httpRequest = new HttpPost(url);
-        httpRequest.setHeader("Content-Type", "text/xml");
+        httpRequest.setHeader("Content-Type", "text/xml;charset=ISO-8859-1");
         StringEntity xmlEntity = new StringEntity(xmlBody);
         httpRequest.setEntity(xmlEntity);
         HttpResponse httpResponse = client.execute(httpRequest);
