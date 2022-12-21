@@ -384,7 +384,7 @@ public class DBQueriesService extends FeelingService{
                             "NVL(IPD.PERDS4, 0) AS PERDS4, NVL(IPD.PERDS5, 0) AS PERDS5, NVL(IPD.USU_PERGUE, 0) AS PERGUE, " +
                             "NVL(IPD.USU_VLRRET, 0) AS VLRRET, NVL(PRO.USU_MEDMIN, 0) AS MEDMIN, NVL(PRO.USU_MEDMAX, 0) AS MEDMAX, " +
                             "(NVL(IPD.USU_PESLIQ, 0) * IPD.QTDPED) AS PESLIQ, (NVL(IPD.USU_PESBRU, 0) * IPD.QTDPED) AS PESBRU, " +
-                            "(NVL(IPD.USU_VOLDER, 0) * IPD.QTDPED) AS VOLDER, IPD.TNSPRO, TNS.VENIPI " +
+                            "(NVL(IPD.USU_VOLDER, 0) * IPD.QTDPED) AS VOLDER, IPD.TNSPRO, TNS.VENIPI, IPD.SITIPD " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR, E001TNS TNS " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -405,7 +405,7 @@ public class DBQueriesService extends FeelingService{
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX",
-                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI");
+                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI", "SITIPD");
         String itens = createJsonFromSqlResult(results, fields, "itens");
 
         JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");

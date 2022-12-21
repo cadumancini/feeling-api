@@ -206,22 +206,27 @@ public class WebServiceRequestsService extends FeelingService{
         if(!pedidoWrapper.getItens().isEmpty()) {
             List<HashMap<String, Object>> listaItens = new ArrayList<>();
             pedidoWrapper.getItens().forEach(itemPedido -> {
-                HashMap<String, Object> paramsItem = new HashMap<>();
-                paramsItem.put("codPro", itemPedido.getCodPro());
-                paramsItem.put("codDer", itemPedido.getCodDer());
-                paramsItem.put("seqIpd", itemPedido.getSeqIpd());
-                paramsItem.put("qtdPed", itemPedido.getQtdPed());
-                paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
-                paramsItem.put("seqPcl", itemPedido.getNumCnj());
-                paramsItem.put("datEnt", itemPedido.getDatEnt());
-                paramsItem.put("obsIpd", itemPedido.getObsIpd());
-                paramsItem.put("tnsPro", itemPedido.getTnsPro());
-                paramsItem.put("perCom", String.valueOf(itemPedido.getPerCom()).replace(".", ","));
-                if(itemPedido.getSeqIpd() > 0)
-                    paramsItem.put("opeExe", "A");
-                else
-                    paramsItem.put("opeExe", "I");
-                listaItens.add(paramsItem);
+                if (itemPedido.getSeqIpd() == 0 || (!itemPedido.getSitIpd().equals("4") && !itemPedido.getSitIpd().equals("5"))) {
+                    HashMap<String, Object> paramsItem = new HashMap<>();
+                    paramsItem.put("codPro", itemPedido.getCodPro());
+                    paramsItem.put("codDer", itemPedido.getCodDer());
+                    paramsItem.put("seqIpd", itemPedido.getSeqIpd());
+                    paramsItem.put("qtdPed", itemPedido.getQtdPed());
+                    paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
+                    paramsItem.put("seqPcl", itemPedido.getNumCnj());
+                    paramsItem.put("datEnt", itemPedido.getDatEnt());
+                    paramsItem.put("obsIpd", itemPedido.getObsIpd());
+                    paramsItem.put("tnsPro", itemPedido.getTnsPro());
+                    paramsItem.put("perCom", String.valueOf(itemPedido.getPerCom()).replace(".", ","));
+                    if(itemPedido.getSeqIpd() > 0)
+                        paramsItem.put("opeExe", "A");
+                    else
+                        paramsItem.put("opeExe", "I");
+                    listaItens.add(paramsItem);
+                }
+                else {
+                    System.out.println("Item " + itemPedido.getSeqIpd() + " não incluido");
+                }
             });
             params.put("produto", listaItens);
         }

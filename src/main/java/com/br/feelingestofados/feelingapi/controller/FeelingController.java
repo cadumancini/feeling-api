@@ -166,11 +166,13 @@ public class FeelingController {
             for(int i = 0; i < itens.length(); i++) {
                 JSONObject item = itens.getJSONObject(i);
                 String seqIpd = item.getString("SEQIPD");
+                String sitIpd = item.getString("SITIPD");
                 // verificar se o item do pedido do banco existe nos parâmetros, se não existir, excluir
                 AtomicBoolean existe = new AtomicBoolean(false);
                 wrapper.getItens().forEach(itemPedido -> {
                     if(itemPedido.getSeqIpd().toString().equals(seqIpd)) {
                         existe.set(true);
+                        itemPedido.setSitIpd(sitIpd);
                     }
                 });
                 if(!existe.get()) {
