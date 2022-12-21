@@ -108,7 +108,8 @@ public class SOAPClient {
     private static String postRequest(String url, String xmlBody) throws IOException {
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost httpRequest = new HttpPost(url);
-        httpRequest.setHeader("Content-Type", "text/xml;charset=ISO-8859-1");
+        String header = xmlBody.contains("GravarPedido") ?  "text/xml;charset=ISO-8859-1" :  "text/xml";
+        httpRequest.setHeader("Content-Type", header);
         StringEntity xmlEntity = new StringEntity(xmlBody);
         httpRequest.setEntity(xmlEntity);
         HttpResponse httpResponse = client.execute(httpRequest);
