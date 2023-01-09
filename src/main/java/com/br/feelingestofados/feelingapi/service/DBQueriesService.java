@@ -754,9 +754,9 @@ public class DBQueriesService extends FeelingService{
                       "WHERE CODEMP = " + codEmp + " " +
                         "AND CODFIL = " + codFil + " " +
                         "AND NUMPED = " + numPed + " " +
-                        "AND SEQIPD = " + seqIpd + " " +
+                        "AND SEQIPD = " + seqIpd; /* + " " +
                         "AND CODETG = " + codEtg + " " +
-                        "AND SEQMOD = " + seqMod + "";
+                        "AND SEQMOD = " + seqMod + ""; */
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("SEQPCE");
