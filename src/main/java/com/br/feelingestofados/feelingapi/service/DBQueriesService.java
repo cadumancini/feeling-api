@@ -392,7 +392,8 @@ public class DBQueriesService extends FeelingService{
                                                   "AND COP.NUMORP = QDO.NUMORP " +
                                                   "AND COP.CODEMP = IPD.CODEMP " +
                                                   "AND COP.NUMPED = IPD.NUMPED " +
-                                                  "AND QDO.SEQIPD = IPD.SEQIPD) THEN 'S' ELSE 'N' END) AS TEMORP " +
+                                                  "AND QDO.SEQIPD = IPD.SEQIPD " +
+                                                  "AND COP.SITORP <> 'C') THEN 'S' ELSE 'N' END) AS TEMORP " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR, E001TNS TNS " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
