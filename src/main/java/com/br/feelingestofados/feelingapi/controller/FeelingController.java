@@ -113,6 +113,10 @@ public class FeelingController {
                     queriesService.marcarPedidoRep(pedidoWrapper.getPedido().getCodEmp().toString(),
                         pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep().toString());
                 }
+                if(pedidoWrapper.getPedido().getPedFei() != null) {
+                    queriesService.marcarPedidoFeira(pedidoWrapper.getPedido().getCodEmp().toString(),
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedFei().toString());
+                }
             }
             return returnPedido;
         }

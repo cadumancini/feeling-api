@@ -16,4 +16,5 @@ public class Pedido {
     private String obsPed;
     private String codCpg;
     private String tnsPro;
+    private String pedFei;
 }

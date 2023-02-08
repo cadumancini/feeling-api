@@ -217,7 +217,7 @@ public class DBQueriesService extends FeelingService{
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
-                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT " +
+                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI " +
                        "FROM E120PED PED, E028CPG CPG, E001TNS TNS " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
@@ -228,7 +228,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT", "PEDFEI");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
@@ -933,6 +933,14 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido representante. Comando: " + sql);
+        }
+    }
+
+    public void marcarPedidoFeira(String emp, String fil, String ped, String pedFei) throws Exception {
+        String sql = "UPDATE E120PED SET USU_PEDFEI = '" + pedFei +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido feira. Comando: " + sql);
         }
     }
 
