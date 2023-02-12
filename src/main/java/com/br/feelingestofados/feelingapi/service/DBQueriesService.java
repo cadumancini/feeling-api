@@ -854,6 +854,7 @@ public class DBQueriesService extends FeelingService{
             String cmpAtu = objTroca.getString("cmpAtu");
             String derCmpAtu = objTroca.getString("derAtu");
             String dscCmp = objTroca.getString("dscCmp");
+            String codNiv = objTroca.getString("codNiv");
 
             JSONObject jObj = new JSONObject(findDadosEquivalente(emp, mod, derMod, cmpAnt, derCmpAnt));
             if (jObj.getJSONArray("dados").length() == 0) {
@@ -888,7 +889,7 @@ public class DBQueriesService extends FeelingService{
                                               "SBSPRO,CODDEP,CODLOT,SELPRO,SELCUS) " +
                                       "VALUES ("+ emp + "," + fil + "," + ped + "," + ipd + "," + codEtg + "," + seqMod + "," + seqPce + ",'" + mod + "','" + cmpAtu + "'," +
                                                "'" + derCmpAtu + "'," + qtdUti + ", " + qtdFrq + ", " + perPrd + ", " + prdQtd + ",'" + uniMe2 + "','" + tipQtd + "','" + dscCmp + "','I'," +
-                                               "'A',TO_DATE('" + datAlt + "', 'DD/MM/YYYY'),'" + codCcu + "'," + codUsu + ",' ','S','N','" + codPro + "','" + derMod + "'," +
+                                               "'A',TO_DATE('" + datAlt + "', 'DD/MM/YYYY'),'" + codCcu + "'," + codUsu + ",'" + codNiv + "','S','N','" + codPro + "','" + derMod + "'," +
                                                "' ',' ',' ','S','S')";
 
             if (codPro.equals("") || codPro.equals(" ") || sql.contains(",' ',' ',' ',' ',' ',")) {
@@ -903,6 +904,10 @@ public class DBQueriesService extends FeelingService{
                 rowsAffected = executeSqlStatement(sql);
                 if (rowsAffected == 0) {
                     throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo INDPCE com valor 'I'.");
+                }
+                if (!codNiv.isEmpty()) {
+                    sql = "DELETE FROM E700PCE WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd + " AND OBSPEC LIKE '" + codNiv + ".%'";
+                    executeSqlStatement(sql);
                 }
             }
         }
