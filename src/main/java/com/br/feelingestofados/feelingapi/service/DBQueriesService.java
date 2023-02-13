@@ -217,7 +217,13 @@ public class DBQueriesService extends FeelingService{
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
-                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI " +
+                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI, " +
+                             "CASE WHEN EXISTS (SELECT 1 FROM E120IPD IPD WHERE IPD.CODEMP = PED.CODEMP AND IPD.CODFIL = PED.CODFIL " +
+                                                   "AND IPD.NUMPED = PED.NUMPED AND NVL(IPD.USU_ENVEMP, 'N') = 'S') " +
+                             "THEN 'S' ELSE 'N' END AS PEDENV, " +
+                             "CASE WHEN EXISTS (SELECT 1 FROM E120IPD IPD WHERE IPD.CODEMP = PED.CODEMP AND IPD.CODFIL = PED.CODFIL " +
+                                                   "AND IPD.NUMPED = PED.NUMPED AND NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ')) " +
+                             "THEN 'S' ELSE 'N' END AS PEDABE " +                           
                        "FROM E120PED PED, E028CPG CPG, E001TNS TNS " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
                         "AND PED.CODCPG = CPG.CODCPG " +
@@ -228,7 +234,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT", "PEDFEI");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT", "PEDFEI", "PEDENV", "PEDABE");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
@@ -349,11 +355,11 @@ public class DBQueriesService extends FeelingService{
                 }
             }
             if(temErro) {
-                return "O item " + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
+                return "O item (seq. " + seqIpd + ")" + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
             }
         }
 
-        String sql = "UPDATE E120PED SET CODMOT = 75, PEDBLO = 'S' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        String sql = "UPDATE E120IPD SET USU_ENVEMP = 'S' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo CODMOT com valor 75.");
@@ -393,7 +399,8 @@ public class DBQueriesService extends FeelingService{
                                                   "AND COP.CODEMP = IPD.CODEMP " +
                                                   "AND COP.NUMPED = IPD.NUMPED " +
                                                   "AND QDO.SEQIPD = IPD.SEQIPD " +
-                                                  "AND COP.SITORP IN ('A','L','E','F')) THEN 'S' ELSE 'N' END) AS TEMORP " +
+                                                  "AND COP.SITORP IN ('A','L','E','F')) THEN 'S' ELSE 'N' END) AS TEMORP, " +
+                            "(CASE WHEN NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ') THEN 'N' ELSE 'S' END) AS IPDENV " + 
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR, E001TNS TNS " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
@@ -414,7 +421,7 @@ public class DBQueriesService extends FeelingService{
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX",
-                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI", "SITIPD", "TEMORP");
+                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI", "SITIPD", "TEMORP", "IPDENV");
         String itens = createJsonFromSqlResult(results, fields, "itens");
 
         JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");
