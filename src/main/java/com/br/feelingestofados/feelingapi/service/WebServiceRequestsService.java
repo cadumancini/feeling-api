@@ -185,7 +185,7 @@ public class WebServiceRequestsService extends FeelingService{
         if(pedidoWrapper.getPedido().getCodCli() != null)
             params.put("codCli", pedidoWrapper.getPedido().getCodCli());
         if(pedidoWrapper.getPedido().getPedCli() != null)
-            params.put("pedCli", pedidoWrapper.getPedido().getPedCli());
+            params.put("pedCli", pedidoWrapper.getPedido().getPedCli().equals(" ") ? "" : pedidoWrapper.getPedido().getPedCli());
         if(pedidoWrapper.getPedido().getCodRep() != null)
             params.put("codRep", pedidoWrapper.getPedido().getCodRep());
         if(pedidoWrapper.getPedido().getCodTra() != null)
