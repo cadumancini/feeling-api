@@ -307,55 +307,57 @@ public class DBQueriesService extends FeelingService{
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
         for(int i = 0; i < itens.length(); i++) {
             JSONObject item = itens.getJSONObject(i);
-            String seqIpd = item.getString("SEQIPD");
-            String codPro = item.getString("CODPRO");
-            String codDer = item.getString("CODDER");
-            String desPro = item.getString("DESPRO");
-            String desDer = item.getString("DESDER");
+            if (!item.getString("SITIPD").equals("5")) {
+                String seqIpd = item.getString("SEQIPD");
+                String codPro = item.getString("CODPRO");
+                String codDer = item.getString("CODDER");
+                String desPro = item.getString("DESPRO");
+                String desDer = item.getString("DESDER");
 
-            // Buscando estrutura
-            String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
+                // Buscando estrutura
+                String estrutura = wsRequestsService.fetchEstrutura(emp, fil, codPro, codDer, ped, seqIpd, token);
 
-            boolean temErro = false;
-            StringBuilder erros = new StringBuilder();
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
+                boolean temErro = false;
+                StringBuilder erros = new StringBuilder();
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
 
-            ByteArrayInputStream input = new ByteArrayInputStream(estrutura.getBytes(StandardCharsets.UTF_8));
-            Document doc = builder.parse(input);
-            doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("componentes");
-            for (int cmp = 0; cmp < nList.getLength(); cmp++) {
-                Node nNode = nList.item(cmp);
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) nNode;
-                    String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
-                    String proGen = eElement.getElementsByTagName("proGen").item(0).getTextContent();
-                    String desProEst = eElement.getElementsByTagName("desPro").item(0).getTextContent();
-                    String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
-                    String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
-                    if(codFam.equals("15001")) {
-                        pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
-                        pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
-                        volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
+                ByteArrayInputStream input = new ByteArrayInputStream(estrutura.getBytes(StandardCharsets.UTF_8));
+                Document doc = builder.parse(input);
+                doc.getDocumentElement().normalize();
+                NodeList nList = doc.getElementsByTagName("componentes");
+                for (int cmp = 0; cmp < nList.getLength(); cmp++) {
+                    Node nNode = nList.item(cmp);
+                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                        Element eElement = (Element) nNode;
+                        String codFam = eElement.getElementsByTagName("codFam").item(0).getTextContent();
+                        String proGen = eElement.getElementsByTagName("proGen").item(0).getTextContent();
+                        String desProEst = eElement.getElementsByTagName("desPro").item(0).getTextContent();
+                        String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
+                        String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
+                        if(codFam.equals("15001")) {
+                            pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                            pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
+                            volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
 
-                        String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
-                                ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
-                                ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
-                                " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
-                        int rowsAffected = executeSqlStatement(sql);
-                        if (rowsAffected == 0) {
-                            throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar os valores em USU_PESLIQ, USU_PESBRU e USU_VOLDER.");
+                            String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
+                                    ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
+                                    ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
+                                    " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
+                            int rowsAffected = executeSqlStatement(sql);
+                            if (rowsAffected == 0) {
+                                throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar os valores em USU_PESLIQ, USU_PESBRU e USU_VOLDER.");
+                            }
+                        }
+                        if(proGen.equals("S") || codDerEst.equals("G") || codDerEst.equals("GM")) {
+                            temErro = true;
+                            erros.append("-> ").append(codProEst).append(" (").append(desProEst).append(") - der. ").append(codDerEst).append("\n");
                         }
                     }
-                    if(proGen.equals("S") || codDerEst.equals("G") || codDerEst.equals("GM")) {
-                        temErro = true;
-                        erros.append("-> ").append(codProEst).append(" (").append(desProEst).append(") - der. ").append(codDerEst).append("\n");
-                    }
                 }
-            }
-            if(temErro) {
-                return "O item (seq. " + seqIpd + ")" + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
+                if(temErro) {
+                    return "O item (seq. " + seqIpd + ")" + desPro + " " + desDer + " possui as seguintes pendências na estrutura. Verifique!\n\n" + erros;
+                }
             }
         }
 
