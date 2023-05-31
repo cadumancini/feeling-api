@@ -164,6 +164,9 @@ public class FeelingController {
     @ResponseBody
     public String includeItems(@RequestBody PedidoWrapper wrapper, @RequestParam String token) throws Exception {
         if(checkToken(token)) {
+            checarSeBloqueiaPedido(wrapper.getPedido().getCodEmp().toString(),
+                wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString());
+
             String itensDoPedido = queriesService.findItensPedido(wrapper.getPedido().getCodEmp().toString(),
                     wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString());
             JSONArray itens = new JSONObject(itensDoPedido).getJSONArray("itens");
@@ -189,7 +192,23 @@ public class FeelingController {
                             wrapper.getPedido().getCodFil().toString(), wrapper.getPedido().getNumPed().toString(),
                             seqIpd, "C", "E", token);
                 }
+
+                // Excluir do wrapper se estiver em producao
+                String gerNec = item.getString("GERNEC");
+                AtomicInteger indiceParaExcluir = new AtomicInteger(-1);
+                if(gerNec.equals("2") || gerNec.equals("3") || gerNec.equals("8")) {
+                    wrapper.getItens().forEach(itemPedido -> {
+                        if(itemPedido.getSeqIpd().toString().equals(seqIpd)) {
+                            indiceParaExcluir.set(wrapper.getItens().indexOf(itemPedido));
+                        }
+                    });
+
+                    if(indiceParaExcluir.get() > -1) {
+                        wrapper.getItens().remove(indiceParaExcluir.get());
+                    }
+                }
             }
+            System.out.println("Wrapper: " + wrapper.getItens().toString());
             String returnPedido = wsRequestsService.handlePedido(wrapper, "C", "I", token);
             if (returnPedido.contains("<retorno>OK</retorno>")) {
                 AtomicInteger seqIpd = new AtomicInteger();
@@ -219,6 +238,19 @@ public class FeelingController {
         }
         else
             return TOKEN_INVALIDO;
+    }
+
+    private void checarSeBloqueiaPedido(String emp, String fil, String ped) throws Exception {
+        String pedido = queriesService.findPedido(emp, fil, ped);
+
+        JSONArray pedidoResult = new JSONObject(pedido).getJSONArray("pedido");
+        JSONObject pedidoObj = pedidoResult.getJSONObject(0);
+        String pedBlo = pedidoObj.getString("PEDBLO");
+        String sitPed = pedidoObj.getString("SITPED");
+
+        if ((sitPed.equals("1") || sitPed.equals("2")) && pedBlo.equals("N")) {
+            queriesService.bloquearPedido(emp, fil, ped);
+        }
     }
 
     @DeleteMapping(value = "/pedido/item", consumes = "application/json", produces = "application/xml")

@@ -217,7 +217,7 @@ public class DBQueriesService extends FeelingService{
                                                    "AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED), 'DD/MM/YYYY') AS DATENT, " +
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
-                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI, " +
+                             "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI, NVL(PED.PEDBLO, 'N') AS PEDBLO, " +
                              "CASE WHEN EXISTS (SELECT 1 FROM E120IPD IPD WHERE IPD.CODEMP = PED.CODEMP AND IPD.CODFIL = PED.CODFIL " +
                                                    "AND IPD.NUMPED = PED.NUMPED AND NVL(IPD.USU_ENVEMP, 'N') = 'S') " +
                              "THEN 'S' ELSE 'N' END AS PEDENV, " +
@@ -234,9 +234,19 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped;
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("DESCPG", "DATENT", "SITPED", "PEDCLI", "PEDREP", "CODCLI", "CODEMP",
-                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT", "PEDFEI", "PEDENV", "PEDABE");
+                "CODREP", "CODTRA", "CIFFOB", "OBSPED", "TNSPRO", "VENIPI", "CODMOT", "PEDFEI", "PEDENV", "PEDABE", "PEDBLO");
         return createJsonFromSqlResult(results, fields, "pedido");
     }
+
+    public String bloquearPedido(String emp, String fil, String ped) throws Exception {
+        String sql = "UPDATE E120PED SET PEDBLO = 'S', OBSPED = 'Bloqueado antes da inserção de novo item' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campos PEDBLO e OBSPED.");
+        }
+        return "OK";
+    }
+    
 
     public String findDescricaoProdCliente(String emp, String pro, String ped) {
         String sql = "SELECT PPC.DESNFV FROM E075PPC PPC, E120PED PED " +
@@ -379,7 +389,7 @@ public class DBQueriesService extends FeelingService{
 
     public String findItensPedido(String emp, String fil, String ped) {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, " +
+                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, IPD.GERNEC, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, IPD.PREUNI AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
                             "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, " +
@@ -423,7 +433,7 @@ public class DBQueriesService extends FeelingService{
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX",
-                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI", "SITIPD", "TEMORP", "IPDENV");
+                "PESLIQ", "PESBRU", "VOLDER", "TNSPRO", "VENIPI", "SITIPD", "TEMORP", "IPDENV", "GERNEC");
         String itens = createJsonFromSqlResult(results, fields, "itens");
 
         JSONArray itensJson = new JSONObject(itens).getJSONArray("itens");
