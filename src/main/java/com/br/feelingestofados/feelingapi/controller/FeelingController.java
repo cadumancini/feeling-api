@@ -2,6 +2,7 @@ package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
+import com.br.feelingestofados.feelingapi.service.UserService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +33,8 @@ public class FeelingController {
     private WebServiceRequestsService wsRequestsService;
     @Autowired
     private DBQueriesService queriesService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/login")
     @ResponseBody
@@ -498,6 +503,19 @@ public class FeelingController {
                                 @RequestParam String token, @RequestParam String exclusivos) throws Exception {
         if(checkToken(token))
             return queriesService.enviarStringTrocas(emp, fil, ped, ipd, exclusivos);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/telasDisponiveis", produces = "application/json")
+    @ResponseBody
+    public String getTelasDisponiveis(@RequestParam String token, @RequestParam(required = false) String tela) throws IOException, ParserConfigurationException, SAXException {
+        if(checkToken(token))
+            if (tela == null || tela.isEmpty()) {
+                return userService.getTelasDisponiveis(token);
+            } else {
+                return userService.telaDisponivel(token, tela);
+            }
         else
             return TOKEN_INVALIDO;
     }

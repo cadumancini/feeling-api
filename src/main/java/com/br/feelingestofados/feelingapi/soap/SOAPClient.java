@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SOAPClient {
-    // private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
+//     private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
     private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
     private static final String wsUrlEnd = "?wsdl";
 

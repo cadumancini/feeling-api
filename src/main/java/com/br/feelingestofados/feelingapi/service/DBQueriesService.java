@@ -246,7 +246,6 @@ public class DBQueriesService extends FeelingService{
         }
         return "OK";
     }
-    
 
     public String findDescricaoProdCliente(String emp, String pro, String ped) {
         String sql = "SELECT PPC.DESNFV FROM E075PPC PPC, E120PED PED " +

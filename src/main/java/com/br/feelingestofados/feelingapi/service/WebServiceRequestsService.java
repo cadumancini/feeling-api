@@ -344,4 +344,13 @@ public class WebServiceRequestsService extends FeelingService{
                           "<prExecFmt>tefFile</prExecFmt>";
         return paramSid;
     }
+
+    public String fetchGruposEncrypted(String token) throws IOException {
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+        String params = "<pmGetUserGroupsUserName>" + user + "</pmGetUserGroupsUserName>";
+
+        String retorno = SOAPClient.requestFromSeniorWS("MCWFUsers", "GetUserGroups", user, pswd, "0", params);
+        return retorno;
+    }
 }
