@@ -520,6 +520,24 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @PostMapping(value = "/separarAlmox", produces = "application/json")
+    @ResponseBody
+    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String qtdSep) throws Exception {
+        if(checkToken(token))
+            return "OK";
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/apontarOP", produces = "application/json")
+    @ResponseBody
+    public String apontarOP(@RequestParam String token, @RequestParam String codBar) throws Exception {
+        if(checkToken(token))
+            return "OK";
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
