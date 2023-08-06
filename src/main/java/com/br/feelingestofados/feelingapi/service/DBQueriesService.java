@@ -38,8 +38,6 @@ public class DBQueriesService extends FeelingService{
     }
 
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
-    private String retorno;
-//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES

@@ -29,6 +29,8 @@ import java.util.*;
 public class WebServiceRequestsService extends FeelingService{
     @Autowired
     private DBQueriesService queriesService;
+    @Autowired
+    private SOAPClient soapClient;
 
     public WebServiceRequestsService(EntityManagerFactory factory) {
         super(factory);
@@ -39,7 +41,7 @@ public class WebServiceRequestsService extends FeelingService{
         HashMap<String, String> params = prepareParamsForEstrutura(codEmp, codFil, codPro, codDer, numPed, seqIpd);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        String estruturaXml = SOAPClient.requestFromSeniorWS("customizado", "Estrutura", user, pswd, "0", params);
+        String estruturaXml = soapClient.requestFromSeniorWS("customizado", "Estrutura", user, pswd, "0", params);
         estruturaXml = addAditionalFields(codEmp, numPed, estruturaXml);
         return estruturaXml;
     }
@@ -135,7 +137,7 @@ public class WebServiceRequestsService extends FeelingService{
 
     public String performLogin(String user, String pswd) throws IOException {
         HashMap<String, String> emptyParams = new HashMap<>();
-        String response = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", emptyParams);
+        String response = soapClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", emptyParams);
 
         if(response.contains("Credenciais inválidas"))
             return "Credenciais inválidas";
@@ -160,21 +162,21 @@ public class WebServiceRequestsService extends FeelingService{
         HashMap<String, HashMap> params = prepareParamsForPedido(pedidoWrapper, opePed, opeIpd);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
+        return soapClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
     public String handlePedido(String codEmp, String codFil, String numPed, String seqIpd, String opePed, String opeIpd, String token) throws IOException {
         HashMap<String, HashMap> params = prepareParamsForPedido(codEmp, codFil, numPed, seqIpd, opePed, opeIpd);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
+        return soapClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
     public String updateSitPedido(String codEmp, String codFil, String numPed, String sitPed, String opePed, String token) throws IOException {
         HashMap<String, HashMap> params = prepareParamsForSitPedido(codEmp, codFil, numPed, sitPed, opePed);
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
-        return SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
+        return soapClient.requestFromSeniorWS("com_senior_g5_co_mcm_ven_pedidos", "GravarPedidos_13", user, pswd, "0", params);
     }
 
     private HashMap<String, HashMap> prepareParamsForPedido(PedidoWrapper pedidoWrapper, String opePed, String opeIpd) {
@@ -279,15 +281,15 @@ public class WebServiceRequestsService extends FeelingService{
 
         // mudar empresa
         String params = prepareParamsForMudarEmpresa(codEmp);
-        SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        soapClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
         // realizar contagem
         HashMap<String, HashMap> paramsCont = prepareParamsForContagem(codEmp, codPro, codDer, codDep, codLot, qtdMov, codTns);
-        retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_mcm_est_estoques", "MovimentarEstoque", user, pswd, "0", paramsCont);
+        retorno = soapClient.requestFromSeniorWS("com_senior_g5_co_mcm_est_estoques", "MovimentarEstoque", user, pswd, "0", paramsCont);
         
         if (!codEmp.equals("1")) {
             // voltar para empresa 1
             params = prepareParamsForMudarEmpresa("1");
-            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+            soapClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
         }
 
         return retorno;
@@ -299,16 +301,16 @@ public class WebServiceRequestsService extends FeelingService{
 
         // mudar empresa
         String params = prepareParamsForMudarEmpresa(codEmp);
-        SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+        soapClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
 
         // executar relatorio
         params = prepareParamsForRelatorio(codPro, codDer, codLot, qtdCon);
-        String retorno = SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_relatorio", "Executar", user, pswd, "0", params);
+        String retorno = soapClient.requestFromSeniorWS("com_senior_g5_co_ger_relatorio", "Executar", user, pswd, "0", params);
         
         if (!codEmp.equals("1")) {
             // voltar para empresa 1
             params = prepareParamsForMudarEmpresa("1");
-            SOAPClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
+            soapClient.requestFromSeniorWS("com_senior_g5_co_ger_sid", "Executar", user, pswd, "0", params);
         }
         System.out.println("Retorno relatório:");
         System.out.println(retorno);
@@ -350,7 +352,7 @@ public class WebServiceRequestsService extends FeelingService{
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
         String params = "<pmGetUserGroupsUserName>" + user + "</pmGetUserGroupsUserName>";
 
-        String retorno = SOAPClient.requestFromSeniorWS("MCWFUsers", "GetUserGroups", user, pswd, "0", params);
+        String retorno = soapClient.requestFromSeniorWS("MCWFUsers", "GetUserGroups", user, pswd, "0", params);
         return retorno;
     }
 }

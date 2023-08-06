@@ -6,17 +6,28 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@Component
 public class SOAPClient {
-//     private static final String wsUrl = "http://baseteste.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
-    private static final String wsUrl = "http://sapiensweb.feelingestofados.com.br/g5-senior-services/sapiens_Sync";
-    private static final String wsUrlEnd = "?wsdl";
 
-    public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
+    private final String wsUrl;
+    private final String wsUrlEnd = "?wsdl";
+
+    public SOAPClient(Environment env) {
+        String envValue = env.getProperty("env");
+        String domain = envValue.equals("prod") ? "sapiensweb" : "baseteste";
+        wsUrl = String.format("http://%s.feelingestofados.com.br/g5-senior-services/sapiens_Sync", domain);
+    }
+
+    public String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
         String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
         String url = wsUrl + wsPath + wsUrlEnd;
         System.out.println("URL: " + url);
@@ -26,7 +37,7 @@ public class SOAPClient {
         return response;
     }
 
-    public static String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, String params) throws IOException {
+    public String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, String params) throws IOException {
         String xmlBody = prepareXmlBody(service, usr, pswd, encryption, params);
         String url = wsUrl + wsPath + wsUrlEnd;
         System.out.println("URL: " + url);

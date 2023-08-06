@@ -2,6 +2,7 @@ package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
+import com.br.feelingestofados.feelingapi.service.SIDService;
 import com.br.feelingestofados.feelingapi.service.UserService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
@@ -27,7 +28,6 @@ import java.util.zip.ZipOutputStream;
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
     private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
-//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
@@ -35,6 +35,8 @@ public class FeelingController {
     private DBQueriesService queriesService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SIDService sidService;
 
     @PostMapping("/login")
     @ResponseBody
@@ -532,8 +534,10 @@ public class FeelingController {
     @PostMapping(value = "/apontarOP", produces = "application/json")
     @ResponseBody
     public String apontarOP(@RequestParam String token, @RequestParam String codBar) throws Exception {
-        if(checkToken(token))
-            return "OK";
+        if(checkToken(token)) {
+            String returnMessage = sidService.runBaixaOP(token, codBar);
+            return returnMessage == "OK" ? "Apontamento realizado com sucesso!" : returnMessage;
+        }
         else
             return TOKEN_INVALIDO;
     }
