@@ -536,7 +536,7 @@ public class FeelingController {
     public String apontarOP(@RequestParam String token, @RequestParam String codBar) throws Exception {
         if(checkToken(token)) {
             String returnMessage = sidService.runBaixaOP(token, codBar);
-            return returnMessage == "OK" ? "Apontamento realizado com sucesso!" : returnMessage;
+            return returnMessage.equals("OK") ? "Apontamento realizado com sucesso!" : returnMessage;
         }
         else
             return TOKEN_INVALIDO;
