@@ -314,7 +314,7 @@ public class DBQueriesService extends FeelingService{
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
         for(int i = 0; i < itens.length(); i++) {
             JSONObject item = itens.getJSONObject(i);
-            if (!item.getString("SITIPD").equals("5")) {
+            if (!item.getString("SITIPD").equals("5") && !item.getString("GERNEC").equals("8")) {
                 String seqIpd = item.getString("SEQIPD");
                 String codPro = item.getString("CODPRO");
                 String codDer = item.getString("CODDER");
