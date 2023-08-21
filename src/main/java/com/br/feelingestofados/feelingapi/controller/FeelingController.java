@@ -27,7 +27,9 @@ import java.util.zip.ZipOutputStream;
 @RestController
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
-    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+    private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
+    private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
+    private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
@@ -470,7 +472,7 @@ public class FeelingController {
             } else {
                 ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
                 for (String fileName : arquivos) {
-                    FileSystemResource resource = new FileSystemResource(ANEXOS_PATH + fileName);
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_PEDIDOS_PATH + fileName);
                     ZipEntry zipEntry = new ZipEntry(resource.getFilename());
                     zipEntry.setSize(resource.contentLength());
                     zipOut.putNextEntry(zipEntry);
@@ -538,6 +540,15 @@ public class FeelingController {
             String returnMessage = sidService.runBaixaOP(token, codBar);
             return returnMessage.equals("OK") ? "Apontamento realizado com sucesso!" : returnMessage;
         }
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/origensRnc", produces = "application/json")
+    @ResponseBody
+    public String getOrigensRnc(@RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.findOrigensRnc();
         else
             return TOKEN_INVALIDO;
     }

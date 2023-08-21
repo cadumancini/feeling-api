@@ -37,7 +37,9 @@ public class DBQueriesService extends FeelingService{
         super(factory);
     }
 
-    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
+    private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
+    private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
+    private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -314,7 +316,7 @@ public class DBQueriesService extends FeelingService{
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
         for(int i = 0; i < itens.length(); i++) {
             JSONObject item = itens.getJSONObject(i);
-            if (!item.getString("SITIPD").equals("5") && !item.getString("GERNEC").equals("8")) {
+            if (!item.getString("SITIPD").equals("5") && item.getString("TEMORP").equals("N")) {
                 String seqIpd = item.getString("SEQIPD");
                 String codPro = item.getString("CODPRO");
                 String codDer = item.getString("CODDER");
@@ -438,7 +440,7 @@ public class DBQueriesService extends FeelingService{
             JSONObject item = itensJson.getJSONObject(i);
             String seqIpd = item.getString("SEQIPD");
             // verificar se o item do pedido possui anexo
-            File files = new File(ANEXOS_PATH);
+            File files = new File(ANEXOS_PEDIDOS_PATH);
             FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + seqIpd);
             String[] fileNames = files.list(filter);
             String temAnexo = "N";
@@ -901,6 +903,14 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "trocas");
     }
 
+    public String findOrigensRnc() {
+        String sql = "SELECT CODRGQ, DESRGQ FROM E104ORG ORDER BY CODRGQ";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODRGQ", "DESRGQ");
+        return createJsonFromSqlResult(results, fields, "origens");
+    }
+
     public String enviarStringTrocas(String emp, String fil, String ped, String ipd, String trocas) throws Exception {
         String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
@@ -1052,14 +1062,14 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String uploadArquivo(String emp, String fil, String ped, String ipd, MultipartFile file) throws IOException {
-        String destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        String destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
         File dest = new File(destination);
         if(dest.exists()) {
             int index = 1;
-            destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
             while(new File(destination).exists()) {
                 index++;
-                destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+                destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
             }
             dest = new File(destination);
         }
@@ -1068,7 +1078,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
-        File files = new File(ANEXOS_PATH);
+        File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
         String[] fileNames = files.list(filter);
         return fileNames;
