@@ -546,9 +546,27 @@ public class FeelingController {
 
     @GetMapping(value = "/origensRnc", produces = "application/json")
     @ResponseBody
-    public String getOrigensRnc(@RequestParam String token) throws Exception {
+    public String getOrigensRnc(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findOrigensRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/areasRnc", produces = "application/json")
+    @ResponseBody
+    public String getAreasRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findAreasRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/doctosRnc", produces = "application/json")
+    @ResponseBody
+    public String getDoctosRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findDoctosRnc();
         else
             return TOKEN_INVALIDO;
     }

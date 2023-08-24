@@ -911,6 +911,22 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "origens");
     }
 
+    public String findAreasRnc() {
+        String sql = "SELECT CODARE, NOMARE FROM E079ARE ORDER BY CODARE";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODARE", "NOMARE");
+        return createJsonFromSqlResult(results, fields, "areas");
+    }
+
+    public String findDoctosRnc() {
+        String sql = "SELECT CODDOC, DESDOC, SITDOC FROM E100DOC WHERE SITDOC = 'A' ORDER BY CODDOC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODDOC", "DESDOC", "SITDOC");
+        return createJsonFromSqlResult(results, fields, "doctos");
+    }
+
     public String enviarStringTrocas(String emp, String fil, String ped, String ipd, String trocas) throws Exception {
         String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
