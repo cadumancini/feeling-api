@@ -1,6 +1,7 @@
 package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
+import com.br.feelingestofados.feelingapi.entities.RNC;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.SIDService;
 import com.br.feelingestofados.feelingapi.service.UserService;
@@ -102,7 +103,7 @@ public class FeelingController {
 
     @GetMapping(value = "/cadastro", produces = "application/json")
     @ResponseBody
-    public String getCadastro(@RequestParam String token) throws Exception {
+    public String getCadastro(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findCadastro(token);
         else
@@ -347,7 +348,7 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosProdutoDerivacao", produces = "application/json")
     @ResponseBody
-    public String getDadosProduto(@RequestParam String token, @RequestParam String emp, @RequestParam String pro, @RequestParam String der) throws Exception {
+    public String getDadosProduto(@RequestParam String token, @RequestParam String emp, @RequestParam String pro, @RequestParam String der) {
         if(checkToken(token))
             return queriesService.findDadosDerivacao(emp, pro, der);
         else
@@ -356,7 +357,7 @@ public class FeelingController {
 
     @GetMapping(value = "/depositos", produces = "application/json")
     @ResponseBody
-    public String getDepositos(@RequestParam String token, @RequestParam String pro, @RequestParam String der) throws Exception {
+    public String getDepositos(@RequestParam String token, @RequestParam String pro, @RequestParam String der) {
         if(checkToken(token))
             return queriesService.findDepositosLigados(pro, der);
         else
@@ -365,7 +366,7 @@ public class FeelingController {
 
     @GetMapping(value = "/estoque", produces = "application/json")
     @ResponseBody
-    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep, @RequestParam String lot) throws Exception {
+    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep, @RequestParam String lot) {
         if(checkToken(token))
             if(!lot.equals("")) {
                 return queriesService.findEstoqueLote(lot);
@@ -387,7 +388,7 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosLote", produces = "application/json")
     @ResponseBody
-    public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) throws Exception {
+    public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) {
         if(checkToken(token))
             return queriesService.findDadosLote(emp, lote);
         else
@@ -405,7 +406,7 @@ public class FeelingController {
 
     @GetMapping(value = "/transportadoras", produces = "application/json")
     @ResponseBody
-    public String getTransportadoras(@RequestParam String token) throws Exception {
+    public String getTransportadoras(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findTransportadoras();
         else
@@ -526,7 +527,7 @@ public class FeelingController {
 
     @PostMapping(value = "/separarAlmox", produces = "application/json")
     @ResponseBody
-    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String qtdSep) throws Exception {
+    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String qtdSep) {
         if(checkToken(token))
             return "OK";
         else
@@ -567,6 +568,24 @@ public class FeelingController {
     public String getDoctosRnc(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findDoctosRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/requisitosIso", produces = "application/json")
+    @ResponseBody
+    public String getRequisitosIso(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findRequisitosIso();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PutMapping(value = "/rnc", consumes = "application/json")
+    @ResponseBody
+    public String createRnc(@RequestBody RNC rnc, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.insertRnc(rnc, token);
         else
             return TOKEN_INVALIDO;
     }

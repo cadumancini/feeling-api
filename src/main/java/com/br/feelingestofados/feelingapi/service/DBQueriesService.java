@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
+import com.br.feelingestofados.feelingapi.entities.RNC;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
@@ -23,10 +24,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class DBQueriesService extends FeelingService{
@@ -927,6 +925,14 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "doctos");
     }
 
+    public String findRequisitosIso() {
+        String sql = "SELECT REQISO, DESREQ FROM E104RIS ORDER BY REQISO";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("REQISO", "DESREQ");
+        return createJsonFromSqlResult(results, fields, "requisitos");
+    }
+
     public String enviarStringTrocas(String emp, String fil, String ped, String ipd, String trocas) throws Exception {
         String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
@@ -977,9 +983,7 @@ public class DBQueriesService extends FeelingService{
             int seqPce = jObj.getJSONArray("pce").getJSONObject(0).getInt("SEQPCE");
             seqPce += 1;
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-            Date date = new Date(System.currentTimeMillis());
-            String datAlt = formatter.format(date);
+            String datAlt = getDataAtual();
 
             String sql = "INSERT INTO E700PCE (CODEMP,CODFIL,NUMPED,SEQIPD,CODETG,SEQMOD,SEQPCE,CODMOD,CODCMP," +
                                               "DERCMP,QTDUTI,QTDFRQ,PERPRD,PRDQTD,UNIME2,TIPQTD,DESCMP,INDPEP," +
@@ -1010,6 +1014,19 @@ public class DBQueriesService extends FeelingService{
             }
         }
         return "OK";
+    }
+
+    private String getDataAtual() {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date(System.currentTimeMillis());
+        return formatter.format(date);
+    }
+
+    private int getHoraAtualEmMinutos() {
+        Calendar rightNow = Calendar.getInstance();
+        int hour = rightNow.get(Calendar.HOUR_OF_DAY);
+        int minute = rightNow.get(Calendar.MINUTE);
+        return (hour * 60) + minute;
     }
 
     public void marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cMed, String cDes,
@@ -1074,6 +1091,23 @@ public class DBQueriesService extends FeelingService{
                         "AND NUMPED = " + ped + " " +
                         "AND SEQIPD = " + ipd;
         executeSqlStatement(sql);
+        return "OK";
+    }
+
+    public String insertRnc(RNC rnc, String token) throws Exception {
+        int codUsu = buscaCodUsuFromToken(token);
+        String datAtu = getDataAtual();
+        int horaAtual = getHoraAtualEmMinutos();
+
+        String sql = "INSERT INTO E104RMC (CODEMP,TIPRMC,NUMRMC,ASSRMC,ORIRMC,REQISO,AREAPL,CODCLI,CODFOR,DATAUD,AUDLID,USUGER,DATGER,HORGER,DESNCF,CODDOC,NUMEPI,ROTANX," +
+                                            "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV) " +
+                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",'" + rnc.getAssRmc() + "'," + rnc.getOriRmc() + ",'" + rnc.getReqIso() + "'," +
+                        "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
+                        horaAtual + ",'" + rnc.getDesNcf() + "','" + rnc.getCodDoc() + "',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','','');";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
+
         return "OK";
     }
 
