@@ -1174,4 +1174,20 @@ public class DBQueriesService extends FeelingService{
         jsonObject.put(resultsName, jsonArray);
         return jsonObject.toString();
     }
+
+    public String uploadArquivoRnc(String ped, String ipd, MultipartFile file) throws IOException {
+        String destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        File dest = new File(destination);
+        if(dest.exists()) {
+            int index = 1;
+            destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            while(new File(destination).exists()) {
+                index++;
+                destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            }
+            dest = new File(destination);
+        }
+        file.transferTo(dest);
+        return "OK";
+    }
 }

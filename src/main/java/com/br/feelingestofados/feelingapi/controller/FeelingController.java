@@ -590,6 +590,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @PostMapping(value = "/uploadArquivoRnc", produces = "application/json")
+    @ResponseBody
+    public String uploadArquivo(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, @RequestParam("file") MultipartFile file) throws IOException {
+        if(checkToken(token))
+            return queriesService.uploadArquivoRnc(ped, ipd, file);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
