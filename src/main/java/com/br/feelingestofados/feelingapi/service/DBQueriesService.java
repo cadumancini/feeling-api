@@ -1127,6 +1127,22 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
+    public String listRncs() {
+        String sql = "SELECT RMC.NUMRMC, RMC.ASSRMC, RMC.ORIRMC, RMC.REQISO, RMC.AREAPL, TO_CHAR(RMC.DATAUD, 'DD/MM/YYYY') AS DATAUD, " +
+                "RMC.DESNCF, RMC.CODDOC, RMC.USU_CONPRO AS CONPRO, RMC.USU_JUSCON AS JUSCON, ORG.DESRGQ, RIS.DESREQ, ARE.NOMARE, DOC.DESDOC " +
+                "FROM E104RMC RMC, E104ORG ORG, E104RIS RIS, E079ARE ARE, E100DOC DOC " +
+                "WHERE RMC.ORIRMC = ORG.CODRGQ " +
+                "AND RMC.REQISO = RIS.REQISO " +
+                "AND RMC.AREAPL = ARE.CODARE " +
+                "AND RMC.CODDOC = DOC.CODDOC " +
+              "ORDER BY NUMRMC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "REQISO", "AREAPL", "DATAUD", "DESNCF",
+                "CODDOC", "CONPRO", "JUSCON", "DESRGQ", "DESREQ", "NOMARE", "DESDOC");
+        return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
         File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
