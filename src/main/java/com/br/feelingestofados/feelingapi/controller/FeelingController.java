@@ -2,6 +2,7 @@ package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.entities.RNC;
+import com.br.feelingestofados.feelingapi.entities.RNCWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.SIDService;
 import com.br.feelingestofados.feelingapi.service.UserService;
@@ -490,7 +491,36 @@ public class FeelingController {
             response.getWriter().write(TOKEN_INVALIDO);
             response.getWriter().flush();
         }
+    }
 
+    @GetMapping(value = "/downloadArquivoRnc", produces = "application/zip")
+    public void downloadArquivoRnc(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, HttpServletResponse response) throws IOException {
+        if(checkToken(token)) {
+            String[] arquivos = queriesService.findArquivosRnc(ped, ipd);
+            if (arquivos.length == 0) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                response.getWriter().write("VAZIO");
+                response.getWriter().flush();
+            } else {
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                for (String fileName : arquivos) {
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_SGQ_PATH + fileName);
+                    ZipEntry zipEntry = new ZipEntry(resource.getFilename());
+                    zipEntry.setSize(resource.contentLength());
+                    zipOut.putNextEntry(zipEntry);
+                    StreamUtils.copy(resource.getInputStream(), zipOut);
+                    zipOut.closeEntry();
+                }
+                zipOut.finish();
+                zipOut.close();
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "NC-" + ped + "-" + ipd + ".zip" + "\"");
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(TOKEN_INVALIDO);
+            response.getWriter().flush();
+        }
     }
 
     @GetMapping(value = "/trocas", produces = "application/json")
@@ -583,9 +613,9 @@ public class FeelingController {
 
     @PutMapping(value = "/rnc", consumes = "application/json")
     @ResponseBody
-    public String createRnc(@RequestBody RNC rnc, @RequestParam String token) throws Exception {
+    public String createRnc(@RequestBody RNCWrapper rncWrapper, @RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.insertRnc(rnc, token);
+            return queriesService.insertRnc(rncWrapper.getRnc(), token);
         else
             return TOKEN_INVALIDO;
     }

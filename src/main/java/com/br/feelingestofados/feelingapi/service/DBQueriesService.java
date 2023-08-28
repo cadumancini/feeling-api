@@ -1103,7 +1103,7 @@ public class DBQueriesService extends FeelingService{
                                             "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV) " +
                 "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",'" + rnc.getAssRmc() + "'," + rnc.getOriRmc() + ",'" + rnc.getReqIso() + "'," +
                         "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
-                        horaAtual + ",'" + rnc.getDesNcf() + "','" + rnc.getCodDoc() + "',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','','');";
+                        horaAtual + ",'" + rnc.getDesNcf() + "','" + rnc.getCodDoc() + "',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null)";
 
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
@@ -1130,8 +1130,13 @@ public class DBQueriesService extends FeelingService{
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
         File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
-        String[] fileNames = files.list(filter);
-        return fileNames;
+        return files.list(filter);
+    }
+
+    public String[] findArquivosRnc(String ped, String ipd) {
+        File files = new File(ANEXOS_SGQ_PATH);
+        FilenameFilter filter = (dir, name) -> name.startsWith("NC-" + ped + "-" + ipd);
+        return files.list(filter);
     }
 
     private int buscaCodUsuFromToken(String token) {
