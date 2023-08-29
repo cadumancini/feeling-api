@@ -1143,6 +1143,15 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
+    public String getNextRnc() {
+        String sql = "SELECT (NUMRMC + 1) AS NUMRMC FROM E104RMC ORDER BY NUMRMC DESC";
+
+        List<Object> results = listResultsFromSql(sql);
+        results = List.of(results.get(0));
+        List<String> fields = Arrays.asList("NUMRMC");
+        return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
         File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
