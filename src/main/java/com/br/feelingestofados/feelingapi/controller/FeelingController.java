@@ -601,6 +601,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/tiposAcaoRnc", produces = "application/json")
+    @ResponseBody
+    public String getTiposAcaoRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findTiposAcaoRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/requisitosIso", produces = "application/json")
     @ResponseBody
     public String getRequisitosIso(@RequestParam String token) {
@@ -615,6 +624,15 @@ public class FeelingController {
     public String createRnc(@RequestBody RNCWrapper rncWrapper, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.insertRnc(rncWrapper.getRnc(), token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PutMapping(value = "/tipoAcaornc")
+    @ResponseBody
+    public String createTipoAcaoRnc(@RequestParam String codAcao, @RequestParam String desAcao, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.insertTipoAcao(codAcao, desAcao);
         else
             return TOKEN_INVALIDO;
     }

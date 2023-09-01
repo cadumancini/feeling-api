@@ -925,6 +925,14 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "doctos");
     }
 
+    public String findTiposAcaoRnc() {
+        String sql = "SELECT USU_CODACI AS CODACI, USU_DESACI DESACI FROM USU_T104ACI ORDER BY USU_CODACI";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODACI", "DESACI");
+        return createJsonFromSqlResult(results, fields, "tiposAcao");
+    }
+
     public String findRequisitosIso() {
         String sql = "SELECT REQISO, DESREQ FROM E104RIS ORDER BY REQISO";
 
@@ -940,6 +948,23 @@ public class DBQueriesService extends FeelingService{
             throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar campo USU_DESCPL.");
         }
         return "OK";
+    }
+
+    public String insertTipoAcao(String codAcao, String desAcao) throws Exception {
+        if (acaoExists(codAcao)) {
+            return "Código de Tipo de Ação já existe";
+        }
+        String sql = "INSERT INTO USU_T104ACI (USU_CODACI, USU_DESACI) VALUES ('" + codAcao + "', '" + desAcao + "')";
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha inserida (USU_T104ACI) ao inserir tipo de ação.");
+        }
+        return "OK";
+    }
+    private boolean acaoExists(String codAcao) {
+        String sql = "SELECT 1 FROM USU_T104ACI WHERE USU_CODACI = '" + codAcao + "'";
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
     }
 
     private List<Object> listResultsFromSql(String sql) {
