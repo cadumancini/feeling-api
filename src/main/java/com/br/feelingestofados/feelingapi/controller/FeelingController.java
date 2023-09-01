@@ -1,7 +1,6 @@
 package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
-import com.br.feelingestofados.feelingapi.entities.RNC;
 import com.br.feelingestofados.feelingapi.entities.RNCWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
 import com.br.feelingestofados.feelingapi.service.SIDService;
@@ -633,7 +632,7 @@ public class FeelingController {
     @ResponseBody
     public String getNextRnc(@RequestParam String token) {
         if(checkToken(token))
-            return queriesService.getNextRnc();
+            return queriesService.getNextRnc(token);
         else
             return TOKEN_INVALIDO;
     }

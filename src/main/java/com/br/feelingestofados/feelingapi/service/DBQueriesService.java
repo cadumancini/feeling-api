@@ -1101,9 +1101,9 @@ public class DBQueriesService extends FeelingService{
 
         String sql = "INSERT INTO E104RMC (CODEMP,TIPRMC,NUMRMC,ASSRMC,ORIRMC,REQISO,AREAPL,CODCLI,CODFOR,DATAUD,AUDLID,USUGER,DATGER,HORGER,DESNCF,CODDOC,NUMEPI,ROTANX," +
                                             "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV) " +
-                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",'" + rnc.getAssRmc() + "'," + rnc.getOriRmc() + ",'" + rnc.getReqIso() + "'," +
+                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",''," + rnc.getOriRmc() + ",''," +
                         "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
-                        horaAtual + ",'" + rnc.getDesNcf() + "','" + rnc.getCodDoc() + "',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null)";
+                        horaAtual + ",'" + rnc.getDesNcf() + "','',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null)";
 
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
@@ -1129,26 +1129,27 @@ public class DBQueriesService extends FeelingService{
 
     public String listRncs() {
         String sql = "SELECT RMC.NUMRMC, RMC.ASSRMC, RMC.ORIRMC, RMC.REQISO, RMC.AREAPL, TO_CHAR(RMC.DATAUD, 'DD/MM/YYYY') AS DATAUD, " +
-                "RMC.DESNCF, RMC.CODDOC, RMC.USU_CONPRO AS CONPRO, RMC.USU_JUSCON AS JUSCON, ORG.DESRGQ, RIS.DESREQ, ARE.NOMARE, DOC.DESDOC " +
-                "FROM E104RMC RMC, E104ORG ORG, E104RIS RIS, E079ARE ARE, E100DOC DOC " +
+                "RMC.DESNCF, RMC.CODDOC, RMC.USU_CONPRO AS CONPRO, RMC.USU_JUSCON AS JUSCON, ORG.DESRGQ, ARE.NOMARE, UPPER(USU.NOMUSU) AS USERNAME " +
+                "FROM E104RMC RMC, E104ORG ORG, E079ARE ARE, R999USU USU " +
                 "WHERE RMC.ORIRMC = ORG.CODRGQ " +
-                "AND RMC.REQISO = RIS.REQISO " +
                 "AND RMC.AREAPL = ARE.CODARE " +
-                "AND RMC.CODDOC = DOC.CODDOC " +
+                "AND RMC.USUGER = USU.CODUSU " +
               "ORDER BY NUMRMC";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "REQISO", "AREAPL", "DATAUD", "DESNCF",
-                "CODDOC", "CONPRO", "JUSCON", "DESRGQ", "DESREQ", "NOMARE", "DESDOC");
+        List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "AREAPL", "DATAUD", "DESNCF",
+                "CONPRO", "JUSCON", "DESRGQ", "NOMARE", "USERNAME");
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
-    public String getNextRnc() {
-        String sql = "SELECT (NUMRMC + 1) AS NUMRMC FROM E104RMC ORDER BY NUMRMC DESC";
+    public String getNextRnc(String token) {
+        String username = TokensManager.getInstance().getUserNameFromToken(token);
+
+        String sql = "SELECT (NUMRMC + 1) AS NUMRMC, UPPER('" + username + "') AS USERNAME FROM E104RMC ORDER BY NUMRMC DESC";
 
         List<Object> results = listResultsFromSql(sql);
         results = List.of(results.get(0));
-        List<String> fields = Arrays.asList("NUMRMC");
+        List<String> fields = Arrays.asList("NUMRMC", "USERNAME");
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
