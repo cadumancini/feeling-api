@@ -646,6 +646,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/acaoRnc", produces = "application/json")
+    @ResponseBody
+    public String listAcaoRnc(@RequestParam String token, @RequestParam String codEmp, @RequestParam String tipRmc, @RequestParam String numRmc) {
+        if(checkToken(token))
+            return queriesService.getAcaoRnc(codEmp, tipRmc, numRmc);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/proximaRnc", produces = "application/json")
     @ResponseBody
     public String getNextRnc(@RequestParam String token) {

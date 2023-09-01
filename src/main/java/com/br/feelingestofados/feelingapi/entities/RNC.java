@@ -16,4 +16,6 @@ public class RNC {
     private Integer numPed;
     private Integer seqIpd;
     private Integer seqIte;
+    private String tipAca;
+    private String acaRnc;
 }

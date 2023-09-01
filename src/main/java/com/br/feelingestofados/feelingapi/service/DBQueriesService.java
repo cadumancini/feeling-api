@@ -950,23 +950,6 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
-    public String insertTipoAcao(String codAcao, String desAcao) throws Exception {
-        if (acaoExists(codAcao)) {
-            return "Código de Tipo de Ação já existe";
-        }
-        String sql = "INSERT INTO USU_T104ACI (USU_CODACI, USU_DESACI) VALUES ('" + codAcao + "', '" + desAcao + "')";
-        int rowsAffected = executeSqlStatement(sql);
-        if (rowsAffected == 0) {
-            throw new Exception("Nenhuma linha inserida (USU_T104ACI) ao inserir tipo de ação.");
-        }
-        return "OK";
-    }
-    private boolean acaoExists(String codAcao) {
-        String sql = "SELECT 1 FROM USU_T104ACI WHERE USU_CODACI = '" + codAcao + "'";
-        List<Object> results = listResultsFromSql(sql);
-        return (results.size() > 0);
-    }
-
     private List<Object> listResultsFromSql(String sql) {
         Query query = this.sessionFactory.getCurrentSession().createSQLQuery(sql);
         return query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).list();
@@ -1146,6 +1129,9 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha atualizada (E104RMC) ao editar RNC. Comando: " + sql);
 
+        if (acaoExists(rnc)) updateAcaoCorretiva(rnc);
+        else insertAcaoCorretiva(rnc);
+
         return "OK";
     }
 
@@ -1159,7 +1145,68 @@ public class DBQueriesService extends FeelingService{
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
 
+        if (!(rnc.getAcaRnc() == null) && !rnc.getAcaRnc().isEmpty()) {
+            insertAcaoCorretiva(rnc);
+        }
+
         return "OK";
+    }
+
+    private boolean acaoExists(RNC rnc) {
+        String sql = "SELECT 1 FROM USU_T104AAI WHERE USU_CODEMP = " + rnc.getCodEmp() + " AND USU_TIPRMC = '" + rnc.getTipRmc() + "' AND USU_NUMRMC = " + rnc.getNumRmc();
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    private void insertAcaoCorretiva(RNC rnc) throws Exception {
+        String sql = "INSERT INTO USU_T104AAI (USU_CODEMP,USU_TIPRMC,USU_NUMRMC,USU_SEQAAI,USU_CODACI,USU_ACITOM) " +
+                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ", 1, '" + rnc.getTipAca() + "','" + rnc.getAcaRnc() + "')";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (USU_T104AAI) ao inserir ação corretiva da RNC. Comando: " + sql);
+    }
+
+    private void updateAcaoCorretiva(RNC rnc) throws Exception {
+        String sql = "UPDATE USU_T104AAI SET USU_CODACI = '" + rnc.getTipAca() + "', USU_ACITOM = '" + rnc.getAcaRnc() + "' " +
+                "WHERE USU_CODEMP = " + rnc.getCodEmp() + " " +
+                "AND USU_TIPRMC = '" + rnc.getTipRmc() + "' " +
+                "AND USU_NUMRMC = " + rnc.getNumRmc() + " " +
+                "AND USU_SEQAAI = 1";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (USU_T104AAI) ao inserir ação corretiva da RNC. Comando: " + sql);
+    }
+
+    public String insertTipoAcao(String codAcao, String desAcao) throws Exception {
+        if (acaoExists(codAcao)) {
+            return "Código de Tipo de Ação já existe";
+        }
+        String sql = "INSERT INTO USU_T104ACI (USU_CODACI, USU_DESACI) VALUES ('" + codAcao + "', '" + desAcao + "')";
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha inserida (USU_T104ACI) ao inserir tipo de ação.");
+        }
+        return "OK";
+    }
+
+    private boolean acaoExists(String codAcao) {
+        String sql = "SELECT 1 FROM USU_T104ACI WHERE USU_CODACI = '" + codAcao + "'";
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    public String getAcaoRnc(String codEmp, String tipRmc, String numRmc) {
+        String sql = "SELECT AAI.USU_CODACI CODACI, ACI.USU_DESACI DESACI, AAI.USU_ACITOM ACITOM " +
+                "FROM USU_T104AAI AAI, USU_T104ACI ACI " +
+                "WHERE AAI.USU_CODACI = ACI.USU_CODACI " +
+                "AND AAI.USU_CODEMP = " + codEmp + " " +
+                "AND AAI.USU_TIPRMC = '" + tipRmc + "' " +
+                "AND AAI.USU_NUMRMC = " + numRmc + " " +
+                "AND AAI.USU_SEQAAI = 1";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODACI", "DESACI", "ACITOM");
+        return createJsonFromSqlResult(results, fields, "acaoRnc");
     }
 
     public String uploadArquivo(String emp, String fil, String ped, String ipd, MultipartFile file) throws IOException {
