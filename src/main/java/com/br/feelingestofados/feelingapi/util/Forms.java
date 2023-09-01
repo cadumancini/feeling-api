@@ -11,7 +11,7 @@ public enum Forms {
     PEDIDO_WEB ("COM-PED", "Comercial - Pedido Web", asList("Senior", "PEDWEB")),
     ASSISTENCIA_TECNICA ("COM-AST", "Comercial - Assistência Técnica", asList("Senior", "A DEFINIR")),
     APONTAMENTO_PRODUCAO ("PRD-APT", "Producao - Apontamento de Producao", asList("Senior", "AP-PROD")),
-    NAO_CONFORMIDADE ("PRD-NCN", "Producao - Nao Conformidade", asList("Senior", "SGQ"));
+    NAO_CONFORMIDADE ("PRD-NCN", "Producao - Nao Conformidade", List.of("ALL"));
 
     Forms(String id, String description, List<String> groups) {
         this.id = id;

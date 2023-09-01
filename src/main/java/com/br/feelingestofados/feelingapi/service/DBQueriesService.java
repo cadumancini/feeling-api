@@ -1095,15 +1095,41 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String insertRnc(RNC rnc, String token) throws Exception {
-        int codUsu = buscaCodUsuFromToken(token);
-        String datAtu = getDataAtual();
-        int horaAtual = getHoraAtualEmMinutos();
+        if (rncExists(rnc)) {
+            return updateRnc(rnc);
+        } else {
+            int codUsu = buscaCodUsuFromToken(token);
+            String datAtu = getDataAtual();
+            int horaAtu = getHoraAtualEmMinutos();
 
+            return insertRnc(rnc, codUsu, datAtu, horaAtu);
+        }
+    }
+
+    private boolean rncExists(RNC rnc) {
+        String sql = "SELECT 1 FROM E104RMC WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    private String updateRnc(RNC rnc) throws Exception {
+        String sql = "UPDATE E104RMC SET ORIRMC = " + rnc.getOriRmc() + ", AREAPL = '" + rnc.getAreApl() + "', " +
+                "DATAUD = to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'), DESNCF = '" + rnc.getDesNcf() + "', " +
+                "USU_CONPRO = '" + rnc.getConPro() + "', USU_JUSCON = '" + rnc.getJusCon() + "' " +
+                "WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha atualizada (E104RMC) ao editar RNC. Comando: " + sql);
+
+        return "OK";
+    }
+
+    private String insertRnc(RNC rnc, int codUsu, String datAtu, int horaAtu) throws Exception {
         String sql = "INSERT INTO E104RMC (CODEMP,TIPRMC,NUMRMC,ASSRMC,ORIRMC,REQISO,AREAPL,CODCLI,CODFOR,DATAUD,AUDLID,USUGER,DATGER,HORGER,DESNCF,CODDOC,NUMEPI,ROTANX," +
                                             "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV) " +
                 "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",''," + rnc.getOriRmc() + ",''," +
                         "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
-                        horaAtual + ",'" + rnc.getDesNcf() + "','',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null)";
+                        horaAtu + ",'" + rnc.getDesNcf() + "','',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null)";
 
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);

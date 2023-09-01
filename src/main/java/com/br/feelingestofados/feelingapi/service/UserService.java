@@ -79,7 +79,7 @@ public class UserService {
 
     private List<Forms> checkIfUserHasAccess(List<String> userGroups, List<Forms> telasDisponiveis, Forms form) {
         for (String group : form.getGroups()) {
-            if (userGroups.contains(group)) {
+            if (group.equals("ALL") || userGroups.contains(group)) {
                 telasDisponiveis.add(form);
                 break;
             }
