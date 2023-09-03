@@ -96,7 +96,7 @@ public class FeelingController {
     @ResponseBody
     public String getPedidosUsuario(@RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.findPedidosUsuario(token);
+            return queriesService.findPedidosUsuario();
         else
             return TOKEN_INVALIDO;
     }
@@ -119,13 +119,13 @@ public class FeelingController {
                 int indexStart = returnPedido.indexOf("<numPed>");
                 int indexEnd = returnPedido.indexOf("</numPed>");
                 String numPed = returnPedido.substring((indexStart + 8), indexEnd);
-                if(pedidoWrapper.getPedido().getPedRep() != null && !pedidoWrapper.getPedido().getPedRep().toString().equals("0")) {
+                if(pedidoWrapper.getPedido().getPedRep() != null && !pedidoWrapper.getPedido().getPedRep().equals("0")) {
                     queriesService.marcarPedidoRep(pedidoWrapper.getPedido().getCodEmp().toString(),
-                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep().toString());
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep());
                 }
                 if(pedidoWrapper.getPedido().getPedFei() != null) {
                     queriesService.marcarPedidoFeira(pedidoWrapper.getPedido().getCodEmp().toString(),
-                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedFei().toString());
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedFei());
                 }
             }
             return returnPedido;
@@ -466,7 +466,7 @@ public class FeelingController {
                                 @RequestParam String token, HttpServletResponse response) throws IOException {
         if(checkToken(token)) {
             String[] arquivos = queriesService.findArquivos(emp, fil, ped, ipd);
-            if (arquivos.length == 0) {
+            if (arquivos == null || arquivos.length == 0) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 response.getWriter().write("VAZIO");
                 response.getWriter().flush();
@@ -496,7 +496,7 @@ public class FeelingController {
     public void downloadArquivoRnc(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, HttpServletResponse response) throws IOException {
         if(checkToken(token)) {
             String[] arquivos = queriesService.findArquivosRnc(ped, ipd);
-            if (arquivos.length == 0) {
+            if (arquivos == null || arquivos.length == 0) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 response.getWriter().write("VAZIO");
                 response.getWriter().flush();
