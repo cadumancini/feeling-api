@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
+import com.br.feelingestofados.feelingapi.entities.RNC;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.hibernate.Criteria;
 import org.hibernate.Transaction;
@@ -23,10 +24,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class DBQueriesService extends FeelingService{
@@ -37,9 +35,9 @@ public class DBQueriesService extends FeelingService{
         super(factory);
     }
 
-    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
-    private String retorno;
-//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
+    private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
+    private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
+    private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -238,15 +236,13 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "pedido");
     }
 
-    public String bloquearPedido(String emp, String fil, String ped) throws Exception {
+    public void bloquearPedido(String emp, String fil, String ped) throws Exception {
         String sql = "UPDATE E120PED SET PEDBLO = 'S', OBSPED = 'Bloqueado antes da inserção de novo item' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campos PEDBLO e OBSPED.");
         }
-        return "OK";
     }
-    
 
     public String findDescricaoProdCliente(String emp, String pro, String ped) {
         String sql = "SELECT PPC.DESNFV FROM E075PPC PPC, E120PED PED " +
@@ -256,7 +252,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.NUMPED = " + ped + " " +
                         "AND PPC.CODPRO = '" + pro + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("DESNFV");
+        List<String> fields = List.of("DESNFV");
         return createJsonFromSqlResult(results, fields, "produto");
     }
 
@@ -280,8 +276,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "pedidos");
     }
 
-    public String findPedidosUsuario(String token) throws Exception {
-//        int codUsu = buscaCodUsuFromToken(token);
+    public String findPedidosUsuario() {
         String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
                             "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST, PED.TNSPRO, TNS.VENIPI " +
@@ -292,7 +287,6 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.CODEMP = TNS.CODEMP " +
                         "AND PED.TNSPRO = TNS.CODTNS " +
                         "AND PED.SITPED IN (1,2,3,9) " +
-//                        "AND PED.USUGER = " + codUsu + " " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "PEDREP", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
@@ -300,7 +294,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "pedidos");
     }
 
-    public String findTransacoes(String emp) throws Exception {
+    public String findTransacoes(String emp) {
         String sql = "SELECT CODTNS, DESTNS, DETTNS, VENIPI FROM E001TNS WHERE CODEMP = " + emp + " AND SITTNS = 'A' AND LISMOD = 'VEP' ORDER BY CODTNS";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODTNS", "DESTNS", "DETTNS", "VENIPI");
@@ -309,15 +303,15 @@ public class DBQueriesService extends FeelingService{
 
     public String enviarPedidoEmpresa(String emp, String fil, String ped, String token) throws Exception {
         String pesoCubagem = "";
-        Double pesTotBru = 0d;
-        Double pesTotLiq = 0d;
-        Double volTot = 0d;
+        double pesTotBru = 0d;
+        double pesTotLiq = 0d;
+        double volTot = 0d;
         // Checar se na estrutura de algum item existe algum item com CodDer = 'G' ou ProGen = 'S'
         String itensPedido = this.findItensPedido(emp, fil, ped);
         JSONArray itens = new JSONObject(itensPedido).getJSONArray("itens");
         for(int i = 0; i < itens.length(); i++) {
             JSONObject item = itens.getJSONObject(i);
-            if (!item.getString("SITIPD").equals("5")) {
+            if (!item.getString("SITIPD").equals("5") && item.getString("TEMORP").equals("N")) {
                 String seqIpd = item.getString("SEQIPD");
                 String codPro = item.getString("CODPRO");
                 String codDer = item.getString("CODDER");
@@ -346,9 +340,9 @@ public class DBQueriesService extends FeelingService{
                         String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
                         String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                         if(codFam.equals("15001")) {
-                            pesTotBru += Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
-                            pesTotLiq += Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
-                            volTot += Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent());
+                            pesTotBru += Double.parseDouble(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                            pesTotLiq += Double.parseDouble(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
+                            volTot += Double.parseDouble(eElement.getElementsByTagName("volDer").item(0).getTextContent());
 
                             String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
                                     ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
@@ -380,9 +374,9 @@ public class DBQueriesService extends FeelingService{
 //        wsRequestsService.updateSitPedido(emp, fil, ped, "S", "C", token);
 
         JSONObject jObj = new JSONObject();
-        jObj.put("pesoTotalBruto", pesTotBru.toString());
-        jObj.put("pesoTotalLiq", pesTotLiq.toString());
-        jObj.put("volumeTotal", volTot.toString());
+        jObj.put("pesoTotalBruto", Double.toString(pesTotBru));
+        jObj.put("pesoTotalLiq", Double.toString(pesTotLiq));
+        jObj.put("volumeTotal", Double.toString(volTot));
         pesoCubagem = jObj.toString();
         return pesoCubagem;
     }
@@ -441,7 +435,7 @@ public class DBQueriesService extends FeelingService{
             JSONObject item = itensJson.getJSONObject(i);
             String seqIpd = item.getString("SEQIPD");
             // verificar se o item do pedido possui anexo
-            File files = new File(ANEXOS_PATH);
+            File files = new File(ANEXOS_PEDIDOS_PATH);
             FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + seqIpd);
             String[] fileNames = files.list(filter);
             String temAnexo = "N";
@@ -582,10 +576,12 @@ public class DBQueriesService extends FeelingService{
             String estEmp1Json = this.findQtdeEstoque("1", pro, der, depOri);
             String estEmp2Json = this.findQtdeEstoque("2", pro, der, depOri);
             String estEmp3Json = this.findQtdeEstoque("3", pro, der, depOri);
+            String estEmp5Json = this.findQtdeEstoque("5", pro, der, depOri);
 
             String qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+            String qtdEstEmp5 = new JSONObject(estEmp5Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
 
             if (depOri.equals(depDes)) {
                 // zerar estoque emp2
@@ -608,6 +604,17 @@ public class DBQueriesService extends FeelingService{
                         tnsEst = "90205";
                     }
                     retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                }
+
+                // zerar estoque emp5
+                if (!qtdEstEmp5.equals("0")) {
+                    String tnsEst = "90255";
+                    Double qtdMov = Double.parseDouble(qtdEstEmp5);
+                    if (qtdMov < 0.0) {
+                        qtdMov = Math.abs(qtdMov);
+                        tnsEst = "90205";
+                    }
+                    retorno = wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
                 
                 // movimentar emp1
@@ -653,15 +660,28 @@ public class DBQueriesService extends FeelingService{
                     }
                     retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
+
+                // zerar estoque emp5 no depOri
+                if (!qtdEstEmp5.equals("0")) {
+                    String tnsEst = "90255";
+                    Double qtdMov = Double.parseDouble(qtdEstEmp5);
+                    if (qtdMov < 0.0) {
+                        qtdMov = Math.abs(qtdMov);
+                        tnsEst = "90205";
+                    }
+                    retorno = wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                }
                 
                 estEmp1Json = this.findQtdeEstoque("1", pro, der, depDes);
                 estEmp2Json = this.findQtdeEstoque("2", pro, der, depDes);
                 estEmp3Json = this.findQtdeEstoque("3", pro, der, depDes);
-                
+                estEmp5Json = this.findQtdeEstoque("5", pro, der, depDes);
+
                 qtdEstEmp1 = new JSONObject(estEmp1Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
                 qtdEstEmp2 = new JSONObject(estEmp2Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
                 qtdEstEmp3 = new JSONObject(estEmp3Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
-                
+                qtdEstEmp5 = new JSONObject(estEmp5Json).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
+
                 // zerar estoque emp2 no depDes
                 if (!qtdEstEmp2.equals("0")) {
                     String tnsEst = "90255";
@@ -672,7 +692,7 @@ public class DBQueriesService extends FeelingService{
                     }
                     retorno = wsRequestsService.handleContagem("2", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
                 }
-                
+
                 // zerar estoque emp3 no depDes
                 if (!qtdEstEmp3.equals("0")) {
                     String tnsEst = "90255";
@@ -682,6 +702,17 @@ public class DBQueriesService extends FeelingService{
                         tnsEst = "90205";
                     }
                     retorno = wsRequestsService.handleContagem("3", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
+                }
+
+                // zerar estoque emp5 no depDes
+                if (!qtdEstEmp5.equals("0")) {
+                    String tnsEst = "90255";
+                    Double qtdMov = Double.parseDouble(qtdEstEmp5);
+                    if (qtdMov < 0.0) {
+                        qtdMov = Math.abs(qtdMov);
+                        tnsEst = "90205";
+                    }
+                    retorno = wsRequestsService.handleContagem("5", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
                 }
                 
                 // movimentar emp1 no depDes:
@@ -904,6 +935,46 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "trocas");
     }
 
+    public String findOrigensRnc() {
+        String sql = "SELECT CODRGQ, DESRGQ FROM E104ORG ORDER BY CODRGQ";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODRGQ", "DESRGQ");
+        return createJsonFromSqlResult(results, fields, "origens");
+    }
+
+    public String findAreasRnc() {
+        String sql = "SELECT CODARE, NOMARE FROM E079ARE ORDER BY CODARE";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODARE", "NOMARE");
+        return createJsonFromSqlResult(results, fields, "areas");
+    }
+
+    public String findDoctosRnc() {
+        String sql = "SELECT CODDOC, DESDOC, SITDOC FROM E100DOC WHERE SITDOC = 'A' ORDER BY CODDOC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODDOC", "DESDOC", "SITDOC");
+        return createJsonFromSqlResult(results, fields, "doctos");
+    }
+
+    public String findTiposAcaoRnc() {
+        String sql = "SELECT USU_CODACI AS CODACI, USU_DESACI DESACI FROM USU_T104ACI ORDER BY USU_CODACI";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODACI", "DESACI");
+        return createJsonFromSqlResult(results, fields, "tiposAcao");
+    }
+
+    public String findRequisitosIso() {
+        String sql = "SELECT REQISO, DESREQ FROM E104RIS ORDER BY REQISO";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("REQISO", "DESREQ");
+        return createJsonFromSqlResult(results, fields, "requisitos");
+    }
+
     public String enviarStringTrocas(String emp, String fil, String ped, String ipd, String trocas) throws Exception {
         String sql = "UPDATE E120IPD SET USU_DESCPL = '" + trocas + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + ipd;
         int rowsAffected = executeSqlStatement(sql);
@@ -954,9 +1025,7 @@ public class DBQueriesService extends FeelingService{
             int seqPce = jObj.getJSONArray("pce").getJSONObject(0).getInt("SEQPCE");
             seqPce += 1;
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-            Date date = new Date(System.currentTimeMillis());
-            String datAlt = formatter.format(date);
+            String datAlt = getDataAtual();
 
             String sql = "INSERT INTO E700PCE (CODEMP,CODFIL,NUMPED,SEQIPD,CODETG,SEQMOD,SEQPCE,CODMOD,CODCMP," +
                                               "DERCMP,QTDUTI,QTDFRQ,PERPRD,PRDQTD,UNIME2,TIPQTD,DESCMP,INDPEP," +
@@ -987,6 +1056,19 @@ public class DBQueriesService extends FeelingService{
             }
         }
         return "OK";
+    }
+
+    private String getDataAtual() {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new Date(System.currentTimeMillis());
+        return formatter.format(date);
+    }
+
+    private int getHoraAtualEmMinutos() {
+        Calendar rightNow = Calendar.getInstance();
+        int hour = rightNow.get(Calendar.HOUR_OF_DAY);
+        int minute = rightNow.get(Calendar.MINUTE);
+        return (hour * 60) + minute;
     }
 
     public void marcarCondicaoEspecial(String emp, String fil, String ped, String ipd, String cMed, String cDes,
@@ -1054,15 +1136,123 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
+    public String insertRnc(RNC rnc, String token) throws Exception {
+        if (rncExists(rnc)) {
+            return updateRnc(rnc);
+        } else {
+            int codUsu = buscaCodUsuFromToken(token);
+            String datAtu = getDataAtual();
+            int horaAtu = getHoraAtualEmMinutos();
+
+            return insertRnc(rnc, codUsu, datAtu, horaAtu);
+        }
+    }
+
+    private boolean rncExists(RNC rnc) {
+        String sql = "SELECT 1 FROM E104RMC WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    private String updateRnc(RNC rnc) throws Exception {
+        String sql = "UPDATE E104RMC SET ORIRMC = " + rnc.getOriRmc() + ", AREAPL = '" + rnc.getAreApl() + "', " +
+                "DATAUD = to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'), DESNCF = '" + rnc.getDesNcf() + "', " +
+                "USU_NUMPED = " + rnc.getNumPed() + ", USU_SEQIPD = " + rnc.getSeqIpd() + ", USU_SEQIPE = " + rnc.getSeqIte() + ", " +
+                "USU_CONPRO = '" + rnc.getConPro() + "', USU_JUSCON = '" + rnc.getJusCon() + "' " +
+                "WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha atualizada (E104RMC) ao editar RNC. Comando: " + sql);
+
+        if (acaoExists(rnc)) updateAcaoCorretiva(rnc);
+        else insertAcaoCorretiva(rnc);
+
+        return "OK";
+    }
+
+    private String insertRnc(RNC rnc, int codUsu, String datAtu, int horaAtu) throws Exception {
+        String sql = "INSERT INTO E104RMC (CODEMP,TIPRMC,NUMRMC,ASSRMC,ORIRMC,REQISO,AREAPL,CODCLI,CODFOR,DATAUD,AUDLID,USUGER,DATGER,HORGER,DESNCF,CODDOC,NUMEPI,ROTANX," +
+                                            "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV, USU_NUMPED, USU_SEQIPD, USU_SEQIPE) " +
+                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",''," + rnc.getOriRmc() + ",''," +
+                        "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
+                        horaAtu + ",'" + rnc.getDesNcf() + "','',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null," + rnc.getNumPed() + "," + rnc.getSeqIpd() + "," + rnc.getSeqIte() + ")";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
+
+        if (!(rnc.getAcaRnc() == null) && !rnc.getAcaRnc().isEmpty()) {
+            insertAcaoCorretiva(rnc);
+        }
+
+        return "OK";
+    }
+
+    private boolean acaoExists(RNC rnc) {
+        String sql = "SELECT 1 FROM USU_T104AAI WHERE USU_CODEMP = " + rnc.getCodEmp() + " AND USU_TIPRMC = '" + rnc.getTipRmc() + "' AND USU_NUMRMC = " + rnc.getNumRmc();
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    private void insertAcaoCorretiva(RNC rnc) throws Exception {
+        String sql = "INSERT INTO USU_T104AAI (USU_CODEMP,USU_TIPRMC,USU_NUMRMC,USU_SEQAAI,USU_CODACI,USU_ACITOM) " +
+                "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ", 1, '" + rnc.getTipAca() + "','" + rnc.getAcaRnc() + "')";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (USU_T104AAI) ao inserir ação corretiva da RNC. Comando: " + sql);
+    }
+
+    private void updateAcaoCorretiva(RNC rnc) throws Exception {
+        String sql = "UPDATE USU_T104AAI SET USU_CODACI = '" + rnc.getTipAca() + "', USU_ACITOM = '" + rnc.getAcaRnc() + "' " +
+                "WHERE USU_CODEMP = " + rnc.getCodEmp() + " " +
+                "AND USU_TIPRMC = '" + rnc.getTipRmc() + "' " +
+                "AND USU_NUMRMC = " + rnc.getNumRmc() + " " +
+                "AND USU_SEQAAI = 1";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (USU_T104AAI) ao inserir ação corretiva da RNC. Comando: " + sql);
+    }
+
+    public String insertTipoAcao(String codAcao, String desAcao) throws Exception {
+        if (acaoExists(codAcao)) {
+            return "Código de Tipo de Ação já existe";
+        }
+        String sql = "INSERT INTO USU_T104ACI (USU_CODACI, USU_DESACI) VALUES ('" + codAcao + "', '" + desAcao + "')";
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha inserida (USU_T104ACI) ao inserir tipo de ação.");
+        }
+        return "OK";
+    }
+
+    private boolean acaoExists(String codAcao) {
+        String sql = "SELECT 1 FROM USU_T104ACI WHERE USU_CODACI = '" + codAcao + "'";
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
+    public String getAcaoRnc(String codEmp, String tipRmc, String numRmc) {
+        String sql = "SELECT AAI.USU_CODACI CODACI, ACI.USU_DESACI DESACI, AAI.USU_ACITOM ACITOM " +
+                "FROM USU_T104AAI AAI, USU_T104ACI ACI " +
+                "WHERE AAI.USU_CODACI = ACI.USU_CODACI " +
+                "AND AAI.USU_CODEMP = " + codEmp + " " +
+                "AND AAI.USU_TIPRMC = '" + tipRmc + "' " +
+                "AND AAI.USU_NUMRMC = " + numRmc + " " +
+                "AND AAI.USU_SEQAAI = 1";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODACI", "DESACI", "ACITOM");
+        return createJsonFromSqlResult(results, fields, "acaoRnc");
+    }
+
     public String uploadArquivo(String emp, String fil, String ped, String ipd, MultipartFile file) throws IOException {
-        String destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        String destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
         File dest = new File(destination);
         if(dest.exists()) {
             int index = 1;
-            destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
             while(new File(destination).exists()) {
                 index++;
-                destination = ANEXOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+                destination = ANEXOS_PEDIDOS_PATH + emp + "-" + fil + "-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
             }
             dest = new File(destination);
         }
@@ -1070,11 +1260,43 @@ public class DBQueriesService extends FeelingService{
         return "OK";
     }
 
+    public String listRncs() {
+        String sql = "SELECT RMC.NUMRMC, RMC.ASSRMC, RMC.ORIRMC, RMC.REQISO, RMC.AREAPL, TO_CHAR(RMC.DATAUD, 'DD/MM/YYYY') AS DATAUD, " +
+                "RMC.DESNCF, RMC.CODDOC, RMC.USU_CONPRO AS CONPRO, RMC.USU_JUSCON AS JUSCON, ORG.DESRGQ, ARE.NOMARE, UPPER(USU.NOMUSU) AS USERNAME, " +
+                "RMC.USU_NUMPED AS NUMPED, RMC.USU_SEQIPD AS SEQIPD, RMC.USU_SEQIPE AS SEQITE " +
+                "FROM E104RMC RMC, E104ORG ORG, E079ARE ARE, R999USU USU " +
+                "WHERE RMC.ORIRMC = ORG.CODRGQ " +
+                "AND RMC.AREAPL = ARE.CODARE " +
+                "AND RMC.USUGER = USU.CODUSU " +
+              "ORDER BY NUMRMC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "AREAPL", "DATAUD", "DESNCF",
+                "CONPRO", "JUSCON", "DESRGQ", "NOMARE", "USERNAME", "NUMPED", "SEQIPD", "SEQITE");
+        return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
+    public String getNextRnc(String token) {
+        String username = TokensManager.getInstance().getUserNameFromToken(token);
+
+        String sql = "SELECT (NUMRMC + 1) AS NUMRMC, UPPER('" + username + "') AS USERNAME FROM E104RMC ORDER BY NUMRMC DESC";
+
+        List<Object> results = listResultsFromSql(sql);
+        results = List.of(results.get(0));
+        List<String> fields = Arrays.asList("NUMRMC", "USERNAME");
+        return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
-        File files = new File(ANEXOS_PATH);
+        File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
-        String[] fileNames = files.list(filter);
-        return fileNames;
+        return files.list(filter);
+    }
+
+    public String[] findArquivosRnc(String ped, String ipd) {
+        File files = new File(ANEXOS_SGQ_PATH);
+        FilenameFilter filter = (dir, name) -> name.startsWith("NC-" + ped + "-" + ipd);
+        return files.list(filter);
     }
 
     private int buscaCodUsuFromToken(String token) {
@@ -1116,5 +1338,21 @@ public class DBQueriesService extends FeelingService{
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(resultsName, jsonArray);
         return jsonObject.toString();
+    }
+
+    public String uploadArquivoRnc(String ped, String ipd, MultipartFile file) throws IOException {
+        String destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        File dest = new File(destination);
+        if(dest.exists()) {
+            int index = 1;
+            destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            while(new File(destination).exists()) {
+                index++;
+                destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            }
+            dest = new File(destination);
+        }
+        file.transferTo(dest);
+        return "OK";
     }
 }

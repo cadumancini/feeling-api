@@ -24,11 +24,20 @@ public class JpaConfig {
     @Value("${spring.datasource.url}")
     private String dataBaseUrl;
 
-    @Value("${spring.datasource.username}")
-    private String dataBaseUsername;
+    @Value("${env}")
+    private String env;
 
-    @Value("${spring.datasource.password}")
-    private String dataBasePassword;
+    @Value("${spring.datasource.username.prod}")
+    private String dataBaseUsernameProd;
+
+    @Value("${spring.datasource.password.prod}")
+    private String dataBasePasswordProd;
+
+    @Value("${spring.datasource.username.test}")
+    private String dataBaseUsernameTest;
+
+    @Value("${spring.datasource.password.test}")
+    private String dataBasePasswordTest;
 
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String hibernateDdlAuto;
@@ -50,8 +59,13 @@ public class JpaConfig {
         DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
         dataSourceBuilder.driverClassName(driverClassName);
         dataSourceBuilder.url(dataBaseUrl);
-        dataSourceBuilder.username(dataBaseUsername);
-        dataSourceBuilder.password(dataBasePassword);
+        if (env.equals("prod")) {
+            dataSourceBuilder.username(dataBaseUsernameProd);
+            dataSourceBuilder.password(dataBasePasswordProd);
+        } else {
+            dataSourceBuilder.username(dataBaseUsernameTest);
+            dataSourceBuilder.password(dataBasePasswordTest);
+        }
         return dataSourceBuilder.build();
     }
 

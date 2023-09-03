@@ -1,7 +1,10 @@
 package com.br.feelingestofados.feelingapi.controller;
 
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
+import com.br.feelingestofados.feelingapi.entities.RNCWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
+import com.br.feelingestofados.feelingapi.service.SIDService;
+import com.br.feelingestofados.feelingapi.service.UserService;
 import com.br.feelingestofados.feelingapi.service.WebServiceRequestsService;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +15,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,13 +28,18 @@ import java.util.zip.ZipOutputStream;
 @RestController
 public class FeelingController {
     protected static final String TOKEN_INVALIDO = "Token inválido.";
-    private static String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\Pedidos\\Anexos\\";
-//    private static String ANEXOS_PATH = "/home/cadumancini/Documents/";
+    private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
+    private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
+    private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
     @Autowired
     private DBQueriesService queriesService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private SIDService sidService;
 
     @PostMapping("/login")
     @ResponseBody
@@ -86,14 +96,14 @@ public class FeelingController {
     @ResponseBody
     public String getPedidosUsuario(@RequestParam String token) throws Exception {
         if(checkToken(token))
-            return queriesService.findPedidosUsuario(token);
+            return queriesService.findPedidosUsuario();
         else
             return TOKEN_INVALIDO;
     }
 
     @GetMapping(value = "/cadastro", produces = "application/json")
     @ResponseBody
-    public String getCadastro(@RequestParam String token) throws Exception {
+    public String getCadastro(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findCadastro(token);
         else
@@ -109,13 +119,13 @@ public class FeelingController {
                 int indexStart = returnPedido.indexOf("<numPed>");
                 int indexEnd = returnPedido.indexOf("</numPed>");
                 String numPed = returnPedido.substring((indexStart + 8), indexEnd);
-                if(pedidoWrapper.getPedido().getPedRep() != null && !pedidoWrapper.getPedido().getPedRep().toString().equals("0")) {
+                if(pedidoWrapper.getPedido().getPedRep() != null && !pedidoWrapper.getPedido().getPedRep().equals("0")) {
                     queriesService.marcarPedidoRep(pedidoWrapper.getPedido().getCodEmp().toString(),
-                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep().toString());
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedRep());
                 }
                 if(pedidoWrapper.getPedido().getPedFei() != null) {
                     queriesService.marcarPedidoFeira(pedidoWrapper.getPedido().getCodEmp().toString(),
-                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedFei().toString());
+                        pedidoWrapper.getPedido().getCodFil().toString(), numPed, pedidoWrapper.getPedido().getPedFei());
                 }
             }
             return returnPedido;
@@ -338,7 +348,7 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosProdutoDerivacao", produces = "application/json")
     @ResponseBody
-    public String getDadosProduto(@RequestParam String token, @RequestParam String emp, @RequestParam String pro, @RequestParam String der) throws Exception {
+    public String getDadosProduto(@RequestParam String token, @RequestParam String emp, @RequestParam String pro, @RequestParam String der) {
         if(checkToken(token))
             return queriesService.findDadosDerivacao(emp, pro, der);
         else
@@ -347,7 +357,7 @@ public class FeelingController {
 
     @GetMapping(value = "/depositos", produces = "application/json")
     @ResponseBody
-    public String getDepositos(@RequestParam String token, @RequestParam String pro, @RequestParam String der) throws Exception {
+    public String getDepositos(@RequestParam String token, @RequestParam String pro, @RequestParam String der) {
         if(checkToken(token))
             return queriesService.findDepositosLigados(pro, der);
         else
@@ -356,7 +366,7 @@ public class FeelingController {
 
     @GetMapping(value = "/estoque", produces = "application/json")
     @ResponseBody
-    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep, @RequestParam String lot) throws Exception {
+    public String getQtdeEstoque(@RequestParam String token, @RequestParam String pro, @RequestParam String der, @RequestParam String dep, @RequestParam String lot) {
         if(checkToken(token))
             if(!lot.equals("")) {
                 return queriesService.findEstoqueLote(lot);
@@ -378,7 +388,7 @@ public class FeelingController {
 
     @GetMapping(value = "/dadosLote", produces = "application/json")
     @ResponseBody
-    public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) throws Exception {
+    public String getDadosLote(@RequestParam String token, @RequestParam String emp, @RequestParam String lote) {
         if(checkToken(token))
             return queriesService.findDadosLote(emp, lote);
         else
@@ -396,7 +406,7 @@ public class FeelingController {
 
     @GetMapping(value = "/transportadoras", produces = "application/json")
     @ResponseBody
-    public String getTransportadoras(@RequestParam String token) throws Exception {
+    public String getTransportadoras(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.findTransportadoras();
         else
@@ -456,14 +466,14 @@ public class FeelingController {
                                 @RequestParam String token, HttpServletResponse response) throws IOException {
         if(checkToken(token)) {
             String[] arquivos = queriesService.findArquivos(emp, fil, ped, ipd);
-            if (arquivos.length == 0) {
+            if (arquivos == null || arquivos.length == 0) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 response.getWriter().write("VAZIO");
                 response.getWriter().flush();
             } else {
                 ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
                 for (String fileName : arquivos) {
-                    FileSystemResource resource = new FileSystemResource(ANEXOS_PATH + fileName);
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_PEDIDOS_PATH + fileName);
                     ZipEntry zipEntry = new ZipEntry(resource.getFilename());
                     zipEntry.setSize(resource.contentLength());
                     zipOut.putNextEntry(zipEntry);
@@ -480,7 +490,36 @@ public class FeelingController {
             response.getWriter().write(TOKEN_INVALIDO);
             response.getWriter().flush();
         }
+    }
 
+    @GetMapping(value = "/downloadArquivoRnc", produces = "application/zip")
+    public void downloadArquivoRnc(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, HttpServletResponse response) throws IOException {
+        if(checkToken(token)) {
+            String[] arquivos = queriesService.findArquivosRnc(ped, ipd);
+            if (arquivos == null || arquivos.length == 0) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                response.getWriter().write("VAZIO");
+                response.getWriter().flush();
+            } else {
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                for (String fileName : arquivos) {
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_SGQ_PATH + fileName);
+                    ZipEntry zipEntry = new ZipEntry(resource.getFilename());
+                    zipEntry.setSize(resource.contentLength());
+                    zipOut.putNextEntry(zipEntry);
+                    StreamUtils.copy(resource.getInputStream(), zipOut);
+                    zipOut.closeEntry();
+                }
+                zipOut.finish();
+                zipOut.close();
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "NC-" + ped + "-" + ipd + ".zip" + "\"");
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(TOKEN_INVALIDO);
+            response.getWriter().flush();
+        }
     }
 
     @GetMapping(value = "/trocas", produces = "application/json")
@@ -498,6 +537,138 @@ public class FeelingController {
                                 @RequestParam String token, @RequestParam String exclusivos) throws Exception {
         if(checkToken(token))
             return queriesService.enviarStringTrocas(emp, fil, ped, ipd, exclusivos);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/telasDisponiveis", produces = "application/json")
+    @ResponseBody
+    public String getTelasDisponiveis(@RequestParam String token, @RequestParam(required = false) String tela) throws IOException, ParserConfigurationException, SAXException {
+        if(checkToken(token))
+            if (tela == null || tela.isEmpty()) {
+                return userService.getTelasDisponiveis(token);
+            } else {
+                return userService.telaDisponivel(token, tela);
+            }
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/separarAlmox", produces = "application/json")
+    @ResponseBody
+    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String qtdSep) {
+        if(checkToken(token))
+            return "OK";
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/apontarOP", produces = "application/json")
+    @ResponseBody
+    public String apontarOP(@RequestParam String token, @RequestParam String codBar) throws Exception {
+        if(checkToken(token)) {
+            String returnMessage = sidService.runBaixaOP(token, codBar);
+            return returnMessage.equals("OK") ? "Apontamento realizado com sucesso!" : returnMessage;
+        }
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/origensRnc", produces = "application/json")
+    @ResponseBody
+    public String getOrigensRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findOrigensRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/areasRnc", produces = "application/json")
+    @ResponseBody
+    public String getAreasRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findAreasRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/doctosRnc", produces = "application/json")
+    @ResponseBody
+    public String getDoctosRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findDoctosRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/tiposAcaoRnc", produces = "application/json")
+    @ResponseBody
+    public String getTiposAcaoRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findTiposAcaoRnc();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/requisitosIso", produces = "application/json")
+    @ResponseBody
+    public String getRequisitosIso(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.findRequisitosIso();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PutMapping(value = "/rnc", consumes = "application/json")
+    @ResponseBody
+    public String createRnc(@RequestBody RNCWrapper rncWrapper, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.insertRnc(rncWrapper.getRnc(), token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PutMapping(value = "/tipoAcaornc")
+    @ResponseBody
+    public String createTipoAcaoRnc(@RequestParam String codAcao, @RequestParam String desAcao, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.insertTipoAcao(codAcao, desAcao);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/rncs", produces = "application/json")
+    @ResponseBody
+    public String listRncs(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.listRncs();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/acaoRnc", produces = "application/json")
+    @ResponseBody
+    public String listAcaoRnc(@RequestParam String token, @RequestParam String codEmp, @RequestParam String tipRmc, @RequestParam String numRmc) {
+        if(checkToken(token))
+            return queriesService.getAcaoRnc(codEmp, tipRmc, numRmc);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/proximaRnc", produces = "application/json")
+    @ResponseBody
+    public String getNextRnc(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.getNextRnc(token);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PostMapping(value = "/uploadArquivoRnc", produces = "application/json")
+    @ResponseBody
+    public String uploadArquivo(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, @RequestParam("file") MultipartFile file) throws IOException {
+        if(checkToken(token))
+            return queriesService.uploadArquivoRnc(ped, ipd, file);
         else
             return TOKEN_INVALIDO;
     }
