@@ -1287,6 +1287,29 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
+    public String getOPsAcabado(String codEmp, String numPed, String seqIpd) {
+        String sql = "SELECT COP.CODORI, COP.NUMORP, COP.NUMPED, QDO.SEQIPD, QDO.CODPRO, QDO.CODDER, (PRO.DESNFV || ' ' || DER.DESCPL) AS DESPRO " +
+                "FROM E900COP COP, E900QDO QDO, E075PRO PRO, E075DER DER " +
+                "WHERE COP.CODEMP = QDO.CODEMP " +
+                "AND COP.CODORI = QDO.CODORI " +
+                "AND COP.NUMORP = QDO.NUMORP " +
+                "AND COP.CODEMP = PRO.CODEMP " +
+                "AND COP.CODPRO = PRO.CODPRO " +
+                "AND QDO.CODEMP = DER.CODEMP " +
+                "AND QDO.CODPRO = DER.CODPRO " +
+                "AND QDO.CODDER = DER.CODDER " +
+                "AND PRO.CODEMP = DER.CODEMP " +
+                "AND PRO.CODPRO = DER.CODPRO " +
+                "AND COP.CODEMP = " + codEmp + " " +
+                "AND COP.NUMPED = " + numPed + " " +
+                "AND QDO.SEQIPD = " + seqIpd + " " +
+                "AND COP.CODORI LIKE 'ACA'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODORI", "NUMORP", "CODPRO", "CODDER", "DESPRO", "NUMPED", "SEQIPD");
+        return createJsonFromSqlResult(results, fields, "ops");
+    }
+
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
         File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);

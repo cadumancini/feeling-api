@@ -673,6 +673,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/opsAcabado", produces = "application/json")
+    @ResponseBody
+    public String getOpsAcabado(@RequestParam String token, @RequestParam String codEmp, @RequestParam String numPed, @RequestParam String seqIpd) {
+        if(checkToken(token))
+            return queriesService.getOPsAcabado(codEmp, numPed, seqIpd);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
