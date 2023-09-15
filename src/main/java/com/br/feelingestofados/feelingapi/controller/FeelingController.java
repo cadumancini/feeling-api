@@ -675,9 +675,9 @@ public class FeelingController {
 
     @GetMapping(value = "/opsAcabado", produces = "application/json")
     @ResponseBody
-    public String getOpsAcabado(@RequestParam String token, @RequestParam String codEmp, @RequestParam String numPed, @RequestParam String seqIpd) {
+    public String getOpsAcabado(@RequestParam String token, @RequestParam String codEmp, @RequestParam String numPed, @RequestParam String seqIpd, @RequestParam String codFam) {
         if(checkToken(token))
-            return queriesService.getOPsAcabado(codEmp, numPed, seqIpd);
+            return queriesService.getOPsAcabado(codEmp, numPed, seqIpd, codFam);
         else
             return TOKEN_INVALIDO;
     }

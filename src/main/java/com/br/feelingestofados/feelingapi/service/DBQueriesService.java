@@ -1287,9 +1287,9 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
-    public String getOPsAcabado(String codEmp, String numPed, String seqIpd) {
-        String sql = "SELECT COP.CODORI, COP.NUMORP, COP.NUMPED, QDO.SEQIPD, QDO.CODPRO, QDO.CODDER, (PRO.DESNFV || ' ' || DER.DESCPL) AS DESPRO " +
-                "FROM E900COP COP, E900QDO QDO, E075PRO PRO, E075DER DER " +
+    public String getOPsAcabado(String codEmp, String numPed, String seqIpd, String codFam) {
+        String sql = "SELECT COP.CODORI, COP.NUMORP, COP.NUMPED, QDO.SEQIPD, QDO.CODPRO, QDO.CODDER, (PRO.DESNFV || ' ' || DER.DESCPL) AS DESPRO, FAM.DESFAM " +
+                "FROM E900COP COP, E900QDO QDO, E075PRO PRO, E075DER DER, E012FAM FAM " +
                 "WHERE COP.CODEMP = QDO.CODEMP " +
                 "AND COP.CODORI = QDO.CODORI " +
                 "AND COP.NUMORP = QDO.NUMORP " +
@@ -1300,13 +1300,15 @@ public class DBQueriesService extends FeelingService{
                 "AND QDO.CODDER = DER.CODDER " +
                 "AND PRO.CODEMP = DER.CODEMP " +
                 "AND PRO.CODPRO = DER.CODPRO " +
+                "AND COP.CODEMP = FAM.CODEMP " +
+                "AND FAM.CODFAM = '" + codFam + "' " +
                 "AND COP.CODEMP = " + codEmp + " " +
                 "AND COP.NUMPED = " + numPed + " " +
                 "AND QDO.SEQIPD = " + seqIpd + " " +
                 "AND COP.CODORI LIKE 'ACA'";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODORI", "NUMORP", "CODPRO", "CODDER", "DESPRO", "NUMPED", "SEQIPD");
+        List<String> fields = Arrays.asList("CODORI", "NUMORP", "CODPRO", "CODDER", "DESPRO", "NUMPED", "SEQIPD", "DESFAM");
         return createJsonFromSqlResult(results, fields, "ops");
     }
 
