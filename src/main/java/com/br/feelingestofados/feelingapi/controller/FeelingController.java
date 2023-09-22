@@ -682,6 +682,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/empresas", produces = "application/json")
+    @ResponseBody
+    public String getEmpresas(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.getEmpresas();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }

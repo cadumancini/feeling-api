@@ -1312,6 +1312,14 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "ops");
     }
 
+    public String getEmpresas() {
+        String sql = "SELECT EMP.CODEMP, EMP.NOMEMP FROM E070EMP EMP WHERE EMP.CODEMP IN (SELECT DISTINCT PED.CODEMP FROM E120PED PED) ORDER BY EMP.CODEMP";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "NOMEMP");
+        return createJsonFromSqlResult(results, fields, "empresas");
+    }
+
     public String[] findArquivos(String emp, String fil, String ped, String ipd) {
         File files = new File(ANEXOS_PEDIDOS_PATH);
         FilenameFilter filter = (dir, name) -> name.startsWith(emp + "-" + fil + "-" + ped + "-" + ipd);
