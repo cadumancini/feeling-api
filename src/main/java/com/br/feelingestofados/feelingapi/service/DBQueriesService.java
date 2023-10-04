@@ -1346,9 +1346,10 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String getNotasFiscais() {
-        String sql = "SELECT NFC.CODEMP, NFC.CODFIL, NFC.CODFOR, FORN.NOMFOR, NFC.NUMNFC, NFC.CODSNF, NFC.DATENT " +
+        String sql = "SELECT NFC.CODEMP, NFC.CODFIL, NFC.CODFOR, FORN.NOMFOR, NFC.NUMNFC, NFC.CODSNF, TO_CHAR(NFC.DATENT, 'DD/MM/YYYY') AS DATENT " +
                        "FROM E440NFC NFC, E095FOR FORN " +
                       "WHERE NFC.CODFOR = FORN.CODFOR " +
+                        "AND NFC.NOPPRO LIKE '1949%' " +
                    "ORDER BY NFC.DATENT DESC";
 
         List<Object> results = listResultsFromSql(sql);
