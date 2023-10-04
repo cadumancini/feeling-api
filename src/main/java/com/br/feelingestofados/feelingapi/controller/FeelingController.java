@@ -31,6 +31,7 @@ public class FeelingController {
     private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
     private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
     private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
+    private static final String ANEXOS_ASS_PATH = String.format(ANEXOS_PATH, "ASS");
 
     @Autowired
     private WebServiceRequestsService wsRequestsService;
@@ -522,6 +523,36 @@ public class FeelingController {
         }
     }
 
+    @GetMapping(value = "/downloadArquivoAss", produces = "application/zip")
+    public void downloadArquivoAss(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, HttpServletResponse response) throws IOException {
+        if(checkToken(token)) {
+            String[] arquivos = queriesService.findArquivosAss(ped, ipd);
+            if (arquivos == null || arquivos.length == 0) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                response.getWriter().write("VAZIO");
+                response.getWriter().flush();
+            } else {
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                for (String fileName : arquivos) {
+                    FileSystemResource resource = new FileSystemResource(ANEXOS_ASS_PATH + fileName);
+                    ZipEntry zipEntry = new ZipEntry(resource.getFilename());
+                    zipEntry.setSize(resource.contentLength());
+                    zipOut.putNextEntry(zipEntry);
+                    StreamUtils.copy(resource.getInputStream(), zipOut);
+                    zipOut.closeEntry();
+                }
+                zipOut.finish();
+                zipOut.close();
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "ASS-" + ped + "-" + ipd + ".zip" + "\"");
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(TOKEN_INVALIDO);
+            response.getWriter().flush();
+        }
+    }
+
     @GetMapping(value = "/trocas", produces = "application/json")
     @ResponseBody
     public String getTrocas(@RequestParam String emp, @RequestParam String fil, @RequestParam String ped, @RequestParam String ipd, @RequestParam String token) {
@@ -673,6 +704,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @PostMapping(value = "/uploadArquivoAss", produces = "application/json")
+    @ResponseBody
+    public String uploadArquivoAss(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, @RequestParam("file") MultipartFile file) throws IOException {
+        if(checkToken(token))
+            return queriesService.uploadArquivoAss(ped, ipd, file);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/opsAcabado", produces = "application/json")
     @ResponseBody
     public String getOpsAcabado(@RequestParam String token, @RequestParam String codEmp, @RequestParam String numPed, @RequestParam String seqIpd, @RequestParam String codFam) {
@@ -687,6 +727,15 @@ public class FeelingController {
     public String getEmpresas(@RequestParam String token) {
         if(checkToken(token))
             return queriesService.getEmpresas();
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/notasFiscais", produces = "application/json")
+    @ResponseBody
+    public String getNotasFiscais(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.getNotasFiscais();
         else
             return TOKEN_INVALIDO;
     }

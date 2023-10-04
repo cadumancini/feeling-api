@@ -38,6 +38,7 @@ public class DBQueriesService extends FeelingService{
     private static final String ANEXOS_PATH = "\\\\feeling.net\\FEELING_DFS\\PUBLIC\\%s\\Anexos\\";
     private static final String ANEXOS_PEDIDOS_PATH = String.format(ANEXOS_PATH, "Pedidos");
     private static final String ANEXOS_SGQ_PATH = String.format(ANEXOS_PATH, "SGQ");
+    private static final String ANEXOS_ASS_PATH = String.format(ANEXOS_PATH, "ASS");
 
     public String findEquivalentes(String emp, String modelo, String componente, String der) {
         String sql = "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // EQUIVALENTES
@@ -1332,10 +1333,27 @@ public class DBQueriesService extends FeelingService{
         return files.list(filter);
     }
 
+    public String[] findArquivosAss(String ped, String ipd) {
+        File files = new File(ANEXOS_ASS_PATH);
+        FilenameFilter filter = (dir, name) -> name.startsWith("ASS-" + ped + "-" + ipd);
+        return files.list(filter);
+    }
+
     private int buscaCodUsuFromToken(String token) {
         String nomUsu = TokensManager.getInstance().getUserNameFromToken(token);
         JSONObject jObj = new JSONObject(findUsuario(nomUsu));
         return jObj.getJSONArray("usuario").getJSONObject(0).getInt("CODUSU");
+    }
+
+    public String getNotasFiscais() {
+        String sql = "SELECT NFC.CODEMP, NFC.CODFIL, NFC.CODFOR, FORN.NOMFOR, NFC.NUMNFC, NFC.CODSNF, NFC.DATENT " +
+                       "FROM E440NFC NFC, E095FOR FORN " +
+                      "WHERE NFC.CODFOR = FORN.CODFOR " +
+                   "ORDER BY NFC.DATENT DESC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "CODFOR", "NOMFOR", "NUMNFC", "CODSNF", "DATENT");
+        return createJsonFromSqlResult(results, fields, "notas");
     }
 
     private int executeSqlStatement(String sql) {
@@ -1382,6 +1400,22 @@ public class DBQueriesService extends FeelingService{
             while(new File(destination).exists()) {
                 index++;
                 destination = ANEXOS_SGQ_PATH + "NC-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            }
+            dest = new File(destination);
+        }
+        file.transferTo(dest);
+        return "OK";
+    }
+
+    public String uploadArquivoAss(String ped, String ipd, MultipartFile file) throws IOException {
+        String destination = ANEXOS_ASS_PATH + "ASS-" + ped + "-" + ipd + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        File dest = new File(destination);
+        if(dest.exists()) {
+            int index = 1;
+            destination = ANEXOS_ASS_PATH + "ASS-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            while(new File(destination).exists()) {
+                index++;
+                destination = ANEXOS_ASS_PATH + "ASS-" + ped + "-" + ipd + "(" + index + ")" + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
             }
             dest = new File(destination);
         }
