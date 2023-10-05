@@ -1357,6 +1357,21 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "notas");
     }
 
+    public String getItensNota(String codEmp, String codFil, String codFor, String numNfc, String codSnf) {
+        String sql = "SELECT SEQIPC, CPLIPC, EMPNFV, FILNFV, SNFNFV, NUMNFV, SEQIPV " +
+                       "FROM E440IPC " +
+                      "WHERE CODEMP = " + codEmp + " " +
+                        "AND CODFIL = " + codFil + " " +
+                        "AND CODFOR = " + codFor + " " +
+                        "AND NUMNFC = " + numNfc + " " +
+                        "AND CODSNF = '" + codSnf + "' " +
+                      "ORDER BY SEQIPC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("SEQIPC", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV");
+        return createJsonFromSqlResult(results, fields, "itens");
+    }
+
     private int executeSqlStatement(String sql) {
         Transaction transaction = null;
         int rowsAffected = 0;

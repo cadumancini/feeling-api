@@ -740,6 +740,16 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/itensNota", produces = "application/json")
+    @ResponseBody
+    public String getItensNota(@RequestParam String token, @RequestParam String codEmp, @RequestParam String codFil,
+                               @RequestParam String codFor, @RequestParam String numNfc, @RequestParam String codSnf) {
+        if(checkToken(token))
+            return queriesService.getItensNota(codEmp, codFil, codFor, numNfc, codSnf);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
