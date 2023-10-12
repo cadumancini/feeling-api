@@ -1372,6 +1372,36 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
+    public String getPedidoItemPorNota(String codEmp, String codFil, String snfNfv, String numNfv, String seqIpv) {
+        String sql = "SELECT IPV.NUMPED, IPV.SEQIPD, IPD.QTDPED, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, CLI.NOMCLI, REP.NOMREP " +
+                      "FROM E140IPV IPV, E075PRO PRO, E075DER DER, E120PED PED, E085CLI CLI, E090REP REP, E120IPD IPD " +
+                     "WHERE IPV.CODEMP = PRO.CODEMP " +
+                       "AND IPV.CODPRO = PRO.CODPRO " +
+                       "AND IPV.CODEMP = DER.CODEMP " +
+                       "AND IPV.CODPRO = DER.CODPRO " +
+                       "AND IPV.CODDER = DER.CODDER " +
+                       "AND IPV.CODEMP = PED.CODEMP " +
+                       "AND IPV.CODFIL = PED.CODFIL " +
+                       "AND IPV.NUMPED = PED.NUMPED " +
+                       "AND IPV.CODEMP = IPD.CODEMP " +
+                       "AND IPV.CODFIL = IPD.CODFIL " +
+                       "AND IPV.NUMPED = IPD.NUMPED " +
+                       "AND IPV.SEQIPD = IPD.SEQIPD " +
+                       "AND PED.CODCLI = CLI.CODCLI " +
+                       "AND PED.CODREP = REP.CODREP " +
+                       "AND IPV.CODEMP = " + codEmp + " " +
+                       "AND IPV.CODFIL = " + codFil + " " +
+                       "AND IPV.CODSNF = '" + snfNfv + "' " +
+                       "AND IPV.NUMNFV = " + numNfv + " " +
+                       "AND IPV.SEQIPV = " + seqIpv;
+
+        System.out.println(sql);
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMPED", "SEQIPD", "QTDPED", "DSCPRO", "NOMCLI", "NOMREP");
+        return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
     private int executeSqlStatement(String sql) {
         Transaction transaction = null;
         int rowsAffected = 0;

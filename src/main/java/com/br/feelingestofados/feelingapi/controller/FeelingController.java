@@ -750,6 +750,16 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/pedidoPorNota", produces = "application/json")
+    @ResponseBody
+    public String getPedidoPorNota(@RequestParam String token, @RequestParam String codEmp, @RequestParam String codFil,
+                               @RequestParam String snfNfv, @RequestParam String numNfv, @RequestParam String seqIpv) {
+        if(checkToken(token))
+            return queriesService.getPedidoItemPorNota(codEmp, codFil, snfNfv, numNfv, seqIpv);
+        else
+            return TOKEN_INVALIDO;
+    }
+
     protected boolean checkToken(String token) {
         return TokensManager.getInstance().isTokenValid(token);
     }
