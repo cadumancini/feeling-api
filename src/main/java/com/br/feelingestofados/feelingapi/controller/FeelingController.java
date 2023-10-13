@@ -753,9 +753,19 @@ public class FeelingController {
     @GetMapping(value = "/pedidoPorNota", produces = "application/json")
     @ResponseBody
     public String getPedidoPorNota(@RequestParam String token, @RequestParam String codEmp, @RequestParam String codFil,
-                               @RequestParam String snfNfv, @RequestParam String numNfv, @RequestParam String seqIpv) {
+                                   @RequestParam String snfNfv, @RequestParam String numNfv, @RequestParam String seqIpv) {
         if(checkToken(token))
             return queriesService.getPedidoItemPorNota(codEmp, codFil, snfNfv, numNfv, seqIpv);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/notaPorPedido", produces = "application/json")
+    @ResponseBody
+    public String getNotaPorPedido(@RequestParam String token, @RequestParam String codEmp, @RequestParam String codFil,
+                                   @RequestParam String numPed, @RequestParam String seqIpd) {
+        if(checkToken(token))
+            return queriesService.getNotaPorPedido(codEmp, codFil, numPed, seqIpd);
         else
             return TOKEN_INVALIDO;
     }

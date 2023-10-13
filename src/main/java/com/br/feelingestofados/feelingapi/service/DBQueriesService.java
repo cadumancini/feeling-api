@@ -280,7 +280,7 @@ public class DBQueriesService extends FeelingService{
     public String findPedidosUsuario() {
         String sql = "SELECT PED.CODEMP, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.NUMPED, TO_CHAR(PED.DATEMI, 'DD/MM/YYYY') AS DATEMI, " +
                             "CLI.NOMCLI, REP.NOMREP, TRA.NOMTRA, PED.CODCLI, CLI.INTNET, CLI.FONCLI, CLI.CGCCPF, " +
-                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST, PED.TNSPRO, TNS.VENIPI " +
+                            "(CLI.ENDCLI || ' ' || CLI.CPLEND) AS ENDCPL, (CLI.CIDCLI || '/' || CLI.SIGUFS) AS CIDEST, CLI.INSEST, PED.TNSPRO, TNS.VENIPI, PED.CODFIL " +
                         "FROM E120PED PED, E085CLI CLI, E090REP REP, E073TRA TRA, E001TNS TNS " +
                         "WHERE PED.CODCLI = CLI.CODCLI " +
                         "AND PED.CODREP = REP.CODREP " +
@@ -290,7 +290,7 @@ public class DBQueriesService extends FeelingService{
                         "AND PED.SITPED IN (1,2,3,9) " +
                         "ORDER BY PED.NUMPED";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "PEDCLI", "PEDREP", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
+        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "PEDCLI", "PEDREP", "NUMPED", "DATEMI", "NOMCLI", "NOMREP", "NOMTRA", "CODCLI",
                                                 "INTNET", "FONCLI", "CGCCPF", "ENDCPL", "CIDEST", "INSEST", "TNSPRO", "VENIPI");
         return createJsonFromSqlResult(results, fields, "pedidos");
     }
@@ -371,8 +371,6 @@ public class DBQueriesService extends FeelingService{
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar campo CODMOT com valor 75.");
         }
-//        wsRequestsService.updateSitPedido(emp, fil, ped, "1", "C", token);
-//        wsRequestsService.updateSitPedido(emp, fil, ped, "S", "C", token);
 
         JSONObject jObj = new JSONObject();
         jObj.put("pesoTotalBruto", Double.toString(pesTotBru));
@@ -1395,11 +1393,28 @@ public class DBQueriesService extends FeelingService{
                        "AND IPV.NUMNFV = " + numNfv + " " +
                        "AND IPV.SEQIPV = " + seqIpv;
 
-        System.out.println(sql);
-
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("NUMPED", "SEQIPD", "QTDPED", "DSCPRO", "NOMCLI", "NOMREP");
         return createJsonFromSqlResult(results, fields, "pedido");
+    }
+
+    public String getNotaPorPedido(String codEmp, String codFil, String numPed, String seqIpd) {
+        String sql = "SELECT IPC.CODEMP, IPC.CODFIL, IPC.CODFOR, IPC.NUMNFC, IPC.CODSNF, IPC.SEQIPC, IPC.CPLIPC, " +
+                            "IPC.EMPNFV, IPC.FILNFV, IPC.SNFNFV, IPC.NUMNFV, IPC.SEQIPV " +
+                       "FROM E140IPV IPV, E440IPC IPC " +
+                      "WHERE IPV.CODEMP = IPC.EMPNFV " +
+                        "AND IPV.CODFIL = IPC.FILNFV " +
+                        "AND IPV.CODSNF = IPC.SNFNFV " +
+                        "AND IPV.NUMNFV = IPC.NUMNFV " +
+                        "AND IPV.SEQIPV = IPC.SEQIPV " +
+                        "AND IPV.CODEMP = " + codEmp + " " +
+                        "AND IPV.FILPED = " + codFil + " " +
+                        "AND IPV.NUMPED = " + numPed + " " +
+                        "AND IPV.SEQIPD = " + seqIpd;
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "CODFOR", "NUMNFC", "CODSNF", "SEQIPC", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV");
+        return createJsonFromSqlResult(results, fields, "nota");
     }
 
     private int executeSqlStatement(String sql) {
