@@ -695,6 +695,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/proximaAssistencia", produces = "application/json")
+    @ResponseBody
+    public String getNextAssistencia(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.getNextAssistencia();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @PostMapping(value = "/uploadArquivoRnc", produces = "application/json")
     @ResponseBody
     public String uploadArquivo(@RequestParam String ped, @RequestParam String ipd, @RequestParam String token, @RequestParam("file") MultipartFile file) throws IOException {

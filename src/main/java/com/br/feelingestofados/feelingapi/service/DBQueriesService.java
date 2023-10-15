@@ -1286,6 +1286,16 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
+    public String getNextAssistencia() {
+        String sql = "SELECT (USU_NUMASS + 1) AS NUMASS FROM USU_TASSIST ORDER BY USU_NUMASS DESC";
+
+        List<Object> results = listResultsFromSql(sql);
+        if(results.isEmpty()) results = listResultsFromSql("SELECT 1 AS NUMASS FROM DUAL");
+        results = List.of(results.get(0));
+        List<String> fields = Arrays.asList("NUMASS");
+        return createJsonFromSqlResult(results, fields, "assistencia");
+    }
+
     public String getOPsAcabado(String codEmp, String numPed, String seqIpd, String codFam) {
         String sql = "SELECT COP.CODORI, COP.NUMORP, COP.NUMPED, QDO.SEQIPD, QDO.CODPRO, QDO.CODDER, (PRO.DESNFV || ' ' || DER.DESCPL) AS DESPRO, FAM.DESFAM " +
                 "FROM E900COP COP, E900QDO QDO, E075PRO PRO, E075DER DER, E012FAM FAM " +
