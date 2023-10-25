@@ -9,7 +9,7 @@ public enum Forms {
     INVENTARIO ("ALM-INV", "Almoxarifado - Inventario", asList("Senior", "ALMOX")),
     SEPARACAO_MATERIAIS ("ALM-SEP", "Almoxarifado - Separacao de Materiais", asList("Senior", "ALMOX")),
     PEDIDO_WEB ("COM-PED", "Comercial - Pedido Web", asList("Senior", "PEDWEB")),
-    ASSISTENCIA_TECNICA ("COM-AST", "Comercial - Assistência Técnica", List.of("ALL")),
+    ASSISTENCIA_TECNICA ("COM-AST", "Comercial - Assistência Técnica", asList("Senior", "ASSIST")),
     APONTAMENTO_PRODUCAO ("PRD-APT", "Producao - Apontamento de Producao", asList("Senior", "AP-PROD")),
     NAO_CONFORMIDADE ("PRD-NCN", "Producao - Nao Conformidade", List.of("ALL"));
 
