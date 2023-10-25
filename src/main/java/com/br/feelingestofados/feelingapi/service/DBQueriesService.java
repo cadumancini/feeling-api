@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.service;
 
+import com.br.feelingestofados.feelingapi.entities.AssistenciaTecnica;
 import com.br.feelingestofados.feelingapi.entities.RNC;
 import com.br.feelingestofados.feelingapi.token.TokensManager;
 import org.hibernate.Criteria;
@@ -1147,6 +1148,53 @@ public class DBQueriesService extends FeelingService{
         }
     }
 
+    public String insertOrUpdateAssistencia(AssistenciaTecnica assistencia) throws Exception {
+        if (assistenciaExists(assistencia)) {
+            return updateAssistencia(assistencia);
+        } else {
+            return insertAssistencia(assistencia);
+        }
+    }
+
+    private String updateAssistencia(AssistenciaTecnica assistencia) throws Exception {
+        String sql = "UPDATE USU_TASSIST SET USU_SNFNFE = '" + assistencia.getSnfNfe() + "', USU_CODFOR = " + assistencia.getCodFor() + ", " +
+                "USU_CODFIL = " + assistencia.getCodFil() + ", USU_NUMNFC = " + assistencia.getNumNfc() + ", USU_SEQIPC = " + assistencia.getSeqIpc() + ", " +
+                "USU_NUMPED = " + assistencia.getNumPed() + ", USU_SEQIPD = " + assistencia.getSeqIpd() + ", USU_SEQIPE = " + assistencia.getSeqIpe() + ", " +
+                "USU_NUMSEP = '" + assistencia.getNumSep() + "', USU_DATGER = to_date('" + assistencia.getDatGer() + "', 'DD/MM/YYYY'), USU_DATENT = to_date('" + assistencia.getDatEnt() + "', 'DD/MM/YYYY'), " +
+                "USU_DATFEC = to_date('" + assistencia.getDatFec() + "', 'DD/MM/YYYY'), USU_RECCLI = '" + assistencia.getRecCli() + "', USU_AVAASS = '" + assistencia.getAvaAss() + "', " +
+                "USU_OUTOBS = '" + assistencia.getOutObs() + "', USU_ASSPRC '" + assistencia.getAssPrc() + "'= , USU_TIPFRE = '" + assistencia.getTipFre() + "', " +
+                "USU_NUMORI = " + assistencia.getNumOri() + ", USU_TIPSOL = '" + assistencia.getTipSol() + "', USU_DSCCRT = '" + assistencia.getDscCrt() + "', USU_NUMRNC = " + assistencia.getNumRnc() + " " +
+             "WHERE USU_CODEMP = " + assistencia.getCodEmp() + " AND USU_NUMASS = " + assistencia.getNumAss();
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha atualizada (USU_TASSIST) ao editar registro de Assistência Técnica. Comando: " + sql);
+
+        return "OK";
+    }
+
+    private String insertAssistencia(AssistenciaTecnica assistencia) throws Exception {
+        String sql = "INSERT INTO USU_TASSIST (USU_CODEMP, USU_NUMASS, USU_SNFNFE, USU_CODFOR, USU_CODFIL, USU_NUMNFC, " +
+                "USU_SEQIPC, USU_NUMPED, USU_SEQIPD, USU_SEQIPE, USU_NUMSEP, USU_DATGER, USU_DATENT, USU_DATFEC, USU_RECCLI, " +
+                "USU_AVAASS, USU_OUTOBS, USU_ASSPRC, USU_TIPFRE, USU_NUMORI, USU_TIPSOL, USU_DSCCRT, USU_NUMRNC) VALUES " +
+                "(" + assistencia.getCodEmp() + ", " + assistencia.getNumAss() + ", '" + assistencia.getSnfNfe() + "', " + assistencia.getCodFor() + ", " +
+                assistencia.getCodFil() + ", " + assistencia.getNumNfc() + ", " + assistencia.getSeqIpc() + ", " + assistencia.getNumPed() + ", " +
+                assistencia.getSeqIpd() + ", " + assistencia.getSeqIpe() + ", '" + assistencia.getNumSep() + "', to_date('" + assistencia.getDatGer() + "', 'DD/MM/YYYY'), " +
+                "to_date('" + assistencia.getDatEnt() + "', 'DD/MM/YYYY'), to_date('" + assistencia.getDatFec() + "', 'DD/MM/YYYY'), '" + assistencia.getRecCli() + "', '" + assistencia.getAvaAss() + "', " +
+                "'" + assistencia.getOutObs() + "', '" + assistencia.getAssPrc() + "', '" + assistencia.getTipFre() + "', " + assistencia.getNumOri() + ", " +
+                "'" + assistencia.getTipSol() + "', '" + assistencia.getDscCrt() + "', " + assistencia.getNumRnc() + ")";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (USU_TASSIST) ao inserir registro de Assistência Técnica. Comando: " + sql);
+
+        return "OK";
+    }
+
+    private boolean assistenciaExists(AssistenciaTecnica assistencia) {
+        String sql = "SELECT 1 FROM USU_TASSIST WHERE USU_CODEMP = " + assistencia.getCodEmp() + " AND USU_NUMASS = " + assistencia.getNumAss();
+        List<Object> results = listResultsFromSql(sql);
+        return (results.size() > 0);
+    }
+
     private boolean rncExists(RNC rnc) {
         String sql = "SELECT 1 FROM E104RMC WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
         List<Object> results = listResultsFromSql(sql);
@@ -1267,12 +1315,53 @@ public class DBQueriesService extends FeelingService{
                 "WHERE RMC.ORIRMC = ORG.CODRGQ " +
                 "AND RMC.AREAPL = ARE.CODARE " +
                 "AND RMC.USUGER = USU.CODUSU " +
-              "ORDER BY NUMRMC";
+                "ORDER BY NUMRMC";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "AREAPL", "DATAUD", "DESNCF",
                 "CONPRO", "JUSCON", "DESRGQ", "NOMARE", "USERNAME", "NUMPED", "SEQIPD", "SEQITE");
         return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
+    public String listAssistencias() {
+        String sql = "SELECT ASS.USU_NUMASS NUMASS, ASS.USU_CODEMP CODEMP, ASS.USU_SNFNFE SNFNFE, ASS.USU_CODFOR CODFOR, " +
+                "ASS.USU_CODFIL CODFIL, ASS.USU_NUMNFC NUMNFC, ASS.USU_NUMPED NUMPED, ASS.USU_SEQIPD SEQIPD, ASS.USU_SEQIPE SEQIPE, " +
+                "ASS.USU_NUMSEP NUMSEP, TO_CHAR(ASS.USU_DATGER, 'DD/MM/YYYY') AS DATGER, TO_CHAR(ASS.USU_DATENT, 'DD/MM/YYYY') AS DATENT, " +
+                "TO_CHAR(ASS.USU_DATFEC, 'DD/MM/YYYY') AS DATFEC, ASS.USU_RECCLI RECCLI, ORG.DESRGQ, " +
+                "ASS.USU_AVAASS AVAASS, ASS.USU_OUTOBS OUTOBS, ASS.USU_ASSPRC ASSPRC, ASS.USU_TIPFRE TIPFRE, ASS.USU_NUMORI NUMORI, " +
+                "ASS.USU_TIPSOL TIPSOL, ASS.USU_DSCCRT DSCCRT, ASS.USU_SEQIPC SEQIPC, CLI.NOMCLI, REP.NOMREP, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, " +
+                "IPD.QTDPED, IPC.CPLIPC, IPC.EMPNFV, IPC.FILNFV, IPC.SNFNFV, IPC.NUMNFV, IPC.SEQIPV, ASS.USU_NUMRNC NUMRNC " +
+                "FROM USU_TASSIST ASS, E104ORG ORG, E120PED PED, E085CLI CLI, E090REP REP, E120IPD IPD, E075PRO PRO, E075DER DER, E440IPC IPC " +
+                "WHERE ASS.USU_NUMORI = ORG.CODRGQ " +
+                "AND ASS.USU_CODEMP = PED.CODEMP " +
+                "AND ASS.USU_CODFIL = PED.CODFIL " +
+                "AND ASS.USU_NUMPED = PED.NUMPED " +
+                "AND PED.CODEMP = IPD.CODEMP " +
+                "AND PED.CODFIL = IPD.CODFIL " +
+                "AND PED.NUMPED = IPD.NUMPED " +
+                "AND ASS.USU_SEQIPD = IPD.SEQIPD " +
+                "AND IPD.CODEMP = PRO.CODEMP " +
+                "AND IPD.CODPRO = PRO.CODPRO " +
+                "AND IPD.CODEMP = DER.CODEMP " +
+                "AND IPD.CODPRO = DER.CODPRO " +
+                "AND IPD.CODDER = DER.CODDER " +
+                "AND PED.CODCLI = CLI.CODCLI " +
+                "AND PED.CODREP = REP.CODREP " +
+                "AND ASS.USU_CODEMP = IPC.CODEMP " +
+                "AND ASS.USU_CODFIL = IPC.CODFIL " +
+                "AND ASS.USU_CODFOR = IPC.CODFOR " +
+                "AND ASS.USU_NUMNFC = IPC.NUMNFC " +
+                "AND ASS.USU_SNFNFE = IPC.CODSNF " +
+                "AND ASS.USU_SEQIPC = IPC.SEQIPC " +
+                "ORDER BY ASS.USU_NUMASS";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMASS", "CODEMP", "SNFNFE", "CODFOR", "CODFIL", "NUMNFC",
+                "NUMPED", "SEQIPD", "SEQIPE", "NUMSEP", "DATGER", "DATENT", "DATFEC", "RECCLI", "AVAASS",
+                "OUTOBS", "ASSPRC", "TIPFRE", "NUMORI", "TIPSOL", "DSCCRT", "SEQIPC", "DESRGQ", "NOMCLI",
+                "NOMREP", "DSCPRO", "QTDPED", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV",
+                "NUMRNC");
+        return createJsonFromSqlResult(results, fields, "assistencias");
     }
 
     public String getNextRnc(String token) {

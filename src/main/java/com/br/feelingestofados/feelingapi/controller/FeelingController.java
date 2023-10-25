@@ -1,5 +1,6 @@
 package com.br.feelingestofados.feelingapi.controller;
 
+import com.br.feelingestofados.feelingapi.entities.AssistenciaWrapper;
 import com.br.feelingestofados.feelingapi.entities.PedidoWrapper;
 import com.br.feelingestofados.feelingapi.entities.RNCWrapper;
 import com.br.feelingestofados.feelingapi.service.DBQueriesService;
@@ -677,6 +678,15 @@ public class FeelingController {
             return TOKEN_INVALIDO;
     }
 
+    @GetMapping(value = "/assistencias", produces = "application/json")
+    @ResponseBody
+    public String listAssistencias(@RequestParam String token) {
+        if(checkToken(token))
+            return queriesService.listAssistencias();
+        else
+            return TOKEN_INVALIDO;
+    }
+
     @GetMapping(value = "/acaoRnc", produces = "application/json")
     @ResponseBody
     public String listAcaoRnc(@RequestParam String token, @RequestParam String codEmp, @RequestParam String tipRmc, @RequestParam String numRmc) {
@@ -775,6 +785,15 @@ public class FeelingController {
                                    @RequestParam String numPed, @RequestParam String seqIpd) {
         if(checkToken(token))
             return queriesService.getNotaPorPedido(codEmp, codFil, numPed, seqIpd);
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @PutMapping(value = "/assistencia", consumes = "application/json")
+    @ResponseBody
+    public String createAssistencia(@RequestBody AssistenciaWrapper assistWrapper, @RequestParam String token) throws Exception {
+        if(checkToken(token))
+            return queriesService.insertOrUpdateAssistencia(assistWrapper.getAssistencia());
         else
             return TOKEN_INVALIDO;
     }
