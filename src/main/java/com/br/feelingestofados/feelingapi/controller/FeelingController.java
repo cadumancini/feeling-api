@@ -597,9 +597,9 @@ public class FeelingController {
 
     @PostMapping(value = "/apontarOP", produces = "application/json")
     @ResponseBody
-    public String apontarOP(@RequestParam String token, @RequestParam String codBar) throws Exception {
+    public String apontarOP(@RequestParam String token, @RequestParam String codBar, @RequestParam String intExt, @RequestParam String remRet, @RequestParam String codFor) throws Exception {
         if(checkToken(token)) {
-            String returnMessage = sidService.runBaixaOP(token, codBar);
+            String returnMessage = sidService.runBaixaOP(token, codBar, intExt, remRet, codFor);
             return returnMessage.equals("OK") ? "Apontamento realizado com sucesso!" : returnMessage;
         }
         else
@@ -794,6 +794,16 @@ public class FeelingController {
     public String createAssistencia(@RequestBody AssistenciaWrapper assistWrapper, @RequestParam String token) throws Exception {
         if(checkToken(token))
             return queriesService.insertOrUpdateAssistencia(assistWrapper.getAssistencia());
+        else
+            return TOKEN_INVALIDO;
+    }
+
+    @GetMapping(value = "/fornecedoresPorProduto", produces = "application/json")
+    @ResponseBody
+    public String getFornecedoresPorPedido(@RequestParam String token, @RequestParam String codEmp,
+                                           @RequestParam String codPro, @RequestParam String codDer) {
+        if(checkToken(token))
+            return queriesService.getFornecedoresPorPedido(codEmp, codPro, codDer);
         else
             return TOKEN_INVALIDO;
     }

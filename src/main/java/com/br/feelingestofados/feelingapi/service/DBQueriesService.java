@@ -1516,6 +1516,19 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "nota");
     }
 
+    public String getFornecedoresPorPedido(String codEmp, String codPro, String codDer) {
+        String sql = "SELECT FORN.CODFOR, FORN.NOMFOR " +
+                       "FROM E403FPR FPR, E095FOR FORN " +
+                      "WHERE FPR.CODFOR = FORN.CODFOR " +
+                        "AND FPR.CODEMP = " + codEmp + " " +
+                        "AND FPR.CODPRO = '" + codPro + "' " +
+                        "AND FPR.CODDER = '" + codDer + "'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("CODFOR", "NOMFOR");
+        return createJsonFromSqlResult(results, fields, "fornecedores");
+    }
+
     private int executeSqlStatement(String sql) {
         Transaction transaction = null;
         int rowsAffected = 0;

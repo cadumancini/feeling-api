@@ -25,11 +25,13 @@ public class SIDService {
         feelingUrl = String.format("http://%s.feelingestofados.com.br/sapiensweb/conector?SIS=CO&LOGIN=SID&ACAO=EXESENHA", domain);
     }
 
-    public String runBaixaOP(String token, String aCodBar) throws IOException {
+    public String runBaixaOP(String token, String aCodBar, String aIntExt, String aRemRet, String aCodFor) throws IOException {
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
 
-        String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s", feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8), processBaixaOP, aCodBar);
+        String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s&aIntExt=%s&aRemRet=%s&aCodFor=%s",
+                feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8), processBaixaOP,
+                aCodBar, aIntExt, aRemRet, aCodFor);
         return getRequest(url);
     }
     private String getRequest(String url) throws IOException {
