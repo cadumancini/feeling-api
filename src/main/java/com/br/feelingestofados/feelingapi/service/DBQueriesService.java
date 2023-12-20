@@ -142,7 +142,7 @@ public class DBQueriesService extends FeelingService{
                       "WHERE PRO.CODEMP = MOD.CODEMP " +
                         "AND PRO.CODMOD = MOD.CODMOD " +
                         "AND PRO.CODEMP = " + codEmp + " " +
-                        "AND PRO.CODPRO LIKE '__" + estilo + "___' " +
+                        "AND PRO.CODPRO LIKE '__" + estilo + "%' " +
                         "AND PRO.CODORI = 'ACA'" +
                         "AND PRO.SITPRO = 'A' " +
                         "AND MOD.SITMOD = 'A' " +
