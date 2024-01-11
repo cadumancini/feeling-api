@@ -916,10 +916,10 @@ public class DBQueriesService extends FeelingService{
                         "AND PCE.CODFIL = " + fil + " " +
                         "AND PCE.SEQIPD = " + ipd + " " +
                         "AND PRO.CODFAM <> '01034' " +
-                        "AND NOT EXISTS (SELECT 1 FROM E075DER DER " +
-                                         "WHERE PRO.CODEMP = DER.CODEMP " +
-                                           "AND PRO.CODPRO = DER.CODPRO " +
-                                           "AND DER.CODDER = 'GM') " +
+                        "AND NOT EXISTS (SELECT 1 FROM E700CTM CTM " +
+                                         "WHERE PRO.CODEMP = CTM.CODEMP " +
+                                           "AND PRO.CODPRO = CTM.CODCMP " +
+                                           "AND CTM.CODMOD LIKE 'M%') " +
                         "AND PCE.SEQPCE = (SELECT MAX(X.SEQPCE) " +
                                             "FROM E700PCE X " +
                                            "WHERE PCE.CODEMP = X.CODEMP " +
