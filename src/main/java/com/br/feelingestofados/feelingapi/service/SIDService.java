@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 public class SIDService {
     private final String feelingUrl;
 
-    private final String processBaixaOP = "970";
+    private final String processBaixaOP = "972";
 
     public SIDService(Environment env) {
         String envValue = env.getProperty("env");
@@ -25,15 +25,16 @@ public class SIDService {
         feelingUrl = String.format("http://%s.feelingestofados.com.br/sapiensweb/conector?SIS=CO&LOGIN=SID&ACAO=EXESENHA", domain);
     }
 
-    public String runBaixaOP(String token, String aCodBar, String aIntExt, String aRemRet, String aCodFor) throws IOException {
+    public String runBaixaOP(String token, String aCodBar, String aTipOpe, String aCodFor) throws IOException {
         String user = TokensManager.getInstance().getUserNameFromToken(token);
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
 
-        String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s&aIntExt=%s&aRemRet=%s&aCodFor=%s",
+        String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s&aTipOpe=%s&aCodFor=%s",
                 feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8), processBaixaOP,
-                aCodBar, aIntExt, aRemRet, aCodFor);
+                aCodBar, aTipOpe, aCodFor);
         return getRequest(url);
     }
+
     private String getRequest(String url) throws IOException {
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet httpRequest = new HttpGet(url);

@@ -597,9 +597,9 @@ public class FeelingController {
 
     @PostMapping(value = "/apontarOP", produces = "application/json")
     @ResponseBody
-    public String apontarOP(@RequestParam String token, @RequestParam String codBar, @RequestParam String intExt, @RequestParam String remRet, @RequestParam String codFor) throws Exception {
+    public String apontarOP(@RequestParam String token, @RequestParam String codBar, @RequestParam String tipOpe, @RequestParam String codFor) throws Exception {
         if(checkToken(token)) {
-            String returnMessage = sidService.runBaixaOP(token, codBar, intExt, remRet, codFor);
+            String returnMessage = sidService.runBaixaOP(token, codBar, tipOpe, codFor);
             return returnMessage.equals("OK") ? "Apontamento realizado com sucesso!" : returnMessage;
         }
         else
