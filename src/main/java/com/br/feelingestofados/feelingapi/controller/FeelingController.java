@@ -800,10 +800,9 @@ public class FeelingController {
 
     @GetMapping(value = "/fornecedoresPorProduto", produces = "application/json")
     @ResponseBody
-    public String getFornecedoresPorPedido(@RequestParam String token, @RequestParam String codEmp,
-                                           @RequestParam String codPro, @RequestParam String codDer) {
+    public String getFornecedoresPorPedido(@RequestParam String token) {
         if(checkToken(token))
-            return queriesService.getFornecedoresPorPedido(codEmp, codPro, codDer);
+            return queriesService.getFornecedoresPorPedido();
         else
             return TOKEN_INVALIDO;
     }
