@@ -1204,8 +1204,7 @@ public class DBQueriesService extends FeelingService{
     private String updateRnc(RNC rnc) throws Exception {
         String sql = "UPDATE E104RMC SET ORIRMC = " + rnc.getOriRmc() + ", AREAPL = '" + rnc.getAreApl() + "', " +
                 "DATAUD = to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'), DESNCF = '" + rnc.getDesNcf() + "', " +
-                "USU_NUMPED = " + rnc.getNumPed() + ", USU_SEQIPD = " + rnc.getSeqIpd() + ", USU_SEQIPE = " + rnc.getSeqIte() + ", " +
-                "USU_CONPRO = '" + rnc.getConPro() + "', USU_JUSCON = '" + rnc.getJusCon() + "' " +
+                "USU_NUMPED = " + rnc.getNumPed() + ", USU_SEQIPD = " + rnc.getSeqIpd() + ", USU_SEQIPE = " + rnc.getSeqIte() + " " +
                 "WHERE CODEMP = " + rnc.getCodEmp() + " AND TIPRMC = '" + rnc.getTipRmc() + "' AND NUMRMC = " + rnc.getNumRmc();
 
         int rowsAffected = executeSqlStatement(sql);
@@ -1219,10 +1218,10 @@ public class DBQueriesService extends FeelingService{
 
     private String insertRnc(RNC rnc, int codUsu, String datAtu, int horaAtu) throws Exception {
         String sql = "INSERT INTO E104RMC (CODEMP,TIPRMC,NUMRMC,ASSRMC,ORIRMC,REQISO,AREAPL,CODCLI,CODFOR,DATAUD,AUDLID,USUGER,DATGER,HORGER,DESNCF,CODDOC,NUMEPI,ROTANX," +
-                                            "NUMANX,USU_CONPRO,USU_JUSCON,USU_USOMET,USU_DESMET,USU_EMAENV, USU_NUMPED, USU_SEQIPD, USU_SEQIPE) " +
+                                            "NUMANX,USU_USOMET,USU_DESMET,USU_EMAENV, USU_NUMPED, USU_SEQIPD, USU_SEQIPE) " +
                 "VALUES (" + rnc.getCodEmp() + ",'" + rnc.getTipRmc() + "'," + rnc.getNumRmc() + ",''," + rnc.getOriRmc() + ",''," +
                         "'" + rnc.getAreApl() + "',0,0,to_date('" + rnc.getDatAud() + "','DD/MM/YYYY'),' '," + codUsu + ",to_date('" + datAtu + "','DD/MM/YYYY')," +
-                        horaAtu + ",'" + rnc.getDesNcf() + "','',0,0,0,'" + rnc.getConPro() + "','" + rnc.getJusCon() + "','','',null," + rnc.getNumPed() + "," + rnc.getSeqIpd() + "," + rnc.getSeqIte() + ")";
+                        horaAtu + ",'" + rnc.getDesNcf() + "','',0,0,0,'','',null," + rnc.getNumPed() + "," + rnc.getSeqIpd() + "," + rnc.getSeqIte() + ")";
 
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0)  throw new Exception("Nenhuma linha inserida (E104RMC) ao inserir RNC. Comando: " + sql);
@@ -1309,7 +1308,7 @@ public class DBQueriesService extends FeelingService{
 
     public String listRncs() {
         String sql = "SELECT RMC.NUMRMC, RMC.ASSRMC, RMC.ORIRMC, RMC.REQISO, RMC.AREAPL, TO_CHAR(RMC.DATAUD, 'DD/MM/YYYY') AS DATAUD, " +
-                "RMC.DESNCF, RMC.CODDOC, RMC.USU_CONPRO AS CONPRO, RMC.USU_JUSCON AS JUSCON, ORG.DESRGQ, ARE.NOMARE, UPPER(USU.NOMUSU) AS USERNAME, " +
+                "RMC.DESNCF, RMC.CODDOC, ORG.DESRGQ, ARE.NOMARE, UPPER(USU.NOMUSU) AS USERNAME, " +
                 "RMC.USU_NUMPED AS NUMPED, RMC.USU_SEQIPD AS SEQIPD, RMC.USU_SEQIPE AS SEQITE " +
                 "FROM E104RMC RMC, E104ORG ORG, E079ARE ARE, R999USU USU " +
                 "WHERE RMC.ORIRMC = ORG.CODRGQ " +
@@ -1319,7 +1318,7 @@ public class DBQueriesService extends FeelingService{
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "AREAPL", "DATAUD", "DESNCF",
-                "CONPRO", "JUSCON", "DESRGQ", "NOMARE", "USERNAME", "NUMPED", "SEQIPD", "SEQITE");
+                "DESRGQ", "NOMARE", "USERNAME", "NUMPED", "SEQIPD", "SEQITE");
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 

@@ -11,8 +11,6 @@ public class RNC {
     private String areApl;
     private String datAud;
     private String desNcf;
-    private String conPro;
-    private String jusCon;
     private Integer numPed;
     private Integer seqIpd;
     private Integer seqIte;
