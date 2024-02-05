@@ -1322,15 +1322,33 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "rnc");
     }
 
+    public String listRncsPorPedido(String numPed, String seqIpd) {
+        String sql = "SELECT RMC.NUMRMC, RMC.ASSRMC, RMC.ORIRMC, RMC.REQISO, RMC.AREAPL, TO_CHAR(RMC.DATAUD, 'DD/MM/YYYY') AS DATAUD, " +
+                "RMC.DESNCF, RMC.CODDOC, ORG.DESRGQ, ARE.NOMARE, UPPER(USU.NOMUSU) AS USERNAME, " +
+                "RMC.USU_NUMPED AS NUMPED, RMC.USU_SEQIPD AS SEQIPD, RMC.USU_SEQIPE AS SEQITE " +
+                "FROM E104RMC RMC, E104ORG ORG, E079ARE ARE, R999USU USU " +
+                "WHERE RMC.ORIRMC = ORG.CODRGQ " +
+                "AND RMC.AREAPL = ARE.CODARE " +
+                "AND RMC.USUGER = USU.CODUSU " +
+                "AND RMC.USU_NUMPED = " + numPed + " " +
+                "AND RMC.USU_SEQIPD = " + seqIpd + " " +
+                "ORDER BY NUMRMC";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("NUMRMC", "ASSRMC", "ORIRMC", "AREAPL", "DATAUD", "DESNCF",
+                "DESRGQ", "NOMARE", "USERNAME", "NUMPED", "SEQIPD", "SEQITE");
+        return createJsonFromSqlResult(results, fields, "rnc");
+    }
+
     public String listAssistencias() {
-        String sql = "SELECT ASS.USU_NUMASS NUMASS, ASS.USU_CODEMP CODEMP, ASS.USU_SNFNFE SNFNFE, ASS.USU_CODFOR CODFOR, " +
-                "ASS.USU_CODFIL CODFIL, ASS.USU_NUMNFC NUMNFC, ASS.USU_NUMPED NUMPED, ASS.USU_SEQIPD SEQIPD, ASS.USU_SEQIPE SEQIPE, " +
+        String sql = "SELECT ASS.USU_NUMASS NUMASS, ASS.USU_CODEMP CODEMP, ASS.USU_SNFNFE CODSNF, ASS.USU_CODFOR CODFOR, " +
+                "ASS.USU_CODFIL CODFIL, ASS.USU_NUMNFC NUMNFV, ASS.USU_NUMPED NUMPED, ASS.USU_SEQIPD SEQIPD, ASS.USU_SEQIPE SEQIPE, " +
                 "ASS.USU_NUMSEP NUMSEP, TO_CHAR(ASS.USU_DATGER, 'DD/MM/YYYY') AS DATGER, TO_CHAR(ASS.USU_DATENT, 'DD/MM/YYYY') AS DATENT, " +
                 "TO_CHAR(ASS.USU_DATFEC, 'DD/MM/YYYY') AS DATFEC, ASS.USU_RECCLI RECCLI, ORG.DESRGQ, " +
                 "ASS.USU_AVAASS AVAASS, ASS.USU_OUTOBS OUTOBS, ASS.USU_ASSPRC ASSPRC, ASS.USU_TIPFRE TIPFRE, ASS.USU_NUMORI NUMORI, " +
-                "ASS.USU_TIPSOL TIPSOL, ASS.USU_DSCCRT DSCCRT, ASS.USU_SEQIPC SEQIPC, CLI.NOMCLI, REP.NOMREP, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, " +
-                "IPD.QTDPED, IPC.CPLIPC, IPC.EMPNFV, IPC.FILNFV, IPC.SNFNFV, IPC.NUMNFV, IPC.SEQIPV, ASS.USU_NUMRNC NUMRNC " +
-                "FROM USU_TASSIST ASS, E104ORG ORG, E120PED PED, E085CLI CLI, E090REP REP, E120IPD IPD, E075PRO PRO, E075DER DER, E440IPC IPC " +
+                "ASS.USU_TIPSOL TIPSOL, ASS.USU_DSCCRT DSCCRT, ASS.USU_SEQIPC SEQIPV, CLI.NOMCLI, REP.NOMREP, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, " +
+                "IPD.QTDPED, IPV.CPLIPV, ASS.USU_NUMRNC NUMRNC " +
+                "FROM USU_TASSIST ASS, E104ORG ORG, E120PED PED, E085CLI CLI, E090REP REP, E120IPD IPD, E075PRO PRO, E075DER DER, E140IPV IPV " +
                 "WHERE ASS.USU_NUMORI = ORG.CODRGQ " +
                 "AND ASS.USU_CODEMP = PED.CODEMP " +
                 "AND ASS.USU_CODFIL = PED.CODFIL " +
@@ -1346,20 +1364,18 @@ public class DBQueriesService extends FeelingService{
                 "AND IPD.CODDER = DER.CODDER " +
                 "AND PED.CODCLI = CLI.CODCLI " +
                 "AND PED.CODREP = REP.CODREP " +
-                "AND ASS.USU_CODEMP = IPC.CODEMP " +
-                "AND ASS.USU_CODFIL = IPC.CODFIL " +
-                "AND ASS.USU_CODFOR = IPC.CODFOR " +
-                "AND ASS.USU_NUMNFC = IPC.NUMNFC " +
-                "AND ASS.USU_SNFNFE = IPC.CODSNF " +
-                "AND ASS.USU_SEQIPC = IPC.SEQIPC " +
+                "AND ASS.USU_CODEMP = IPV.CODEMP " +
+                "AND ASS.USU_CODFIL = IPV.CODFIL " +
+                "AND ASS.USU_NUMNFC = IPV.NUMNFV " +
+                "AND ASS.USU_SNFNFE = IPV.CODSNF " +
+                "AND ASS.USU_SEQIPC = IPV.SEQIPV " +
                 "ORDER BY ASS.USU_NUMASS";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("NUMASS", "CODEMP", "SNFNFE", "CODFOR", "CODFIL", "NUMNFC",
+        List<String> fields = Arrays.asList("NUMASS", "CODEMP", "CODSNF", "CODFOR", "CODFIL", "NUMNFV",
                 "NUMPED", "SEQIPD", "SEQIPE", "NUMSEP", "DATGER", "DATENT", "DATFEC", "RECCLI", "AVAASS",
-                "OUTOBS", "ASSPRC", "TIPFRE", "NUMORI", "TIPSOL", "DSCCRT", "SEQIPC", "DESRGQ", "NOMCLI",
-                "NOMREP", "DSCPRO", "QTDPED", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV",
-                "NUMRNC");
+                "OUTOBS", "ASSPRC", "TIPFRE", "NUMORI", "TIPSOL", "DSCCRT", "SEQIPV", "DESRGQ", "NOMCLI",
+                "NOMREP", "DSCPRO", "QTDPED", "NUMRNC");
         return createJsonFromSqlResult(results, fields, "assistencias");
     }
 
@@ -1442,29 +1458,27 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String getNotasFiscais() {
-        String sql = "SELECT NFC.CODEMP, NFC.CODFIL, NFC.CODFOR, FORN.NOMFOR, NFC.NUMNFC, NFC.CODSNF, TO_CHAR(NFC.DATENT, 'DD/MM/YYYY') AS DATENT " +
-                       "FROM E440NFC NFC, E095FOR FORN " +
-                      "WHERE NFC.CODFOR = FORN.CODFOR " +
-                        "AND NFC.NOPPRO LIKE '1949%' " +
-                   "ORDER BY NFC.DATENT DESC";
+        String sql = "SELECT NFV.CODEMP, NFV.CODFIL, NFV.NUMNFV, NFV.CODSNF, TO_CHAR(NFV.DATEMI, 'DD/MM/YYYY') AS DATEMI " +
+                       "FROM E140NFV NFV " +
+                      "WHERE NFV.TNSPRO IN ('6101x','5101x','5949F','6949F') " +
+                   "ORDER BY NFV.DATEMI DESC";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "CODFOR", "NOMFOR", "NUMNFC", "CODSNF", "DATENT");
+        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "NUMNFV", "CODSNF", "DATEMI");
         return createJsonFromSqlResult(results, fields, "notas");
     }
 
-    public String getItensNota(String codEmp, String codFil, String codFor, String numNfc, String codSnf) {
-        String sql = "SELECT SEQIPC, CPLIPC, EMPNFV, FILNFV, SNFNFV, NUMNFV, SEQIPV " +
-                       "FROM E440IPC " +
+    public String getItensNota(String codEmp, String codFil, String numNfv, String codSnf) {
+        String sql = "SELECT SEQIPV, CPLIPV " +
+                       "FROM E140IPV " +
                       "WHERE CODEMP = " + codEmp + " " +
                         "AND CODFIL = " + codFil + " " +
-                        "AND CODFOR = " + codFor + " " +
-                        "AND NUMNFC = " + numNfc + " " +
+                        "AND NUMNFV = " + numNfv + " " +
                         "AND CODSNF = '" + codSnf + "' " +
-                      "ORDER BY SEQIPC";
+                      "ORDER BY SEQIPV";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("SEQIPC", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV");
+        List<String> fields = Arrays.asList("SEQIPV", "CPLIPV");
         return createJsonFromSqlResult(results, fields, "itens");
     }
 
@@ -1497,21 +1511,15 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String getNotaPorPedido(String codEmp, String codFil, String numPed, String seqIpd) {
-        String sql = "SELECT IPC.CODEMP, IPC.CODFIL, IPC.CODFOR, IPC.NUMNFC, IPC.CODSNF, IPC.SEQIPC, IPC.CPLIPC, " +
-                            "IPC.EMPNFV, IPC.FILNFV, IPC.SNFNFV, IPC.NUMNFV, IPC.SEQIPV " +
-                       "FROM E140IPV IPV, E440IPC IPC " +
-                      "WHERE IPV.CODEMP = IPC.EMPNFV " +
-                        "AND IPV.CODFIL = IPC.FILNFV " +
-                        "AND IPV.CODSNF = IPC.SNFNFV " +
-                        "AND IPV.NUMNFV = IPC.NUMNFV " +
-                        "AND IPV.SEQIPV = IPC.SEQIPV " +
-                        "AND IPV.CODEMP = " + codEmp + " " +
+        String sql = "SELECT IPV.CODEMP, IPV.CODFIL, IPV.NUMNFV, IPV.CODSNF, IPV.SEQIPV, IPV.CPLIPV " +
+                       "FROM E140IPV IPV " +
+                      "WHERE IPV.CODEMP = " + codEmp + " " +
                         "AND IPV.FILPED = " + codFil + " " +
                         "AND IPV.NUMPED = " + numPed + " " +
                         "AND IPV.SEQIPD = " + seqIpd;
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "CODFOR", "NUMNFC", "CODSNF", "SEQIPC", "CPLIPC", "EMPNFV", "FILNFV", "SNFNFV", "NUMNFV", "SEQIPV");
+        List<String> fields = Arrays.asList("CODEMP", "CODFIL", "NUMNFV", "CODSNF", "SEQIPV", "CPLIPV");
         return createJsonFromSqlResult(results, fields, "nota");
     }
 
