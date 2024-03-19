@@ -18,6 +18,7 @@ public class SIDService {
     private final String feelingUrl;
 
     private final String processBaixaOP = "972";
+    private final String processSepararAlmox = "973";
 
     public SIDService(Environment env) {
         String envValue = env.getProperty("env");
@@ -30,8 +31,18 @@ public class SIDService {
         String pswd = TokensManager.getInstance().getPasswordFromToken(token);
 
         String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s&aTipOpe=%s&aCodFor=%s",
-                feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8), processBaixaOP,
-                aCodBar, aTipOpe, aCodFor);
+                feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8),
+                processBaixaOP, aCodBar, aTipOpe, aCodFor);
+        return getRequest(url);
+    }
+
+    public String runSeparacaoAlmox(String token, String aCodBar) throws IOException {
+        String user = TokensManager.getInstance().getUserNameFromToken(token);
+        String pswd = TokensManager.getInstance().getPasswordFromToken(token);
+
+        String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s",
+                feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8),
+                processSepararAlmox, aCodBar);
         return getRequest(url);
     }
 

@@ -552,9 +552,11 @@ public class FeelingController {
     }
 
     @PostMapping(value = "/separarAlmox", produces = "application/json")
-    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String qtdSep) {
-        if(checkToken(token))
-            return "OK";
+    public String separarAlmoxarifado(@RequestParam String token, @RequestParam String codBar, @RequestParam String operacao) throws IOException {
+        if(checkToken(token)) {
+            if (operacao.equals("C")) return queriesService.consultarOPAlmox(codBar);
+            else return sidService.runSeparacaoAlmox(token, codBar);
+        }
         else
             return TOKEN_INVALIDO;
     }

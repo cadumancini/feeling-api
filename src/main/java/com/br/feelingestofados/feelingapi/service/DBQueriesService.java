@@ -1597,4 +1597,22 @@ public class DBQueriesService extends FeelingService{
         file.transferTo(dest);
         return "OK";
     }
+
+    public String consultarOPAlmox(String codBar) {
+        String[] params = codBar.split("\\.");
+        String sql = "SELECT E900CMO.QTDREQ " +
+                       "FROM E900COP, E900CMO " +
+                      "WHERE E900COP.CODEMP = E900CMO.CODEMP " +
+                        "AND E900COP.CODORI = E900CMO.CODORI " +
+                        "AND E900COP.NUMORP = E900CMO.NUMORP " +
+                        "AND E900COP.CODEMP = " + Integer.parseInt(params[0]) + " " +
+                        "AND E900COP.CODORI = '" + params[1] + "' " +
+                        "AND E900COP.NUMORP = " +  Integer.parseInt(params[2]) + " " +
+                        "AND E900CMO.CODCMP = '" + params[3] + "' " +
+                        "AND E900CMO.CODDER = '" + params[4] + "'";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("QTDREQ");
+        return createJsonFromSqlResult(results, fields, "OP");
+    }
 }
