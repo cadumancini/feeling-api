@@ -349,6 +349,9 @@ public class DBQueriesService extends FeelingService{
                             String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
                                     ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
                                     ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
+                                    ", USU_LAREMB = " + Double.valueOf(eElement.getElementsByTagName("larDer").item(0).getTextContent()) +
+                                    ", USU_ALTEMB = " + Double.valueOf(eElement.getElementsByTagName("altDer").item(0).getTextContent()) +
+                                    ", USU_COMEMB = " + Double.valueOf(eElement.getElementsByTagName("comDer").item(0).getTextContent()) +
                                     " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
                             int rowsAffected = executeSqlStatement(sql);
                             if (rowsAffected == 0) {
@@ -466,7 +469,7 @@ public class DBQueriesService extends FeelingService{
     public String findDadosDerivacao(String emp, String pro, String der) {
         String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER, DER.DESCPL, " +
                             "PRO.CPLPRO, PRO.DESNFV, DER.DESDER, DER.DEPPAD AS DEPDER, PRO.DEPPAD AS DEPPRO, FAM.DEPPAD AS DEPFAM, " +
-                            "ORI.DEPPAD AS DEPORI, PRO.UNIMED " +
+                            "ORI.DEPPAD AS DEPORI, PRO.UNIMED, DER.LARDER, DER.ALTDER, DER.COMDER " +
                 "FROM E075DER DER, E075PRO PRO, E012FAM FAM, E083ORI ORI " +
                 "WHERE DER.CODEMP = PRO.CODEMP " +
                 "AND DER.CODPRO = PRO.CODPRO " +
@@ -479,7 +482,8 @@ public class DBQueriesService extends FeelingService{
                 "AND DER.CODDER = '" + der + "'";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL",
-                                    "CPLPRO", "DESNFV", "DESDER", "DEPDER", "DEPPRO", "DEPFAM", "DEPORI", "UNIMED");
+                                    "CPLPRO", "DESNFV", "DESDER", "DEPDER", "DEPPRO", "DEPFAM", "DEPORI", "UNIMED",
+                                    "LARDER", "ALTDER", "COMDER");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 

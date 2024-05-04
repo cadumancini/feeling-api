@@ -75,7 +75,10 @@ public class WebServiceRequestsService extends FeelingService{
                 String pesLiq = jObjDer.getJSONArray("dados").getJSONObject(0).getString("PESLIQ");
                 String volDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("VOLDER");
                 String desCpl = jObjDer.getJSONArray("dados").getJSONObject(0).getString("DESCPL");
-                String desPpc = jObjProCli.getJSONArray("produto").length() > 0 ? 
+                String larDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("LARDER");
+                String altDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("ALTDER");
+                String comDer = jObjDer.getJSONArray("dados").getJSONObject(0).getString("COMDER");
+                String desPpc = jObjProCli.getJSONArray("produto").length() > 0 ?
                     jObjProCli.getJSONArray("produto").getJSONObject(0).getString("DESNFV") : desNfv;
 
                 Element eExiCmp = doc.createElement("exiCmp");
@@ -96,6 +99,12 @@ public class WebServiceRequestsService extends FeelingService{
                 ePesBru.appendChild(doc.createTextNode(pesBru));
                 Element ePesLiq = doc.createElement("pesLiq");
                 ePesLiq.appendChild(doc.createTextNode(pesLiq));
+                Element eLarDer = doc.createElement("larDer");
+                eLarDer.appendChild(doc.createTextNode(larDer));
+                Element eAltDer = doc.createElement("altDer");
+                eAltDer.appendChild(doc.createTextNode(altDer));
+                Element eComDer = doc.createElement("comDer");
+                eComDer.appendChild(doc.createTextNode(comDer));
                 Element eVolDer = doc.createElement("volDer");
                 eVolDer.appendChild(doc.createTextNode(volDer));
                 Element eDesCpl = doc.createElement("desCpl");
@@ -112,6 +121,9 @@ public class WebServiceRequestsService extends FeelingService{
                 eElement.appendChild(eCodRef);
                 eElement.appendChild(ePesBru);
                 eElement.appendChild(ePesLiq);
+                eElement.appendChild(eLarDer);
+                eElement.appendChild(eAltDer);
+                eElement.appendChild(eComDer);
                 eElement.appendChild(eVolDer);
                 eElement.appendChild(eDesCpl);
                 eElement.appendChild(eDesPpc);
