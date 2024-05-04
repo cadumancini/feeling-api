@@ -1614,10 +1614,18 @@ public class DBQueriesService extends FeelingService{
                         "AND E900COP.CODORI = '" + params[1] + "' " +
                         "AND E900COP.NUMORP = " +  Integer.parseInt(params[2]) + " " +
                         "AND E900CMO.CODCMP = '" + params[3] + "' " +
-                        "AND E900CMO.CODDER = '" + params[4] + "'";
+                        "AND E900CMO.CODDER = '" + defineCodDer(params) + "'";
 
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("QTDREQ");
         return createJsonFromSqlResult(results, fields, "OP");
+    }
+
+    private String defineCodDer(String[] params) {
+        try {
+            return params[4];
+        } catch (Exception e) {
+            return " ";
+        }
     }
 }
