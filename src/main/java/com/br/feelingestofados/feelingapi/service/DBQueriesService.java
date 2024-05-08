@@ -349,9 +349,9 @@ public class DBQueriesService extends FeelingService{
                             String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
                                     ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
                                     ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
-                                    ", USU_LAREMB = " + Double.valueOf(eElement.getElementsByTagName("larDer").item(0).getTextContent()) +
-                                    ", USU_ALTEMB = " + Double.valueOf(eElement.getElementsByTagName("altDer").item(0).getTextContent()) +
-                                    ", USU_COMEMB = " + Double.valueOf(eElement.getElementsByTagName("comDer").item(0).getTextContent()) +
+                                    ", USU_LAREMB = (QTDPDED * " + Double.valueOf(eElement.getElementsByTagName("larDer").item(0).getTextContent()) + ")" +
+                                    ", USU_ALTEMB = (QTDPDED * " + Double.valueOf(eElement.getElementsByTagName("altDer").item(0).getTextContent()) + ")" +
+                                    ", USU_COMEMB = (QTDPDED * " + Double.valueOf(eElement.getElementsByTagName("comDer").item(0).getTextContent()) + ")" +
                                     " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
                             int rowsAffected = executeSqlStatement(sql);
                             if (rowsAffected == 0) {
