@@ -342,20 +342,26 @@ public class DBQueriesService extends FeelingService{
                         String codProEst = eElement.getElementsByTagName("codPro").item(0).getTextContent();
                         String codDerEst = eElement.getElementsByTagName("codDer").item(0).getTextContent();
                         if(codFam.equals("15001")) {
-                            pesTotBru += Double.parseDouble(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
-                            pesTotLiq += Double.parseDouble(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
-                            volTot += Double.parseDouble(eElement.getElementsByTagName("volDer").item(0).getTextContent());
+                            try {
+                                pesTotBru += Double.parseDouble(eElement.getElementsByTagName("pesBru").item(0).getTextContent());
+                                pesTotLiq += Double.parseDouble(eElement.getElementsByTagName("pesLiq").item(0).getTextContent());
+                                volTot += Double.parseDouble(eElement.getElementsByTagName("volDer").item(0).getTextContent());
 
-                            String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
-                                    ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
-                                    ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
-                                    ", USU_LAREMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("larDer").item(0).getTextContent()) + ")" +
-                                    ", USU_ALTEMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("altDer").item(0).getTextContent()) + ")" +
-                                    ", USU_COMEMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("comDer").item(0).getTextContent()) + ")" +
-                                    " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
-                            int rowsAffected = executeSqlStatement(sql);
-                            if (rowsAffected == 0) {
-                                throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar os valores em USU_PESLIQ, USU_PESBRU e USU_VOLDER.");
+                                String sql = "UPDATE E120IPD SET USU_PESBRU = " + Double.valueOf(eElement.getElementsByTagName("pesBru").item(0).getTextContent()) +
+                                        ", USU_PESLIQ = " + Double.valueOf(eElement.getElementsByTagName("pesLiq").item(0).getTextContent()) +
+                                        ", USU_VOLDER = " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) +
+                                        ", USU_LAREMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("larDer").item(0).getTextContent()) + ")" +
+                                        ", USU_ALTEMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("altDer").item(0).getTextContent()) + ")" +
+                                        ", USU_COMEMB = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("comDer").item(0).getTextContent()) + ")" +
+                                        ", USU_VOLTOT = (QTDPED * " + Double.valueOf(eElement.getElementsByTagName("volDer").item(0).getTextContent()) + ")" +
+                                        " WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped + " AND SEQIPD = " + seqIpd;
+                                int rowsAffected = executeSqlStatement(sql);
+                                if (rowsAffected == 0) {
+                                    throw new Exception("Nenhuma linha atualizada (E120IPD) ao setar os valores em USU_PESLIQ, USU_PESBRU e USU_VOLDER.");
+                                }
+                            } catch (Exception ex) {
+                                temErro = true;
+                                erros.append(ex.getMessage()).append("\n");
                             }
                         }
                         if(proGen.equals("S") || codDerEst.equals("G") || codDerEst.equals("GM")) {
