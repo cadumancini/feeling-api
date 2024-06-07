@@ -56,6 +56,7 @@ public class DBQueriesService extends FeelingService{
                         "AND B.SITPRO = 'A' " +
                         "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
+                        "AND C.CODDER <> 'U' " +
                     "UNION " +
                     "SELECT DISTINCT A.USU_CODCMP AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // TITULAR
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
@@ -71,6 +72,7 @@ public class DBQueriesService extends FeelingService{
                         "AND B.SITPRO = 'A' " +
                         "AND C.SITDER = 'A' " +
                         "AND C.CODDER <> 'G' " +
+                        "AND C.CODDER <> 'U' " +
                     "UNION " +
                     "SELECT DISTINCT A.USU_CMPEQI AS CODPRO, C.CODDER, (B.DESNFV || ' ' || C.DESDER) AS DSCEQI, C.USU_CODREF AS CODREF " + // OUTROS EQUIVALENTES CASO JA TENHA ESCOLHIDO UM EQUIVALENTE
                         "FROM USU_T075EQI A, E075PRO B, E075DER C " +
@@ -94,6 +96,7 @@ public class DBQueriesService extends FeelingService{
                                                                 "AND EQI.USU_DEREQI = '" + der + "') " +
                         "AND (A.USU_CMPEQI || A.USU_DEREQI) <> '" + componente + der + "' " +
                         "AND C.CODDER <> 'G' " +
+                        "AND C.CODDER <> 'U' " +
                         "AND B.SITPRO = 'A' " +
                         "AND C.SITDER = 'A' " +
                     "ORDER BY CODPRO, CODDER";
@@ -116,6 +119,7 @@ public class DBQueriesService extends FeelingService{
                         "AND A.USU_CMPEQI = '" + componente + "' " +
                         "AND A.USU_DEREQI = '" + der + "' " +
                         "AND C.CODDER <> 'G' " +
+                        "AND C.CODDER <> 'U' " +
                         "ORDER BY A.USU_CODCMP, C.CODDER";
 
         List<Object> results = listResultsFromSql(sql);
@@ -753,6 +757,7 @@ public class DBQueriesService extends FeelingService{
                         "AND DER.CODEMP = " + emp + " " +
                         "AND DER.CODPRO = '" + pro + "' " +
                         "AND DER.CODDER <> 'G' " +
+                        "AND DER.CODDER <> 'U' " +
                         "AND DER.SITDER = 'A' " +
                         "AND EXISTS (SELECT 1 FROM E700CTM CTM " +
                                      "WHERE CTM.CODEMP = DER.CODEMP " +
