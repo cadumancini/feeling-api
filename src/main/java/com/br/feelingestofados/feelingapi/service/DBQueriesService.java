@@ -223,10 +223,10 @@ public class DBQueriesService extends FeelingService{
                              "PED.SITPED, PED.PEDCLI, PED.USU_PEDREP AS PEDREP, PED.CODCLI, PED.CODEMP, PED.CODREP, PED.CODTRA, " +
                              "PED.CIFFOB, PED.OBSPED, PED.TNSPRO, TNS.VENIPI, PED.CODMOT, NVL(PED.USU_PEDFEI, 'N') AS PEDFEI, NVL(PED.PEDBLO, 'N') AS PEDBLO, " +
                              "CASE WHEN EXISTS (SELECT 1 FROM E120IPD IPD WHERE IPD.CODEMP = PED.CODEMP AND IPD.CODFIL = PED.CODFIL " +
-                                                   "AND IPD.NUMPED = PED.NUMPED AND NVL(IPD.USU_ENVEMP, 'N') = 'S') " +
+                                                   "AND IPD.NUMPED = PED.NUMPED AND (NVL(IPD.USU_ENVEMP, 'N') = 'S' OR IPD.GERNEC <> 0)) " +
                              "THEN 'S' ELSE 'N' END AS PEDENV, " +
                              "CASE WHEN EXISTS (SELECT 1 FROM E120IPD IPD WHERE IPD.CODEMP = PED.CODEMP AND IPD.CODFIL = PED.CODFIL " +
-                                                   "AND IPD.NUMPED = PED.NUMPED AND NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ')) " +
+                                                   "AND IPD.NUMPED = PED.NUMPED AND (NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ') OR IPD.GERNEC = 0)) " +
                              "THEN 'S' ELSE 'N' END AS PEDABE " +                           
                        "FROM E120PED PED, E028CPG CPG, E001TNS TNS " +
                       "WHERE PED.CODEMP = CPG.CODEMP " +
@@ -419,7 +419,7 @@ public class DBQueriesService extends FeelingService{
                                                   "AND COP.NUMPED = IPD.NUMPED " +
                                                   "AND QDO.SEQIPD = IPD.SEQIPD " +
                                                   "AND COP.SITORP IN ('A','L','E','F')) THEN 'S' ELSE 'N' END) AS TEMORP, " +
-                            "(CASE WHEN NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ') THEN 'N' ELSE 'S' END) AS IPDENV " + 
+                            "(CASE WHEN (NVL(IPD.USU_ENVEMP, 'N') IN ('N', ' ') OR IPD.GERNEC <> 0) THEN 'N' ELSE 'S' END) AS IPDENV " +
                        "FROM E120IPD IPD, E075PRO PRO, E075DER DER, E084CPR CPR, E001TNS TNS " +
                       "WHERE IPD.CODEMP = PRO.CODEMP " +
                         "AND IPD.CODPRO = PRO.CODPRO " +
