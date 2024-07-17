@@ -479,7 +479,17 @@ public class DBQueriesService extends FeelingService{
     public String findDadosDerivacao(String emp, String pro, String der) {
         String sql = "SELECT DER.CODPRO, DER.CODDER, DER.USU_CODREF AS CODREF, DER.PESBRU, DER.PESLIQ, DER.VOLDER, DER.DESCPL, " +
                             "PRO.CPLPRO, PRO.DESNFV, DER.DESDER, DER.DEPPAD AS DEPDER, PRO.DEPPAD AS DEPPRO, FAM.DEPPAD AS DEPFAM, " +
-                            "ORI.DEPPAD AS DEPORI, PRO.UNIMED, DER.LARDER, DER.ALTDER, DER.COMDER " +
+                            "ORI.DEPPAD AS DEPORI, PRO.UNIMED, DER.LARDER, DER.ALTDER, DER.COMDER, " +
+                            "NVL((SELECT (TO_CHAR(A.DATDIG, 'DD/MM/YYYY') || ' - ' || " +
+                                        "LPAD(TO_CHAR((A.HORDIG - MOD(A.HORDIG, 60)) / 60), 2, '0') || ':' || " +
+                                        "LPAD(TO_CHAR(MOD(A.HORDIG, 60)), 2, '0')) " +
+                                   "FROM E210MVP A " +
+                                  "WHERE A.CODEMP = DER.CODEMP " +
+                                    "AND A.CODPRO = DER.CODPRO " +
+                                    "AND A.CODDER = DER.CODDER " +
+                                    "AND A.CODTNS IN ('90255', '90205') " +
+                                  "ORDER BY A.DATMOV DESC, A.SEQMOV DESC " +
+                                  "FETCH FIRST ROW ONLY), ' ') AS ULTINV " +
                 "FROM E075DER DER, E075PRO PRO, E012FAM FAM, E083ORI ORI " +
                 "WHERE DER.CODEMP = PRO.CODEMP " +
                 "AND DER.CODPRO = PRO.CODPRO " +
@@ -493,7 +503,7 @@ public class DBQueriesService extends FeelingService{
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL",
                                     "CPLPRO", "DESNFV", "DESDER", "DEPDER", "DEPPRO", "DEPFAM", "DEPORI", "UNIMED",
-                                    "LARDER", "ALTDER", "COMDER");
+                                    "LARDER", "ALTDER", "COMDER", "ULTINV");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
