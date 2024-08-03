@@ -489,7 +489,17 @@ public class DBQueriesService extends FeelingService{
                                     "AND A.CODDER = DER.CODDER " +
                                     "AND A.CODTNS IN ('90255', '90205') " +
                                   "ORDER BY A.DATMOV DESC, A.SEQMOV DESC " +
-                                  "FETCH FIRST ROW ONLY), ' ') AS ULTINV " +
+                                  "FETCH FIRST ROW ONLY), ' ') AS ULTINV, " +
+                            "NVL((SELECT (TO_CHAR(A.DATDIG, 'DD/MM/YYYY') || ' - ' || " +
+                                        "LPAD(TO_CHAR((A.HORDIG - MOD(A.HORDIG, 60)) / 60), 2, '0') || ':' || " +
+                                        "LPAD(TO_CHAR(MOD(A.HORDIG, 60)), 2, '0')) " +
+                                   "FROM E210OBS A " +
+                                  "WHERE A.CODEMP = DER.CODEMP " +
+                                    "AND A.CODPRO = DER.CODPRO " +
+                                    "AND A.CODDER = DER.CODDER " +
+                                    "AND A.TEXOBS LIKE '%IGUAL AO SISTEMA' " +
+                                  "ORDER BY A.DATDIG DESC, A.SEQOBS DESC " +
+                                  "FETCH FIRST ROW ONLY), ' ') AS ULTOBS " +
                 "FROM E075DER DER, E075PRO PRO, E012FAM FAM, E083ORI ORI " +
                 "WHERE DER.CODEMP = PRO.CODEMP " +
                 "AND DER.CODPRO = PRO.CODPRO " +
@@ -503,7 +513,7 @@ public class DBQueriesService extends FeelingService{
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODREF", "PESBRU", "PESLIQ", "VOLDER", "DESCPL",
                                     "CPLPRO", "DESNFV", "DESDER", "DEPDER", "DEPPRO", "DEPFAM", "DEPORI", "UNIMED",
-                                    "LARDER", "ALTDER", "COMDER", "ULTINV");
+                                    "LARDER", "ALTDER", "COMDER", "ULTINV", "ULTOBS");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
@@ -554,7 +564,7 @@ public class DBQueriesService extends FeelingService{
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
-    public String movimentarEstoque(String pro, String der, String codLot, String depOri, String depDes, String qtdCon, String token) throws IOException {
+    public String movimentarEstoque(String pro, String der, String codLot, String depOri, String depDes, String qtdCon, String token) throws Exception {
         String retorno = "";
         if(!codLot.equals("")) {
             String resultLote = this.findEstoqueLote(codLot);
@@ -572,6 +582,8 @@ public class DBQueriesService extends FeelingService{
                     if (qtdMov != 0.0) {
                         codTns = qtdMov > 0.0 ? "90255" : "90205";
                         qtdMov = Math.abs(qtdMov);
+                    } else {
+                        insertObsMov("1", pro, der, depOri, token);
                     }
                     retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
 
@@ -648,6 +660,8 @@ public class DBQueriesService extends FeelingService{
                 if (qtdMov != 0.0) {
                     codTns = qtdMov > 0.0 ? "90255" : "90205";
                     qtdMov = Math.abs(qtdMov);
+                } else {
+                    insertObsMov("1", pro, der, depOri, token);
                 }
                 retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                 
@@ -746,6 +760,8 @@ public class DBQueriesService extends FeelingService{
                 if (qtdMov != 0.0) {
                     codTns = qtdMov > 0.0 ? "90255" : "90205";
                     qtdMov = Math.abs(qtdMov);
+                } else {
+                    insertObsMov("1", pro, der, depOri, token);
                 }
                 retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
                 
@@ -757,6 +773,43 @@ public class DBQueriesService extends FeelingService{
             wsRequestsService.executarRelatorio("1", pro, der, codLot, qtdCon, token);
         }
         return retorno;
+    }
+
+    private String insertObsMov(String codEmp, String codPro, String codDer, String codDep, String token) throws Exception {
+        String datObs = getDataAtual();
+        int horObs = getHoraAtualEmMinutos();
+        int codUsu = buscaCodUsuFromToken(token);
+
+        JSONObject jObj = new JSONObject(findUltimoSeqObs(codEmp, codPro, codDer, codDep, datObs));
+        int seqObs = jObj.getJSONArray("seq").getJSONObject(0).getInt("MAXSEQ");
+
+        String sql = "INSERT INTO E210OBS A (A.CODEMP,A.CODPRO,A.CODDER,A.CODDEP,A.DATOBS,A.SEQOBS,A.TIPOBS,A.TEXOBS," +
+                "A.USUDIG,A.DATDIG,A.HORDIG,A.USUGER,A.DATGER,A.HORGER) " +
+                "VALUES ("+ codEmp + ",'" + codPro + "','" + codDer + "','" + codDep + "',TO_DATE('" + datObs + "', 'DD/MM/YYYY')," +
+                seqObs + ",'M','QUANTIDADE LIDA NO FÍSICO IGUAL AO SISTEMA'," +
+                codUsu + ",TO_DATE('" + datObs + "', 'DD/MM/YYYY')," + horObs + "," +
+                codUsu + ",TO_DATE('" + datObs + "', 'DD/MM/YYYY')," + horObs + ")";
+
+        int rowsAffected = executeSqlStatement(sql);
+        if (rowsAffected == 0) {
+            throw new Exception("Nenhuma linha inserida (E210OBS) ao inserir observação de item sem alteração no estoque.");
+        }
+
+        return "OK";
+    }
+
+    private String findUltimoSeqObs(String codEmp, String codPro, String codDer, String codDep, String datObs) {
+        String sql = "SELECT (NVL(MAX(SEQOBS), 0) + 1) AS MAXSEQ " +
+                       "FROM E210OBS " +
+                      "WHERE CODEMP = " + codEmp + " " +
+                        "AND CODPRO = '" + codPro + "' " +
+                        "AND CODDER = '" + codDer + "' " +
+                        "AND CODDEP = '" + codDep + "' " +
+                        "AND DATOBS = TO_DATE('" + datObs + "', 'DD/MM/YYYY')";
+
+        List<Object> results = listResultsFromSql(sql);
+        List<String> fields = Arrays.asList("MAXSEQ");
+        return createJsonFromSqlResult(results, fields, "seq");
     }
 
     public String findDerivacoesPossiveis(String emp, String pro, String mod, String derMod) {
