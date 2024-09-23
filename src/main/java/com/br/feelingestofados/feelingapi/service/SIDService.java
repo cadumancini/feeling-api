@@ -33,7 +33,11 @@ public class SIDService {
         String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s&aTipOpe=%s&aCodFor=%s",
                 feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8),
                 processBaixaOP, aCodBar, aTipOpe, aCodFor);
-        return getRequest(url);
+        System.out.println("Regra: " + url);
+
+        String resposta = getRequest(url);
+        System.out.println("Resposta: " + resposta);
+        return resposta;
     }
 
     public String runSeparacaoAlmox(String token, String aCodBar) throws IOException {
@@ -43,7 +47,11 @@ public class SIDService {
         String url = String.format("%s&NOMUSU=%s&SENUSU=%s&PROXACAO=SID.Srv.Regra&NumReg=%s&aCodBar=%s",
                 feelingUrl,  URLEncoder.encode(user, StandardCharsets.UTF_8),  URLEncoder.encode(pswd, StandardCharsets.UTF_8),
                 processSepararAlmox, aCodBar);
-        return getRequest(url);
+        System.out.println("Regra: " + url);
+
+        String resposta = getRequest(url);
+        System.out.println("Resposta: " + resposta);
+        return resposta;
     }
 
     private String getRequest(String url) throws IOException {
