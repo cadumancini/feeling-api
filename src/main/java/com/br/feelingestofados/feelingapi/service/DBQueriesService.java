@@ -1169,7 +1169,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public void marcarPedidoRep(String emp, String fil, String ped, String pedRep) throws Exception {
-        String sql = "UPDATE E120PED SET USU_PEDREP = '" + pedRep +"' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
+        String sql = "UPDATE E120PED SET USU_PEDREP = '" + pedRep + "' WHERE CODEMP = " + emp + " AND CODFIL = " + fil + " AND NUMPED = " + ped;
         int rowsAffected = executeSqlStatement(sql);
         if (rowsAffected == 0) {
             throw new Exception("Nenhuma linha atualizada (E120PED) ao setar pedido representante. Comando: " + sql);

@@ -22,8 +22,8 @@ public class SIDService {
 
     public SIDService(Environment env) {
         String envValue = env.getProperty("env");
-        String domain = envValue.equals("prod") ? "sapiensweb" : "baseteste";
-        feelingUrl = String.format("http://%s.feelingestofados.com.br/sapiensweb/conector?SIS=CO&LOGIN=SID&ACAO=EXESENHA", domain);
+        String domain = envValue.equals("prod") ? "sapiensweb.feelingestofados.com.br" : "baseteste.feelingestofados.com.br:28080";
+        feelingUrl = String.format("http://%s/sapiensweb/conector?SIS=CO&LOGIN=SID&ACAO=EXESENHA", domain);
     }
 
     public String runBaixaOP(String token, String aCodBar, String aTipOpe, String aCodFor) throws IOException {

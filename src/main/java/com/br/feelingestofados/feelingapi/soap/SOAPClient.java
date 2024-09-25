@@ -23,8 +23,8 @@ public class SOAPClient {
 
     public SOAPClient(Environment env) {
         String envValue = env.getProperty("env");
-        String domain = envValue.equals("prod") ? "sapiensweb" : "baseteste";
-        wsUrl = String.format("http://%s.feelingestofados.com.br/g5-senior-services/sapiens_Sync", domain);
+        String domain = envValue.equals("prod") ? "sapiensweb.feelingestofados.com.br" : "baseteste.feelingestofados.com.br:28080";
+        wsUrl = String.format("http://%s/g5-senior-services/sapiens_Sync", domain);
     }
 
     public String requestFromSeniorWS(String wsPath, String service, String usr, String pswd, String encryption, HashMap params) throws IOException {
