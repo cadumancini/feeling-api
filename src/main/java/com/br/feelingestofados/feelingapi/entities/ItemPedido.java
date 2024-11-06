@@ -28,4 +28,5 @@ public class ItemPedido {
     private String outEsp;
     private String tnsPro;
     private String sitIpd = "";
+    private String cplIpd;
 }

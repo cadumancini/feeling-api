@@ -158,7 +158,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDerivacoesPorProduto(String codEmp, String codPro) {
-        String sql = "SELECT CODDER, DESDER " +
+        String sql = "SELECT CODDER, DESDER, DESCPL " +
                        "FROM E075DER " +
                        "WHERE CODEMP = " + codEmp + " " +
                          "AND CODPRO = '" + codPro + "' " +
@@ -166,7 +166,7 @@ public class DBQueriesService extends FeelingService{
                        "ORDER BY CODDER";
 
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODDER", "DESDER");
+        List<String> fields = Arrays.asList("CODDER", "DESDER", "DESCPL");
         return createJsonFromSqlResult(results, fields, "derivacoes");
     }
 
