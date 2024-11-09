@@ -225,7 +225,7 @@ public class WebServiceRequestsService extends FeelingService{
                     paramsItem.put("codPro", itemPedido.getCodPro());
                     paramsItem.put("codDer", itemPedido.getCodDer());
                     paramsItem.put("seqIpd", itemPedido.getSeqIpd());
-                    paramsItem.put("cplIpd", itemPedido.getCplIpd());
+                    if(itemPedido.getCplIpd() != null) paramsItem.put("cplIpd", itemPedido.getCplIpd());
                     paramsItem.put("qtdPed", itemPedido.getQtdPed());
                     paramsItem.put("preUni", String.valueOf(itemPedido.getPreUni()).replace(".", ","));
                     paramsItem.put("seqPcl", itemPedido.getNumCnj());

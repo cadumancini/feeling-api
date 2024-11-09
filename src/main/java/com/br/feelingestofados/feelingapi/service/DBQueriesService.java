@@ -396,7 +396,7 @@ public class DBQueriesService extends FeelingService{
 
     public String findItensPedido(String emp, String fil, String ped) {
         String sql = "SELECT IPD.SEQIPD, IPD.CODPRO, IPD.CODDER, IPD.QTDPED, (PRO.DESNFV || ' ' || DER.DESDER) AS DSCPRO, " +
-                            "PRO.DESPRO, DER.DESDER, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, IPD.GERNEC, " +
+                            "PRO.DESPRO, DER.DESDER, DER.DESCPL, PRO.DESNFV, IPD.PERDSC, IPD.PERCOM, IPD.OBSIPD, IPD.GERNEC, " +
                             "IPD.SEQPCL, TO_CHAR(IPD.DATENT, 'DD/MM/YYYY') AS DATENT, IPD.PREUNI AS VLRIPD, " +
                             "CPR.CODCPR, CPR.DESCPR, NVL(IPD.USU_LARDER, 0) AS LARDER, (DER.PESLIQ * IPD.QTDPED) AS PESIPD, " +
                             "((DER.VOLDER / 100) * IPD.QTDPED) AS VOLIPD, " +
@@ -436,7 +436,7 @@ public class DBQueriesService extends FeelingService{
                         "AND IPD.NUMPED = " + ped + " " +
                       "ORDER BY IPD.SEQIPD";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER",
+        List<String> fields = Arrays.asList("SEQIPD", "CODPRO", "CODDER", "QTDPED", "DSCPRO", "DESPRO", "DESDER", "DESCPL", "DESNFV",
                 "PERDSC", "PERCOM", "OBSIPD", "SEQPCL", "DATENT", "VLRIPD", "CODCPR", "DESCPR", "LARDER",
                 "PESIPD", "VOLIPD", "IPIIPD", "ICMIPD", "NFVIPD", "CMED", "CDES", "CPAG", "CPRA", "COUT",
                 "PERDS1", "PERDS2", "PERDS3", "PERDS4", "PERDS5", "PERGUE", "VLRRET", "MEDMIN", "MEDMAX",
