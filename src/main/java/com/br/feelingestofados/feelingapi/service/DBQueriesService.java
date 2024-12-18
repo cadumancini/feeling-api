@@ -566,6 +566,7 @@ public class DBQueriesService extends FeelingService{
 
     public String movimentarEstoque(String pro, String der, String codLot, String depOri, String depDes, String qtdCon, String token) throws Exception {
         String retorno = "";
+        String msgSucesso = "<mensagemRetorno>Processado com Sucesso.</mensagemRetorno>";
         if(!codLot.equals("")) {
             String resultLote = this.findEstoqueLote(codLot);
 
@@ -582,14 +583,15 @@ public class DBQueriesService extends FeelingService{
                     if (qtdMov != 0.0) {
                         codTns = qtdMov > 0.0 ? "90255" : "90205";
                         qtdMov = Math.abs(qtdMov);
+                        retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                     } else {
                         insertObsMov("1", pro, der, depOri, token);
+                        retorno = msgSucesso;
                     }
-                    retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
 
                 } else {
                     //   zerar empresa atual do lote com qtd atual
-                    retorno = wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
+                    wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
 
                     //   movimentar emp1 com lote com qtd contada
                     qtdCon = qtdCon.replace(',', '.');
@@ -599,7 +601,7 @@ public class DBQueriesService extends FeelingService{
                 }
             } else {
                 // zerar empresa atual no depOri
-                retorno = wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
+                wsRequestsService.handleContagem(empLote, pro, der, depOri, codLot, qtdEstLote, "90255", token);
 
                 // movientar emp1 no depDes
                 qtdCon = qtdCon.replace(',', '.');
@@ -628,7 +630,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp3
@@ -639,7 +641,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp5
@@ -650,7 +652,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
                 
                 // movimentar emp1
@@ -660,10 +662,11 @@ public class DBQueriesService extends FeelingService{
                 if (qtdMov != 0.0) {
                     codTns = qtdMov > 0.0 ? "90255" : "90205";
                     qtdMov = Math.abs(qtdMov);
+                    retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                 } else {
                     insertObsMov("1", pro, der, depOri, token);
+                    retorno = msgSucesso;
                 }
-                retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                 
             } else {
                 // zerar estoque emp1 no depOri
@@ -674,7 +677,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp2 no depOri
@@ -685,7 +688,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("2", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp3 no depOri
@@ -696,7 +699,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("3", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp5 no depOri
@@ -707,7 +710,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("5", pro, der, depOri, codLot, qtdMov.toString(), tnsEst, token);
                 }
                 
                 estEmp1Json = this.findQtdeEstoque("1", pro, der, depDes);
@@ -728,7 +731,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("2", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("2", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp3 no depDes
@@ -739,7 +742,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("3", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("3", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
                 }
 
                 // zerar estoque emp5 no depDes
@@ -750,7 +753,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         tnsEst = "90205";
                     }
-                    retorno = wsRequestsService.handleContagem("5", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
+                    wsRequestsService.handleContagem("5", pro, der, depDes, codLot, qtdMov.toString(), tnsEst, token);
                 }
                 
                 // movimentar emp1 no depDes:
@@ -760,15 +763,15 @@ public class DBQueriesService extends FeelingService{
                 if (qtdMov != 0.0) {
                     codTns = qtdMov > 0.0 ? "90255" : "90205";
                     qtdMov = Math.abs(qtdMov);
+                    retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
                 } else {
                     insertObsMov("1", pro, der, depOri, token);
+                    retorno = msgSucesso;
                 }
-                retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
-                
             }
         }
 
-        if (retorno.contains("<mensagemRetorno>Processado com Sucesso.</mensagemRetorno>") && !codLot.equals("")) {
+        if (retorno.contains(msgSucesso) && !codLot.equals("")) {
             // chamar impressao de etiqueta
             wsRequestsService.executarRelatorio("1", pro, der, codLot, qtdCon, token);
         }
