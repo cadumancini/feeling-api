@@ -551,9 +551,9 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEstoqueLote(String lot) {
-        String sql = "SELECT QTDEST, CODEMP FROM E210DLS WHERE CODLOT = '" + lot + "'";
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210DLS WHERE CODLOT = '" + lot + "'";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("QTDEST", "CODEMP");
+        List<String> fields = Arrays.asList("QTDEST");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
@@ -585,7 +585,7 @@ public class DBQueriesService extends FeelingService{
                         qtdMov = Math.abs(qtdMov);
                         retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                     } else {
-                        insertObsMov("1", pro, der, depOri, token);
+                        insertObsMov("1", pro, der, depOri, token, codLot);
                         retorno = msgSucesso;
                     }
 
@@ -664,7 +664,7 @@ public class DBQueriesService extends FeelingService{
                     qtdMov = Math.abs(qtdMov);
                     retorno = wsRequestsService.handleContagem("1", pro, der, depOri, codLot, qtdMov.toString(), codTns, token);
                 } else {
-                    insertObsMov("1", pro, der, depOri, token);
+                    insertObsMov("1", pro, der, depOri, token, codLot);
                     retorno = msgSucesso;
                 }
                 
@@ -765,7 +765,7 @@ public class DBQueriesService extends FeelingService{
                     qtdMov = Math.abs(qtdMov);
                     retorno = wsRequestsService.handleContagem("1", pro, der, depDes, codLot, qtdMov.toString(), codTns, token);
                 } else {
-                    insertObsMov("1", pro, der, depOri, token);
+                    insertObsMov("1", pro, der, depOri, token, codLot);
                     retorno = msgSucesso;
                 }
             }
@@ -778,7 +778,7 @@ public class DBQueriesService extends FeelingService{
         return retorno;
     }
 
-    private String insertObsMov(String codEmp, String codPro, String codDer, String codDep, String token) throws Exception {
+    private String insertObsMov(String codEmp, String codPro, String codDer, String codDep, String token, String codLot) throws Exception {
         String datObs = getDataAtual();
         int horObs = getHoraAtualEmMinutos();
         int codUsu = buscaCodUsuFromToken(token);
@@ -786,9 +786,9 @@ public class DBQueriesService extends FeelingService{
         JSONObject jObj = new JSONObject(findUltimoSeqObs(codEmp, codPro, codDer, codDep, datObs));
         int seqObs = jObj.getJSONArray("seq").getJSONObject(0).getInt("MAXSEQ");
 
-        String sql = "INSERT INTO E210OBS A (A.CODEMP,A.CODPRO,A.CODDER,A.CODDEP,A.DATOBS,A.SEQOBS,A.TIPOBS,A.TEXOBS," +
+        String sql = "INSERT INTO E210OBS A (A.CODEMP,A.CODPRO,A.CODDER,A.CODDEP,A.CODLOT,A.DATOBS,A.SEQOBS,A.TIPOBS,A.TEXOBS," +
                 "A.USUDIG,A.DATDIG,A.HORDIG,A.USUGER,A.DATGER,A.HORGER) " +
-                "VALUES ("+ codEmp + ",'" + codPro + "','" + codDer + "','" + codDep + "',TO_DATE('" + datObs + "', 'DD/MM/YYYY')," +
+                "VALUES ("+ codEmp + ",'" + codPro + "','" + codDer + "','" + codDep + "','" + codLot + "',TO_DATE('" + datObs + "', 'DD/MM/YYYY')," +
                 seqObs + ",'M','QUANTIDADE LIDA NO FÍSICO IGUAL AO SISTEMA'," +
                 codUsu + ",TO_DATE('" + datObs + "', 'DD/MM/YYYY')," + horObs + "," +
                 codUsu + ",TO_DATE('" + datObs + "', 'DD/MM/YYYY')," + horObs + ")";
