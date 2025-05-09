@@ -345,7 +345,7 @@ public class WebServiceRequestsService extends FeelingService{
         params.put("codLot", codLot);
         params.put("qtdMov", qtdMov);
         params.put("codTns", codTns);
-        params.put("obsMov", "Gerado pelo APP de Inventário");
+        params.put("motMvp", "Gerado pelo APP de Inventário");
 
         HashMap<String, HashMap> paramsPedido = new HashMap<>();
         paramsPedido.put("dadosGerais", params);
