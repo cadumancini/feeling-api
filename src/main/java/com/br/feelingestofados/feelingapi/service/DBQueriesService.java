@@ -537,14 +537,14 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDepositosLigados(String pro, String der) {
-        String sql = "SELECT DISTINCT CODDEP FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND SITEST = 'A' ORDER BY CODDEP";
+        String sql = "SELECT DISTINCT CODDEP FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND SITEST = 'A' AND CODEMP IN (1,2,3,5) ORDER BY CODDEP";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("CODDEP");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
     public String findQtdeEstoque(String pro, String der, String dep) {
-        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A'";
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST FROM E210EST WHERE CODPRO = '" + pro + "' AND CODDER = '" + der + "' AND CODDEP = '" + dep + "' AND SITEST = 'A' AND CODEMP IN (1,2,3,5)";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("QTDEST");
         return createJsonFromSqlResult(results, fields, "dados");
