@@ -1685,25 +1685,60 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String consultarOPAlmox(String codBar) {
-        String[] params = codBar.split("\\.");
-        String sql = "SELECT E900CMO.QTDREQ " +
-                       "FROM E900COP, E900CMO " +
-                      "WHERE E900COP.CODEMP = E900CMO.CODEMP " +
-                        "AND E900COP.CODORI = E900CMO.CODORI " +
-                        "AND E900COP.NUMORP = E900CMO.NUMORP " +
-                        "AND E900COP.CODEMP = " + Integer.parseInt(params[0]) + " " +
-                        "AND E900COP.CODORI = '" + params[1] + "' " +
-                        "AND E900COP.NUMORP = " +  Integer.parseInt(params[2]) + " " +
-                        "AND E900CMO.CODCMP = '" + params[3] + "' " +
-                        "AND E900CMO.CODDER = '" + defineCodDer(params) + "'";
-
+        String sql = buildSqlForCodBar(codBar);
+        if (sql == null) {
+            return createJsonFromSqlResult(new ArrayList<>(), Arrays.asList("QTDREQ"), "OP");
+        }
+        
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("QTDREQ");
         return createJsonFromSqlResult(results, fields, "OP");
     }
 
-    private String defineCodDer(String[] params) {
+    private String buildSqlForCodBar(String codBar) {
+        // If codBar contains ".", use the original query
+        if (codBar.contains(".")) {
+            String[] params = codBar.split("\\.");
+            return "SELECT E900CMO.QTDREQ " +
+                   "FROM E900COP, E900CMO " +
+                   "WHERE E900COP.CODEMP = E900CMO.CODEMP " +
+                   "AND E900COP.CODORI = E900CMO.CODORI " +
+                   "AND E900COP.NUMORP = E900CMO.NUMORP " +
+                   "AND E900COP.CODEMP = " + Integer.parseInt(params[0]) + " " +
+                   "AND E900COP.CODORI = '" + params[1] + "' " +
+                   "AND E900COP.NUMORP = " + Integer.parseInt(params[2]) + " " +
+                   "AND E900CMO.CODCMP = '" + params[3] + "' " +
+                   "AND E900CMO.CODDER = '" + defineCodDer(params, ".") + "'";
+        }
+        
+        // If codBar contains "-", use the new query
+        if (codBar.contains("-")) {
+            String[] params = codBar.split("-");
+            return "SELECT E900CMO.QTDREQ " +
+                   "FROM E900COP, E900QDO, E900CMO WHERE " +
+                   "E900COP.CODEMP = E900CMO.CODEMP AND " +
+                   "E900COP.CODORI = E900CMO.CODORI AND " +
+                   "E900COP.NUMORP = E900CMO.NUMORP AND " +
+                   "E900COP.CODEMP = E900QDO.CODEMP AND " +
+                   "E900COP.CODORI = E900QDO.CODORI AND " +
+                   "E900COP.NUMORP = E900QDO.NUMORP AND " +
+                   "E900COP.SITORP <> 'C' AND " +
+                   "E900COP.CODEMP = " + Integer.parseInt(params[0]) + " AND " +
+                   "E900COP.CODORI = '" + params[1] + "' AND " +
+                   "E900COP.NUMPED = " + Integer.parseInt(params[2]) + " AND " +
+                   "E900QDO.SEQIPD = " + Integer.parseInt(params[3]) + " AND " +
+                   "E900CMO.CODCMP = '" + params[4] + "' AND " +
+                   "E900CMO.CODDER = '" + defineCodDer(params, "-") + "'";
+        }
+        
+        return null;
+    }
+
+    private String defineCodDer(String[] params, String delimiter) {
         try {
+            if (delimiter.equals("-")) {
+                return params[5];
+            }
             return params[4];
         } catch (Exception e) {
             return " ";
