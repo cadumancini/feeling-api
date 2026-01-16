@@ -1714,7 +1714,7 @@ public class DBQueriesService extends FeelingService{
         // If codBar contains "-", use the new query
         if (codBar.contains("-")) {
             String[] params = codBar.split("-");
-            return "SELECT E900CMO.QTDREQ " +
+            return "SELECT SUM(E900CMO.QTDREQ) AS QTDREQ " +
                    "FROM E900COP, E900QDO, E900CMO WHERE " +
                    "E900COP.CODEMP = E900CMO.CODEMP AND " +
                    "E900COP.CODORI = E900CMO.CODORI AND " +
