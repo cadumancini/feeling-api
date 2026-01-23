@@ -1715,13 +1715,17 @@ public class DBQueriesService extends FeelingService{
         if (codBar.contains("-")) {
             String[] params = codBar.split("-");
             return "SELECT SUM(E900CMO.QTDREQ) AS QTDREQ " +
-                   "FROM E900COP, E900QDO, E900CMO WHERE " +
+                   "FROM E900COP, E900QDO, E900CMO, E900DLS WHERE " +
                    "E900COP.CODEMP = E900CMO.CODEMP AND " +
                    "E900COP.CODORI = E900CMO.CODORI AND " +
                    "E900COP.NUMORP = E900CMO.NUMORP AND " +
                    "E900COP.CODEMP = E900QDO.CODEMP AND " +
                    "E900COP.CODORI = E900QDO.CODORI AND " +
                    "E900COP.NUMORP = E900QDO.NUMORP AND " +
+                   "E900COP.CODEMP = E900DLS.CODEMP AND " +
+                   "E900COP.CODORI = E900DLS.CODORI AND " +
+                   "E900COP.NUMORP = E900DLS.NUMORP AND " +
+                   "E900DLS.USU_SEQIPE = " + Integer.parseInt(params[6]) + " AND " +
                    "E900COP.SITORP <> 'C' AND " +
                    "E900COP.CODEMP = " + Integer.parseInt(params[0]) + " AND " +
                    "E900COP.CODORI = '" + params[1] + "' AND " +
