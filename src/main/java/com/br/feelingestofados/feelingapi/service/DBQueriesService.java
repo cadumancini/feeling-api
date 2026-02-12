@@ -518,19 +518,24 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findDadosLote(String emp, String lote) {
-        String sql = "SELECT DLS.CODPRO, DLS.CODDER " +
+        String sql = "SELECT DLS.CODPRO, DLS.CODDER, DLS.CODDEP " +
                 "FROM E210DLS DLS " +
                 "WHERE DLS.CODLOT = '" + lote + "' " +
+                "AND DLS.QTDEST > 0 " +
                 "AND ROWNUM = 1";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("CODPRO", "CODDER");
+        List<String> fields = Arrays.asList("CODPRO", "CODDER", "CODDEP");
         String resultString = createJsonFromSqlResult(results, fields, "dados");
 
         JSONObject jObj = new JSONObject(resultString);
         if(jObj.getJSONArray("dados").length() > 0) {
             String codPro = jObj.getJSONArray("dados").getJSONObject(0).getString("CODPRO");
             String codDer = jObj.getJSONArray("dados").getJSONObject(0).getString("CODDER");
-            return this.findDadosDerivacao(emp, codPro, codDer);
+            String codDep = jObj.getJSONArray("dados").getJSONObject(0).getString("CODDEP");
+            String dadosDerivacao = this.findDadosDerivacao(emp, codPro, codDer);
+            JSONObject resultado = new JSONObject(dadosDerivacao);
+            resultado.getJSONArray("dados").getJSONObject(0).put("DEPLOTE", codDep);
+            return resultado.toString();
         } else {
             return resultString;
         }
@@ -551,9 +556,9 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEstoqueLote(String lot) {
-        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST, CODEMP FROM E210DLS WHERE CODLOT = '" + lot + "' GROUP BY CODEMP";
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST, CODEMP, CODDEP FROM E210DLS WHERE CODLOT = '" + lot + "' GROUP BY CODEMP, CODDEP ORDER BY SUM(QTDEST) DESC";
         List<Object> results = listResultsFromSql(sql);
-        List<String> fields = Arrays.asList("QTDEST", "CODEMP");
+        List<String> fields = Arrays.asList("QTDEST", "CODEMP", "CODDEP");
         return createJsonFromSqlResult(results, fields, "dados");
     }
 
@@ -570,9 +575,13 @@ public class DBQueriesService extends FeelingService{
         if(!codLot.equals("")) {
             String resultLote = this.findEstoqueLote(codLot);
 
-            // ver em qual empresa está o lote
+            // ver em qual empresa e depósito está o lote
             String qtdEstLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("QTDEST");
             String empLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("CODEMP");
+            String depRealLote = new JSONObject(resultLote).getJSONArray("dados").getJSONObject(0).getString("CODDEP");
+
+            // usar o depósito real do lote no banco, ignorando o que veio do frontend
+            depOri = depRealLote;
 
             if (depOri.equals(depDes)) {
                 if(empLote.equals("1")) {
