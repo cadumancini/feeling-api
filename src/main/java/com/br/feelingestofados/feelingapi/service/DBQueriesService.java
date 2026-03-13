@@ -556,7 +556,7 @@ public class DBQueriesService extends FeelingService{
     }
 
     public String findEstoqueLote(String lot) {
-        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST, CODEMP, CODDEP FROM E210DLS WHERE CODLOT = '" + lot + "' GROUP BY CODEMP, CODDEP ORDER BY SUM(QTDEST) DESC";
+        String sql = "SELECT NVL(SUM(QTDEST), 0) AS QTDEST, CODEMP, CODDEP FROM E210DLS WHERE CODLOT = '" + lot + "' GROUP BY CODEMP, CODDEP ORDER BY QTDEST DESC";
         List<Object> results = listResultsFromSql(sql);
         List<String> fields = Arrays.asList("QTDEST", "CODEMP", "CODDEP");
         return createJsonFromSqlResult(results, fields, "dados");
